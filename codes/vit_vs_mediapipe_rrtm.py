@@ -48,7 +48,8 @@ handsModule   = mediapipe.solutions.hands
 #capture = cv2.VideoCapture("../Testeos/ninho.webm")#1)
 #capture = cv2.VideoCapture(0)#1)
 filename = "/media/cristian/12FF1F6D0CD48422/Research/Gloss/Gloss/Datasets/PUCP/PruebasLSP/LSP-testeo 8 de marzo/cristian_lazo/guardar.webm"
-capture = cv2.VideoCapture(0) 
+capture = cv2.VideoCapture(2)
+
 ## initialize pose estimator
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
