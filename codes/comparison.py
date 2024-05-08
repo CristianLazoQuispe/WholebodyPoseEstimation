@@ -61,7 +61,10 @@ handsModule   = mediapipe.solutions.hands
 #capture = cv2.VideoCapture("../Testeos/ninho.webm")#1)
 #capture = cv2.VideoCapture(0)#1)
 filename = "/media/cristian/12FF1F6D0CD48422/Research/Gloss/Gloss/Datasets/PUCP/PruebasLSP/LSP-testeo 8 de marzo/cristian_lazo/guardar.webm"
-capture = cv2.VideoCapture(2)
+filename = "/media/cristian/12FF1F6D0CD48422/Research/Gloss/Gloss/Datasets/videos_largos_pucp/Gramática de la LSP： Morfología (4).mp4"
+
+filename = "/media/cristian/12FF1F6D0CD48422/Research/Gloss/Gloss/Datasets/PUCP/5. Segundo avance (corregido)/DINERO/DINERO_ORACION_2.mp4"
+capture = cv2.VideoCapture(filename)
 
 ## initialize pose estimator
 mp_drawing = mp.solutions.drawing_utils
@@ -114,17 +117,36 @@ def process_keypoints(keypoints, keypoints_buffer, window_size=5):
 keypoints_buffer = []
 import copy
 
+cv2.namedWindow("Testing models", cv2.WINDOW_NORMAL) 
 
+width  = 640#int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))   # float `width`
+height = 480#int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))  # float `height
+
+print("width :",width)
+print("height:",height)
 out = cv2.VideoWriter( 
-    "output.avi", cv2.VideoWriter_fourcc(*'MPEG'), 30, (640*3,480)) 
+    "output.avi", cv2.VideoWriter_fourcc(*'MPEG'), 15, (width*2,height*2)) 
+
+cnt = 0
+def draw_text_with_background(frame, text, position, font, scale, text_color, background_color, thickness):
+   text_size, _ = cv2.getTextSize(text, font, scale, thickness)
+   text_width, text_height = text_size
+   x, y = position
+   
+   cv2.rectangle(frame, (x - 10, y - text_height - 10), (x + text_width + 10, y + 10), background_color, -1)
+   cv2.putText(frame, text, position, font, scale, text_color, thickness)
+
 while (True):
 
     ret, frame = capture.read()
-
+    cnt+=1
     if not ret:
         break
     #print(frame.shape)
     #(480, 640, 3)
+    frame = cv2.resize(frame,(640,480))
+    #if cnt<60*80:
+    #    continue
     frame_bgr = copy.deepcopy(frame)
     frame_vit = copy.deepcopy(frame)
 
@@ -138,19 +160,41 @@ while (True):
     #frame = model.draw_mediapipe(frame,results)
 
     keypoints, scores = maper.process(frame,results)
-
+    #print("keypoints",keypoints.shape)
+    #print("scores",scores.shape)
     frame = draw_skeleton(frame, keypoints, scores, kpt_thr=0.5,
-                                line_width=2,radius=3)
+                                line_width=4,radius=3)
 
     ###################
     keypoints = model(frame_vit)
-    #if len(keypoints['points'])>6:
-    #    keypoints['points'] = process_keypoints(keypoints['points'], keypoints_buffer,window_size=3)
 
-    onepose.visualize_keypoints(frame_vit, keypoints, model.keypoint_info, model.skeleton_info)
+    #onepose.visualize_keypoints(frame_vit, keypoints, model.keypoint_info, model.skeleton_info,
+    #                    radius=1,
+    #                    skeleton_thickness=4,
+    #                    keypoint_thickness=2,)
+    if len(keypoints['points'])>6:
+        #keypoints['points'] = process_keypoints(keypoints['points'], keypoints_buffer,window_size=3)
+        scores = np.moveaxis( keypoints['confidence'], 0, 1)
+        keypoints = np.expand_dims(keypoints['points'], axis=0)
+
+        #height, width, _ = frame_bgr.shape
+        #keypoints = np.round(keypoints * [width, height]).astype(int)
+        """        
+        try:
+            print(scores.shape)
+            print(keypoints.shape)
+            print(scores[0,:5])
+            print(keypoints[0,:5,0])
+        except:
+            pass
+
+        """
+        frame_vit = draw_skeleton(copy.deepcopy(frame_vit), keypoints,scores, kpt_thr=0.5,line_width=4,radius=3)
     
     ######################
     keypoints, scores = wholebody(frame_rgb)
+
+    frame_rrtm_original = draw_skeleton(copy.deepcopy(frame_bgr), keypoints, scores, kpt_thr=threshold,line_width=8,radius=6)
     
     foot_left_ids = [11,13,15]
     filter_ids(foot_left_ids,range(17,20),[15],"foot left",threshold=threshold)
@@ -164,21 +208,30 @@ while (True):
             
     #print(keypoints.shape)
     #print(scores.shape)
-    frame_rrtm = draw_skeleton(frame_bgr, keypoints, scores, kpt_thr=threshold,line_width=2,radius=3)
+    frame_rrtm_our = draw_skeleton(copy.deepcopy(frame_bgr), keypoints, scores, kpt_thr=threshold,line_width=4,radius=3)
     
 
 
-    frame_rrtm = cv2.flip(frame_rrtm, 1)
-    frame_vit = cv2.flip(frame_vit, 1)
-    frame = cv2.flip(frame, 1)
-
-    cv2.putText(frame, "MEDIAPIPE", (10,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-    cv2.putText(frame_vit, "VITPOSE", (10,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 255), 2)
-    cv2.putText(frame_rrtm, "RTM", (10,30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2)
+    #frame_rrtm = cv2.flip(frame_rrtm, 1)
+    #frame_vit = cv2.flip(frame_vit, 1)
+    #frame = cv2.flip(frame, 1)
     
-    vis = np.concatenate((frame,frame_vit,frame_rrtm), axis=1)
+    #cv2.putText(frame_bgr, "ORIGINAL", (250,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 5)
+    #cv2.putText(frame, "MEDIAPIPE", (250,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 5)
+    #cv2.putText(frame_vit, "VITPOSE", (250,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 255), 5)
+    #cv2.putText(frame_rrtm_our, "OUR", (250,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 5)
 
-    cv2.imshow('Test hand', vis)
+    # Dibujar el texto con fondo negro
+    draw_text_with_background(frame_bgr, "ORIGINAL", (250, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 255), (0, 0, 0), 4)
+    draw_text_with_background(frame, "MEDIAPIPE", (250, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 255, 255), (0, 0, 0), 4)
+    draw_text_with_background(frame_vit, "VITPOSE", (250, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 255), (0, 0, 0), 4)
+    draw_text_with_background(frame_rrtm_our, "OUR", (290, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), (0, 0, 0), 4)
+
+    vis1 = np.concatenate((frame_bgr,frame), axis=1)
+    vis2 = np.concatenate((frame_vit,frame_rrtm_our), axis=1)
+    vis = np.concatenate((vis1,vis2), axis=0)
+
+    cv2.imshow('Testing models', vis)
     if flag_time:
         #time.sleep(5)
         flag_time  = False
