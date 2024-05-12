@@ -31,7 +31,7 @@ default_draw_config = {
     'color':(255,0,0)
 }
 
-class mediapipe_model:
+class MediapipeModel:
     def __init__(self, models: List[str] = ['hands', 'face', 'pose'], image_mode: bool = True, 
                  face_config: Dict = None, hands_config: Dict = None, pose_config: Dict = None,
                  mode_coco : bool = False,use_thresholding: bool=False,kpt_thr:float=0.5) -> None:
