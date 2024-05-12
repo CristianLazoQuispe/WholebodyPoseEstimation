@@ -3,8 +3,9 @@ import numpy as np
 import torch
 
 class RTMPoseModel:
-    def __init__(self, device='cuda', backend='onnxruntime', 
-                 mode='performance', to_openpose=False, threshold=2.55,filtering=False) -> None:
+    def __init__(self, device:str='cuda', backend:str='onnxruntime', 
+                 mode:str='performance', to_openpose:bool=False, 
+                 use_thresholding:bool=False,kpt_thr:float=2.5,filter_noise:bool=False) -> None:
         """
         Initialize the RTMPoseModel.
 
@@ -13,15 +14,22 @@ class RTMPoseModel:
             backend (str): The backend to use for inference. Options: 'opencv', 'onnxruntime', 'openvino'. Default: 'onnxruntime'.
             mode (str): The mode of the model. Options: 'performance', 'lightweight', 'balanced'. Default: 'performance'.
             to_openpose (bool): Whether to convert the output to OpenPose-style. Default: False.
-            threshold (float): The threshold for pose detection. Default: 2.55.
+            filter_noise (bool): The filter noise process eliminates artifacts
+            use_thresholding (bool): Configuration of thresholding.
+                ```
+                scores[scores>=self.kpt_thr]   = 1
+                scores[scores<self.kpt_thr]    = 0
+                keypoints[scores<self.kpt_thr] = 0
+                ```
+            kpt_thr (int): threshold to filtering
         """
         self.device = device
         self.backend = backend
         self.mode = mode
         self.to_openpose = to_openpose
-        self.threshold = threshold
-        self.filtering = filtering
-
+        self.kpt_thr = kpt_thr
+        self.filter_noise = filter_noise
+        self.use_thresholding = use_thresholding
         # Check if CUDA is available if device is set to 'cuda'
         if self.device == 'cuda' and not torch.cuda.is_available():
             print("CUDA is not available. Falling back to CPU.")
@@ -38,13 +46,21 @@ class RTMPoseModel:
 
     def predict(self,frame_rgb):
         keypoints, scores = self.model(frame_rgb)
-        if self.filtering:
+        if self.filter_noise:
             keypoints,scores = self.filter_scores(keypoints,scores)
+        if self.use_thresholding:
+            keypoints,scores = self.thresholding(keypoints,scores)
         return keypoints, scores
 
+    def thresholding(self,keypoints,scores):
+        keypoints[scores<self.kpt_thr] = 0
+        scores[scores<self.kpt_thr]    = 0
+        scores[scores>=self.kpt_thr]   = 1
+        return keypoints,scores
+        
     def filter_ids(self,list_ids,list_body,list_ids_remove,scores,keypoints):
         list_body= list(list_body)
-        cnt_ids = np.sum(scores[0][list_ids] > self.threshold)
+        cnt_ids = np.sum(scores[0][list_ids] > self.kpt_thr)
         if cnt_ids != len(list_ids):
             scores[0][list_body]= 0 
             #keypoints[0][list_body] = 0

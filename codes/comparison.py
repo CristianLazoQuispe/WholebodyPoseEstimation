@@ -42,17 +42,6 @@ maper = MP2COCO()
 model_mediapipe = mediapipe_model()
 
 #############################################
-import cv2
-import onepose
-import time
-from scipy.signal import savgol_filter
-
-
-#model = onepose.create_model('ViTPose+_base_coco_wholebody').to("cuda")
-#model = onepose.create_model('ViTPose_huge_mpii').to("cuda")
-model  = onepose.create_model('ViTPose+_huge_coco_wholebody').to("cuda")
-#model = onepose.create_model('ViTPose+_large_coco_wholebody').to("cuda")
-  
 
 #########################################################################
 drawingModule = mediapipe.solutions.drawing_utils
