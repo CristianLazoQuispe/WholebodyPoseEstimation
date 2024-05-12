@@ -28,7 +28,11 @@ class DrawerPose:
 
       Args:
           mode_coco (bool): Mode coco is according to COCO Wholebody format. Defaults to True.
-            When mode_coco is False it create a middle_chest point and draws a link ('middle_chest', 'nose'). 
+            When mode_coco is False : it creates:
+               new point -> middle_chest = 0.5('left_shoulder', 'right_shoulder')
+               new point -> middle_hip   = 0.5('left_hip', 'right_hip')
+               new link  -> ('middle_chest', 'nose'). 
+               new link  -> ('middle_hip', 'middle_chest'). 
       """
       self.skeleton_dict = coco133
       self.keypoint_info = self.skeleton_dict['keypoint_info']
