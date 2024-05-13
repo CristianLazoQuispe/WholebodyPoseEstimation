@@ -1,0 +1,6 @@
+mediapipe==0.10.11
+opencv-python==4.6.0.66
+onnxruntime-gpu==1.17.1
+rtmlib==0.0.11
+onepose @ git+https://github.com/developer0hye/onepose.git@dcb645fb52d2f3055dff893965d484e20b917c0f
+torch==2.0.0

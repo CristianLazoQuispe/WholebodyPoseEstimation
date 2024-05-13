@@ -4,11 +4,11 @@ import copy
 import numpy as np
 sys.path.insert(1,'../src/')
 
-from utils.vision import draw_text,DrawerPose
+from wholebodypose.utils.vision import draw_text,DrawerPose
 
-from models.mediapipe.model import MediapipeModel
-from models.rtmpose.model   import RTMPoseModel
-from models.vitpose.model   import VITPoseModel
+from wholebodypose.models.mediapipe.model import MediapipeModel
+from wholebodypose.models.rtmpose.model   import RTMPoseModel
+from wholebodypose.models.vitpose.model   import VITPoseModel
 
 
 draw_skeleton   = DrawerPose()
@@ -22,6 +22,7 @@ model_vitpose   = VITPoseModel(device='cuda', model_name='ViTPose+_huge_coco_who
 
 filename = "/media/cristian/12FF1F6D0CD48422/Research/Gloss/Gloss/Datasets/PUCP/5. Segundo avance (corregido)/TELEFONO/TELEFONO_ORACION_2.mp4"
 
+filename = "/media/cristian/12FF1F6D0CD48422/Research/Gloss/Gloss/Datasets/wlasl-complete/videos/16096.mp4"
 capture = cv2.VideoCapture(filename)
 
 cv2.namedWindow("Testing models", cv2.WINDOW_NORMAL) 
