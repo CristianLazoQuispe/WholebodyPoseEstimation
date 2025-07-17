@@ -15,7 +15,7 @@ class SimpleHDF5Dataset(Dataset):
             self.map_labels = {str(i): str(i) for i in range(len(set(self.labels)))}
         else:
             with open(map_label_path, 'r') as f:
-                self.map_labels = json.load(f)["id_to_label"]
+                self.map_labels = json.load(f)
 
     def __len__(self):
         return len(self.keys)
@@ -28,6 +28,6 @@ class SimpleHDF5Dataset(Dataset):
         data += (torch.randn_like(data)*self.noise_std) if self.augmentation else 0
 
         name = self.labels[idx]
-        label = self.map_labels[name]
+        label = self.map_labels["id_to_label"][name]
         video_name = self.video_names[idx]
         return data, name, label, video_name
