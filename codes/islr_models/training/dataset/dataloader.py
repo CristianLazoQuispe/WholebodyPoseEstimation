@@ -2,15 +2,18 @@ import json
 import h5py
 import torch
 from torch.utils.data import Dataset
+from .augmentations_spatial import Augmentation
+import random
 
 class SimpleHDF5Dataset(Dataset):
-    def __init__(self, h5_path, map_label_path=None, augmentation=False,noise_std=0.005):
+    def __init__(self, h5_path, map_label_path=None, augmentation=False,noise_std=0.005,device="cuda"):
         self.h5file = h5py.File(h5_path, "r")
         self.keys = list(self.h5file.keys())
         self.labels = [self.h5file[k]["label"][()].decode("utf-8") for k in self.keys]
         self.video_names = [self.h5file[k]["video_name"][()].decode("utf-8") for k in self.keys]
         self.noise_std = noise_std
         self.augmentation = augmentation
+        self.transform = Augmentation(device=device) if augmentation else None
         if map_label_path is None:
             self.map_labels = {str(i): str(i) for i in range(len(set(self.labels)))}
         else:
@@ -25,9 +28,16 @@ class SimpleHDF5Dataset(Dataset):
         entry = self.h5file[key]
 
         data = torch.tensor(entry["data"][()], dtype=torch.float32).permute(0, 2, 1)-0.5  # [T, V, 2]
-        data += (torch.randn_like(data)*self.noise_std) if self.augmentation else 0
+
+        if random.random() < 0.5:
+            data += (torch.randn_like(data)*self.noise_std) if self.augmentation else 0
+            if self.transform:
+                n_spatial_func  = len(self.transform.spatial_augmentations.keys())
+                data = self.transform.apply_spatial(random.randint(0, n_spatial_func - 1),data)
 
         name = self.labels[idx]
         label = self.map_labels["id_to_label"][name]
         video_name = self.video_names[idx]
+        #if idx==0:
+        #    print(f"Data min: {data.min()}, max: {data.max()}, mean: {data.mean()}, std: {data.std()}")
         return data, name, label, video_name

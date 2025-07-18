@@ -46,9 +46,9 @@ if __name__ == "__main__":
         raise ValueError(f"Model {args.model_name} not supported") 
        
     # === Loaders
-    train_loader = DataLoader(SimpleHDF5Dataset(train_path,map_label_path,augmentation=True,noise_std=0.01), batch_size=8, shuffle=True, collate_fn=collate_fn_final)
-    val_loader   = DataLoader(SimpleHDF5Dataset(val_path,map_label_path),   batch_size=8, collate_fn=collate_fn_final)
-    test_loader  = DataLoader(SimpleHDF5Dataset(test_path,map_label_path),   batch_size=8, collate_fn=collate_fn_final)
+    train_loader = DataLoader(SimpleHDF5Dataset(train_path,map_label_path,augmentation=True,noise_std=0.001), batch_size=64, shuffle=True, collate_fn=collate_fn_final)
+    val_loader   = DataLoader(SimpleHDF5Dataset(val_path,map_label_path),   batch_size=64, collate_fn=collate_fn_final)
+    test_loader  = DataLoader(SimpleHDF5Dataset(test_path,map_label_path),   batch_size=64, collate_fn=collate_fn_final)
 
     # === Device
     print(f"Using device: {args.device}")

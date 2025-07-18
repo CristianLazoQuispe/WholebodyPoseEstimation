@@ -30,7 +30,7 @@ def training_pipeline(args,model,train_loader, val_loader, test_loader, device):
 
     # === Optimizer
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.2)
 
     # === Configuración
     EPOCHS = args.epochs
