@@ -34,11 +34,11 @@ if __name__ == "__main__":
         collate_fn_final = collate_fn_gcnbert
         model = GCN_BERT(num_classes=100, hidden_features=2, seq_len=50, num_joints=135,nhead=5)
     elif args.model_name == "spoter":
-        #model = SPOTER(num_classes=100, hidden_dim=270, num_heads=3, num_layers_1=3, num_layers_2=3,
-        #             dim_feedforward_encoder=64, dim_feedforward_decoder=64, dropout=0.3, norm_first=True, batch_first=True) # v2
-
         model = SPOTER(num_classes=100, hidden_dim=270, num_heads=3, num_layers_1=3, num_layers_2=3,
-                     dim_feedforward_encoder=256, dim_feedforward_decoder=256, dropout=0.3, norm_first=True, batch_first=True) # v3
+                     dim_feedforward_encoder=64, dim_feedforward_decoder=64, dropout=0.3, norm_first=True, batch_first=True) # v2
+
+        #model = SPOTER(num_classes=100, hidden_dim=270, num_heads=3, num_layers_1=3, num_layers_2=3,
+        #             dim_feedforward_encoder=256, dim_feedforward_decoder=256, dropout=0.3, norm_first=True, batch_first=True) # v3
 
         #model = SPOTER(num_classes=100, hidden_dim=270, num_heads=6, num_layers_1=6, num_layers_2=6,
         #             dim_feedforward_encoder=1024, dim_feedforward_decoder=1024, dropout=0.3, norm_first=True, batch_first=True)
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         model = SILT(num_classes=100, hidden_dim=270, num_heads=3, num_layers_1=3, num_layers_2=3,
                      dim_feedforward_encoder=64, dim_feedforward_decoder=64, dropout=0.3, norm_first=True, batch_first=True)
     elif args.model_name == "pose_tgcn":
-        model = PoseGTCN(input_feature=100, num_joints=135, hidden_feature=32, num_class=100, p_dropout=0.5, num_stage=1, is_resi=True)
+        model = PoseGTCN(input_feature=100, num_joints=135, hidden_feature=32, num_class=100, p_dropout=0.5, num_stage=20, is_resi=True)
         collate_fn_final = collate_fn_gcnbert
     else:
         raise ValueError(f"Model {args.model_name} not supported") 
