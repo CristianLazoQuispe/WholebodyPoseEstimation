@@ -1,3 +1,5 @@
+data/videos/*.mp4
+.Trash*/
 *.avi
 
 # Byte-compiled / optimized / DLL files

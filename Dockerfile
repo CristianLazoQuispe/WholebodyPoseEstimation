@@ -1,28 +1,39 @@
-FROM pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
+FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 
-# 1. Actualizaciones básicas y dependencias para GUI y video
-ENV DEBIAN_FRONTEND=noninteractive
+# Instalar dependencias del sistema
+#RUN apt-get update && apt-get install -y --no-install-recommends \
+#    ffmpeg libsm6 libxext6 libxrender-dev libgl1-mesa-glx libglib2.0-0 \
+#    python3-opencv git curl wget unzip libgtk2.0-dev \
+#    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Set timezone:
+RUN ln -snf /usr/share/zoneinfo/$CONTAINER_TIMEZONE /etc/localtime && echo $CONTAINER_TIMEZONE > /etc/timezone
+
 
 RUN apt-get update && apt-get install -y \
-    tzdata \
-    ffmpeg libglib2.0-0 \
+    ffmpeg libsm6 libxext6 libxrender-dev libgl1-mesa-glx libglib2.0-0 \
     python3-opencv git curl wget unzip \
-    && ln -fs /usr/share/zoneinfo/America/Lima /etc/localtime \
-    && dpkg-reconfigure -f noninteractive tzdata \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    && apt-get clean
 
-    #libsm6 libxext6 libxrender-dev libgl1-mesa-glx 
+RUN apt-get update && apt-get install -y \
+    libgtk2.0-dev libgl1-mesa-glx libglib2.0-0
 
-# 2. Upgrade pip + install jupyterlab
+# Actualizar pip e instalar JupyterLab
 RUN pip install --upgrade pip && pip install jupyterlab
 
+# Crear directorio de trabajo
 WORKDIR /workspace
 
-COPY requirements.txt /workspace/requirements.txt
-RUN pip install -r /workspace/requirements.txt
+# Copiar e instalar dependencias de Python
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-# 5. Puerto para Jupyter
+# Exponer el puerto de Jupyter
 EXPOSE 8888
 
-# 6. Comando por defecto: iniciar JupyterLab
+# Comando por defecto para iniciar JupyterLab
 CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--allow-root", "--no-browser"]
+
+#docker build -f Dockerfile -t wholebody-pose-gpu .
+#docker rm wholebody-windows-gpu
+#docker run --gpus all --name wholebody-windows-gpu -v $(pwd):/workspace -e DISPLAY=host.docker.internal:0.0 --cpus=8 --memory=20g -p 8888:8888 -it wholebody-pose-gpu
