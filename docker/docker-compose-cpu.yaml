@@ -1,0 +1,18 @@
+services:
+  wholebody-pose-cpu:
+    build:
+      context: ..                       # 👈 el build context es el root
+      dockerfile: docker/Dockerfile.cpu
+    image: wholebody-pose-cpu          # 👈 fuerza el nombre de la imagen
+    container_name: wholebody-pose-cpu # 👈 nombre del contenedor
+    volumes:
+      - ../:/workspace
+    ports:
+      - "8888:8888"
+    environment:      
+      - DISPLAY=host.docker.internal:0.0
+    stdin_open: true
+    tty: true
+
+# from root of the project:
+#docker compose -f docker/docker-compose-cpu.yaml up --build

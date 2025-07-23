@@ -1,0 +1,32 @@
+FROM python:3.10-slim
+
+# Set timezone:
+RUN ln -snf /usr/share/zoneinfo/$CONTAINER_TIMEZONE /etc/localtime && echo $CONTAINER_TIMEZONE > /etc/timezone
+
+
+# Install system dependencies for OpenCV, video processing, and general utilities
+RUN apt-get update && apt-get install -y \
+    ffmpeg libsm6 libxext6 libxrender-dev libgl1-mesa-glx libglib2.0-0 \
+    python3-opencv git curl wget unzip \
+    libgtk2.0-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Update pip and install JupyterLab
+RUN pip install --upgrade pip && pip install jupyterlab
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install -r requirements.txt
+
+# Expose the JupyterLab port
+EXPOSE 8888
+
+# Command to run JupyterLab
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--allow-root", "--no-browser"]
+
+# Instructions for building and running the Docker container on cpu1
+# from root of the project:
+#docker build -f docker/Dockerfile_cpu -t wholebody-pose-cpu .
+#docker run --name wholebody-windows-cpu -v .:/workspace -e DISPLAY=host.docker.internal:0.0 --cpus=8 --memory=20g -p 8888:8888 -it wholebody-pose-cpu
