@@ -61,10 +61,12 @@ class GC_Block(nn.Module):
         self.is_resi = is_resi
 
         self.gc1 = GraphConvolution(in_features, in_features,num_joints)
-        self.bn1 = nn.BatchNorm1d(num_joints * in_features)
+        #self.bn1 = nn.BatchNorm1d(num_joints * in_features)
 
         self.gc2 = GraphConvolution(in_features, in_features,num_joints)
-        self.bn2 = nn.BatchNorm1d(num_joints * in_features)
+        #self.bn2 = nn.BatchNorm1d(num_joints * in_features)
+        self.bn1 = nn.BatchNorm1d(in_features)
+        self.bn2 = nn.BatchNorm1d(in_features)  
 
         self.do = nn.Dropout(p_dropout)
         self.act_f = nn.Tanh()
@@ -72,13 +74,15 @@ class GC_Block(nn.Module):
     def forward(self, x):
         y = self.gc1(x)
         b, n, f = y.shape
-        y = self.bn1(y.view(b, -1)).view(b, n, f)
+        #y = self.bn1(y.view(b, -1)).view(b, n, f)
+        y = self.bn1(y.permute(0, 2, 1)).permute(0, 2, 1)
         y = self.act_f(y)
         y = self.do(y)
 
         y = self.gc2(y)
         b, n, f = y.shape
-        y = self.bn2(y.view(b, -1)).view(b, n, f)
+        #y = self.bn2(y.view(b, -1)).view(b, n, f)
+        y = self.bn2(y.permute(0, 2, 1)).permute(0, 2, 1)
         y = self.act_f(y)
         y = self.do(y)
         if self.is_resi:
@@ -132,9 +136,4 @@ class PoseGTCN(nn.Module):
 
 
 if __name__ == '__main__':
-    num_samples = 32
-
-    model = PoseGTCN(input_feature=num_samples*2, hidden_feature=256,
-                         num_class=100, p_dropout=0.3, num_stage=2)
-    x = torch.ones([2, 55, num_samples*2])
-    print(model(x).size())
+    model = PoseGTCN(input_feature=100, num_joints=135, hidden_feature=32, num_class=100, p_dropout=0.5, num_stage=2, is_resi=False)
