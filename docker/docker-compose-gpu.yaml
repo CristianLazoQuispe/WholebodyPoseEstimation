@@ -11,6 +11,9 @@ services:
         reservations:
           devices:
             - capabilities: [gpu]
+        limits:
+          memory: 8g
+          cpus: '4.0'
     volumes:
       - ../:/workspace
     ports:

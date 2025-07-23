@@ -5,6 +5,11 @@ services:
       dockerfile: docker/Dockerfile.cpu
     image: wholebody-pose-cpu          # 👈 fuerza el nombre de la imagen
     container_name: wholebody-pose-cpu # 👈 nombre del contenedor
+    deploy:
+      resources:
+        limits:
+          memory: 8g
+          cpus: '4.0'
     volumes:
       - ../:/workspace
     ports:
