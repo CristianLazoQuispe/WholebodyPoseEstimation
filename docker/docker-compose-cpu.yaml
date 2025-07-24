@@ -1,10 +1,10 @@
 services:
   wholebody-pose-cpu:
     build:
-      context: ..                       # 👈 el build context es el root
+      context: ..                       # build context is the parent directory 
       dockerfile: docker/Dockerfile.cpu
-    image: wholebody-pose-cpu          # 👈 fuerza el nombre de la imagen
-    container_name: wholebody-pose-cpu # 👈 nombre del contenedor
+    image: wholebody-pose-cpu          # name of the image
+    container_name: wholebody-pose-cpu # name of the container
     deploy:
       resources:
         limits:
@@ -21,3 +21,4 @@ services:
 
 # from root of the project:
 #docker compose -f docker/docker-compose-cpu.yaml up --build
+#docker compose -f docker/docker-compose-cpu.yaml up --remove-orphans

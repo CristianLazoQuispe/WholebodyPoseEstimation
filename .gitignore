@@ -1,3 +1,4 @@
+env_windows
 data/videos/*.mp4
 .Trash*/
 *.avi

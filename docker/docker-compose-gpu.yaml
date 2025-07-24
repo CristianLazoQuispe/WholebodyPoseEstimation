@@ -1,10 +1,10 @@
 services:
   wholebody-pose-gpu:
     build:
-      context: ..                       # 👈 el build context es el root
+      context: ..                       # build context is the parent directory
       dockerfile: docker/Dockerfile.gpu
-    image: wholebody-pose-gpu          # 👈 fuerza el nombre de la imagen
-    container_name: wholebody-pose-gpu # 👈 nombre del contenedor
+    image: wholebody-pose-gpu          # name of the image
+    container_name: wholebody-pose-gpu # name of the container
     runtime: nvidia
     deploy:
       resources:
@@ -12,8 +12,8 @@ services:
           devices:
             - capabilities: [gpu]
         limits:
-          memory: 8g
-          cpus: '4.0'
+          memory: 16g
+          cpus: '8.0'
     volumes:
       - ../:/workspace
     ports:
