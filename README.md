@@ -1,40 +1,51 @@
-# 🧠 WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data
+# 🧠 WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data  
 
-**Cristian Lazo-Quispe**, Renato Castro-Cruz, Mauricio Salazar-Espinosa, Gissella Bejarano
-Universidad Nacional de Ingeniería · Pontificia Universidad Católica del Perú · Marist University
-📄 *Published at ICMV 2025 — “WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data”*
+**Cristian Lazo-Quispe**, Renato Castro-Cruz, Mauricio Salazar-Espinosa, Gissella Bejarano  
+*Universidad Nacional de Ingeniería · Pontificia Universidad Católica del Perú · Marist University*  
+📄 *Published at [ICMV 2025](https://www.spie.org/conferences-and-exhibitions/international-conference-on-machine-vision) — “WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data”*  
+
+---
+
+<div align="center">
+
+[![Dataset](https://img.shields.io/badge/Dataset-HuggingFace-blue?logo=huggingface&style=flat-square)](https://huggingface.co/datasets/CristianLazoQuispe/ISLR_pose_datasets)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repo-black?logo=github&style=flat-square)](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&style=flat-square)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](./LICENSE)
+
+</div>
 
 ---
 
 ## 🌍 Overview
 
-**WholeBodyPose** is an **open-source, modular, and standardized framework** for **pose-based Sign Language Recognition (SLR)**.
+**WholeBodyPose** is an **open-source, modular, and standardized framework** for **pose-based Sign Language Recognition (SLR)**.  
 It unifies **MediaPipe**, **RTMPose**, and **ViTPose** into a single interface under the **COCO-133 standard**, enabling reproducible preprocessing, filtering, and visualization of keypoints for both research and real-time applications.
 
 The framework bridges the gap between heterogeneous pose estimation outputs, providing:
-
-* ⚙️ Consistent preprocessing and filtering pipelines.
-* 🧩 Unified COCO-133-compatible keypoint representation.
-* 🎥 Real-time webcam inference and filtering with **NLMS smoothing**.
-* 📊 Ready-to-train SLR pipelines using **Pose-TGCN**, **SPOTER**, **SILT**, and **GCN-BERT**.
+- ⚙️ Consistent preprocessing and filtering pipelines  
+- 🧩 Unified COCO-133-compatible keypoint representation  
+- 🎥 Real-time webcam inference and filtering with **NLMS smoothing**  
+- 📊 Ready-to-train SLR pipelines using **Pose-TGCN**, **SPOTER**, **SILT**, and **GCN-BERT**
 
 ---
 
 ## 🔬 Key Contributions
 
-| No. | Contribution                              | Description                                                                                                              |
-| :-: | :---------------------------------------- | :----------------------------------------------------------------------------------------------------------------------- |
-|  1  | **Unified API for Multiple Backends**     | Seamless switching between MediaPipe, RTMPose, and ViTPose using a common interface (`model.predict(frame)` → COCO-133). |
-|  2  | **COCO-133 Standardization**              | Harmonized 133-keypoint structure (body, hands, face) + virtual chest/hip points for 135-keypoint mode.                  |
-|  3  | **Real-Time NLMS Filtering**              | Online temporal smoothing for keypoints using Normalized Least Mean Squares (no future frames required).                 |
-|  4  | **Quality Control & Enhancement**         | Built-in image enhancement (gamma/log correction, brightness normalization) for low-light robustness.                    |
-|  5  | **Plug-and-Play ISLR Training Pipelines** | Ready-made Jupyter notebooks for **GCN-BERT**, **Pose-TGCN**, **SPOTER**, and **SILT** across multiple datasets.         |
+| No. | Contribution | Description |
+| :-: | :------------ | :----------- |
+| 1 | **Unified API for Multiple Backends** | Seamless switching between MediaPipe, RTMPose, and ViTPose using a common interface (`model.predict(frame)` → COCO-133). |
+| 2 | **COCO-133 Standardization** | Harmonized 133-keypoint structure (body, hands, face) + virtual chest/hip points for 135-keypoint mode. |
+| 3 | **Real-Time NLMS Filtering** | Online temporal smoothing for keypoints using Normalized Least Mean Squares (no future frames required). |
+| 4 | **Quality Control & Enhancement** | Built-in image enhancement (gamma/log correction, brightness normalization) for low-light robustness. |
+| 5 | **Plug-and-Play ISLR Pipelines** | Ready-made Jupyter notebooks for **GCN-BERT**, **Pose-TGCN**, **SPOTER**, and **SILT** across multiple datasets. |
 
 ---
 
 ## 🧱 Repository Structure
 
 ```
+
 WholebodyPoseEstimation/
 ├── codes/
 │   ├── mediapipe/, rtmpose/, vitpose/   # Inference scripts (image/webcam)
@@ -52,18 +63,18 @@ WholebodyPoseEstimation/
 ├── results/                             # Demo outputs (GIFs, filtered poses)
 ├── requirements.txt
 └── setup.py
-```
+
+````
 
 ---
 
 ## 🚀 Installation
 
 ### 1. Clone the repository
-
 ```bash
 git clone https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git
 cd WholebodyPoseEstimation
-```
+````
 
 ### 2. Install dependencies
 
@@ -73,13 +84,13 @@ pip install -r requirements.txt
 
 ### 3. (Optional) Docker setup
 
-CPU:
+**CPU**
 
 ```bash
 docker compose -f docker/docker-compose-cpu.yaml up
 ```
 
-GPU:
+**GPU**
 
 ```bash
 docker compose -f docker/docker-compose-gpu.yaml up
@@ -109,7 +120,7 @@ jupyter notebook codes/filtering/inference_webcam_filters.ipynb
 
 ### 📚 3. Train Sign Language Recognition Models
 
-Training examples for:
+Available training pipelines:
 
 * **GCN-BERT**
 * **Pose-TGCN**
@@ -122,12 +133,9 @@ Example:
 cd codes/islr_models
 jupyter notebook 3.TrainingGCN-BERT.ipynb
 ```
-
-Each pipeline supports standardized COCO-133 pose data extracted from WLASL, MSASL, ASL-Citizen, LSA64, and PUCP-DGI datasets.
-
 ---
 
-## 📈 Experimental Results (WACV-Style Summary)
+## 📊 Experimental Results (WACV-Style Summary)
 
 **Dataset:** WLASL100
 **Setup:** Training from scratch using only pose inputs (RTMPose-based 135 keypoints).
@@ -139,34 +147,43 @@ Each pipeline supports standardized COCO-133 pose data extracted from WLASL, MSA
 | SILT      |      62.79     |      **66.67**     |    +3.88   |
 | SPOTER    |      63.18     |      **67.05**     |    +3.87   |
 
-Standardized preprocessing yields consistent gains across all models and datasets.
+Standardized preprocessing yields consistent improvements across all models and datasets.
+
+<p align="center">
+  <img src="results/gifs/sample_accident.gif" width="480"><br>
+  <em>Example of real-time multi-person keypoint tracking and filtering.</em>
+</p>
 
 ---
 
 ## 🧠 Real-Time Filtering (NLMS)
 
-**NLMS** filtering provides online denoising of pose keypoints using only past frames — ideal for live SLR and gesture control.
+**NLMS filtering** provides real-time denoising of pose keypoints using only past frames — ideal for live SLR and gesture-based interaction.
 
-**Algorithm Highlights**
+**Highlights**
 
-* Adaptive learning per keypoint axis (x, y, confidence).
-* Short-term memory for fallback during occlusion.
-* Linear interpolation for uncertain detections.
-* Near-zero latency smoothing suitable for real-time pipelines.
+* Adaptive learning per keypoint axis (x, y, confidence)
+* Short-term memory fallback during occlusion
+* Linear interpolation for uncertain detections
+* Near-zero latency suitable for real-time deployment
 
 ---
 
-## 🧰 Datasets Supported
+## 🧰 Datasets
 
-| Dataset           | Classes  | Keypoints | Type                      |
-| :---------------- | :------- | :-------- | :------------------------ |
-| WLASL100/300/2000 | 100–2000 | 135       | Word-level SLR            |
-| MSASL100/200/1000 | 100–1000 | 135       | Word-level SLR            |
-| ASL-Citizen       | 2731     | 135       | Crowd-sourced SLR         |
-| LSA64             | 64       | 135       | Argentinian Sign Language |
-| PUCP-DGI30        | 30       | 135       | Peruvian Sign Dataset     |
+All processed and standardized pose datasets are publicly available on **Hugging Face**:
 
-All are processed using RTMPose-based COCO-133 keypoints plus two virtual landmarks (chest, mid-hip).
+👉 **[ISLR Pose Datasets on HuggingFace 🤗](https://huggingface.co/datasets/CristianLazoQuispe/ISLR_pose_datasets)**
+
+| Dataset           |  Classes | Keypoints | Type                      |
+| :---------------- | :------: | :-------: | :------------------------ |
+| WLASL100/300/2000 | 100–2000 |    135    | Word-level SLR            |
+| MSASL100/200/1000 | 100–1000 |    135    | Word-level SLR            |
+| ASL-Citizen       |   2731   |    135    | Community-Sourced         |
+| LSA64             |    64    |    135    | Argentinian Sign Language |
+| PUCP-DGI30        |    30    |    135    | Peruvian Sign Dataset     |
+
+All keypoints follow **COCO-133 + 2 virtual landmarks (chest, mid-hip)**, extracted with RTMPose.
 
 ---
 
@@ -188,6 +205,5 @@ If you use this repository, please cite:
 
 ## 📢 License
 
-This repository is released under the **MIT License**.
+Released under the **MIT License**.
 See [`LICENSE`](./LICENSE) for details.
-
