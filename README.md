@@ -8,7 +8,7 @@
 
 <div align="center">
 
-[![Dataset](https://img.shields.io/badge/Dataset-HuggingFace-blue?logo=huggingface&style=flat-square)](https://huggingface.co/datasets/CristianLazoQuispe/ISLR_pose_datasets)
+[![Dataset](https://img.shields.io/badge/Dataset-HuggingFace-blue?logo=huggingface&style=flat-square)](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Repo-black?logo=github&style=flat-square)](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&style=flat-square)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](./LICENSE)
