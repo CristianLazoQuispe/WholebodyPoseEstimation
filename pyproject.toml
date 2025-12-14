@@ -60,7 +60,11 @@ Documentation = "https://github.com/CristianLazoQuispe/WholebodyPoseEstimation#r
 where = ["src"]
 
 [tool.setuptools.package-data]
-wholebodypose = ["*.json", "*.yaml", "*.yml"]
+wholebodypose = [
+    "**/*.json",     
+    "**/*.yaml",
+    "**/*.yml"
+]
 
 [tool.black]
 line-length = 100
