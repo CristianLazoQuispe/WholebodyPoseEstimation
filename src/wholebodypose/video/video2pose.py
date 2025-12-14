@@ -635,9 +635,12 @@ class Video2Pose:
             keypoints_list.append(keypoints)
             scores_list.append(scores)
             
-            for idx in range(keypoints.shape[0]):
-                keypoints[idx, :, :] = self.keypoint_cleaner.clean_outliers(
-                    keypoints[idx, :, :])
+            if not multiperson:
+                keypoints[:, :] = self.keypoint_cleaner.clean_outliers(keypoints[:, :])
+            else:
+                for idx in range(keypoints.shape[0]):
+                    keypoints[idx, :, :] = self.keypoint_cleaner.clean_outliers(
+                        keypoints[idx, :, :])
             
             frame = self.draw_skeleton(
                 frame,
