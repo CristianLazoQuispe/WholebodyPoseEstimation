@@ -617,13 +617,15 @@ class Video2Pose:
             if frame_count % frame_skip != 0:
                 frame_count += 1
                 continue            
-            frame = self.video_processor.rotate_frame(frame, rotation)
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            h, w = frame_rgb.shape[:2]
+
+            h, w = frame.shape[:2]
             new_w = 640
             new_h = int(h * (new_w / w))
 
-            frame_rgb = cv2.resize(frame_rgb, (new_w, new_h))            
+            frame = cv2.resize(frame, (new_w, new_h))            
+
+            frame = self.video_processor.rotate_frame(frame, rotation)
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             keypoints, scores = self.model.predict(frame_rgb)
             
             if background_color is not None:
