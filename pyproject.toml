@@ -27,7 +27,7 @@ classifiers = [
 dependencies = [
     "mediapipe>=0.10.11,<0.11",
     "opencv-python>=4.6.0.66,<5.0",
-    "onnxruntime-gpu>=1.17.1,<1.20",
+    "onnxruntime-gpu>=1.17.1,<=1.23.2",
     "rtmlib>=0.0.11,<0.1",
     "torch>=2.0.0,<2.3",
     "onepose @ git+https://github.com/developer0hye/onepose.git@dcb645fb52d2f3055dff893965d484e20b917c0f",
