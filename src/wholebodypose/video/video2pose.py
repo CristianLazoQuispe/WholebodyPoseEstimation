@@ -592,11 +592,15 @@ class Video2Pose:
         vid.set(cv2.CAP_PROP_FPS, DEFAULT_FPS)
         #
         vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
-        
+
+        h, w = height, width
+        new_w = 640
+        new_h = int(h * (new_w / w))
+    
         writer = None
         if folder_results:
             writer, output_path = self._initialize_video_writer(
-                filepath, folder_results, width, height, output_video_fps
+                filepath, folder_results, new_w, new_h, output_video_fps
             )
             results['filepath_result'] = output_path
         
