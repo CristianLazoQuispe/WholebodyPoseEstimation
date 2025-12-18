@@ -5,3 +5,9 @@ rtmlib==0.0.11
 onepose @ git+https://github.com/developer0hye/onepose.git@dcb645fb52d2f3055dff893965d484e20b917c0f
 torch==2.1.0
 numpy==1.23.4
+dotenv==0.9.9
+huggingface_hub==1.2.3
+scikit-learn==1.7.2
+padasip==1.2.2
+h5py==3.15.1
+imageio==2.37.2

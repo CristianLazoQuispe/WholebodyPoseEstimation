@@ -166,6 +166,7 @@ Available training pipelines:
 Example:
 
 ```bash
+pip install .[islr]
 cd codes/islr_models
 jupyter notebook 3.TrainingGCN-BERT.ipynb
 ```
