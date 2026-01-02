@@ -20,9 +20,7 @@ model_rtmpose   = RTMPoseModel(mode='performance',backend='onnxruntime',
 model_vitpose   = VITPoseModel(device='cuda', model_name='ViTPose+_huge_coco_wholebody',
                  use_thresholding=True,kpt_thr=0.5)
 
-filename = "/media/cristian/12FF1F6D0CD48422/Research/Gloss/Gloss/Datasets/PUCP/5. Segundo avance (corregido)/TELEFONO/TELEFONO_ORACION_2.mp4"
-
-filename = "/media/cristian/12FF1F6D0CD48422/Research/Gloss/Gloss/Datasets/wlasl-complete/videos/16096.mp4"
+filename = "../data/videos/videoTest.mp4" # Test your video
 capture = cv2.VideoCapture(filename)
 
 cv2.namedWindow("Testing models", cv2.WINDOW_NORMAL) 
