@@ -592,11 +592,15 @@ class Video2Pose:
         vid.set(cv2.CAP_PROP_FPS, DEFAULT_FPS)
         #
         vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
-        
+
+        h, w = height, width
+        new_w = 640
+        new_h = int(h * (new_w / w))
+    
         writer = None
         if folder_results:
             writer, output_path = self._initialize_video_writer(
-                filepath, folder_results, width, height, output_video_fps
+                filepath, folder_results, new_w, new_h, output_video_fps
             )
             results['filepath_result'] = output_path
         
@@ -617,9 +621,15 @@ class Video2Pose:
             if frame_count % frame_skip != 0:
                 frame_count += 1
                 continue            
+
+            h, w = frame.shape[:2]
+            new_w = 640
+            new_h = int(h * (new_w / w))
+
+            frame = cv2.resize(frame, (new_w, new_h))            
+
             frame = self.video_processor.rotate_frame(frame, rotation)
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
             keypoints, scores = self.model.predict(frame_rgb)
             
             if background_color is not None:
@@ -635,9 +645,12 @@ class Video2Pose:
             keypoints_list.append(keypoints)
             scores_list.append(scores)
             
-            for idx in range(keypoints.shape[0]):
-                keypoints[idx, :, :] = self.keypoint_cleaner.clean_outliers(
-                    keypoints[idx, :, :])
+            if not multiperson:
+                keypoints[:, :] = self.keypoint_cleaner.clean_outliers(keypoints[:, :])
+            else:
+                for idx in range(keypoints.shape[0]):
+                    keypoints[idx, :, :] = self.keypoint_cleaner.clean_outliers(
+                        keypoints[idx, :, :])
             
             frame = self.draw_skeleton(
                 frame,
