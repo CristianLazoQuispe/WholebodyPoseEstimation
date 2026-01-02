@@ -12,7 +12,7 @@
 [![GitHub Repo](https://img.shields.io/badge/GitHub-Repo-black?logo=github&style=flat-square)](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&style=flat-square)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](./LICENSE)
-
+[![Project Website](https://img.shields.io/badge/Website-Visit-blueviolet?style=flat-square&logo=google-chrome)](https://cristianlazoquispe.github.io/wholebodypose.github.io/)
 </div>
 
 ---
@@ -166,6 +166,7 @@ Available training pipelines:
 Example:
 
 ```bash
+pip install .[islr]
 cd codes/islr_models
 jupyter notebook 3.TrainingGCN-BERT.ipynb
 ```
@@ -187,7 +188,7 @@ Standardized preprocessing yields consistent improvements across all models and 
 
 <p align="center">
   <img src="results/gifs/sample_accident.gif" width="480"><br>
-  <em>Example of real-time multi-person keypoint tracking and filtering.</em>
+  <em>Example of real-time person keypoint tracking and filtering.</em>
 </p>
 
 ---

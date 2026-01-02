@@ -20,7 +20,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata && \
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ffmpeg libsm6 libxext6 libxrender-dev \
-    libgl1-mesa-glx libglib2.0-0 libgtk2.0-dev \
+    libgl1 libglib2.0-0 libgtk2.0-dev \
     python3-opencv git curl wget unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -28,7 +28,7 @@ RUN apt-get update && \
 RUN pip install --upgrade pip && pip install jupyterlab
 
 # Copy requirements
-COPY requirements.txt .
+COPY docker/requirements.txt .
 
 # Install Python dependencies
 RUN pip install -r requirements.txt
