@@ -73,8 +73,9 @@ WholebodyPoseEstimation/
 
 ### Using the Package API
 ```python
-from wholebodypose.models.rtmpose import RTMPoseModel
-from wholebodypose.video import Video2Pose
+from wholebodypose.models.rtmpose.model import RTMPoseModel
+from wholebodypose.video.video2pose import Video2Pose
+
 import cv2
 
 # Single image inference
@@ -117,7 +118,7 @@ pip install git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.gi
 
 **With video conversion support** (includes ffmpeg-python for MP4/MOV conversion):
 ```bash
-pip install "git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git#egg=wholebodypose[video]"
+pip install "wholebodypose[video] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"
 ```
 
 **For development:**
