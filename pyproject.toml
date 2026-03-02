@@ -7,7 +7,7 @@ name = "wholebodypose"
 version = "0.1.0"
 description = "Whole body pose estimation with 133 keypoints"
 readme = "README.md"
-requires-python = ">=3.10,<3.12"
+requires-python = ">=3.10,<=3.12.8"
 license = {text = "MIT"}
 authors = [
     {name = "Cristian Lazo Quispe", email = "cristian2023ml@gmail.com"}

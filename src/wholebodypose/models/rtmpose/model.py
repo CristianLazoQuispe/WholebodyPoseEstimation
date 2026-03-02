@@ -1,11 +1,15 @@
 from rtmlib import Wholebody, draw_skeleton
 import numpy as np
 import torch
+import os
+import sys
+import io
 
 class RTMPoseModel:
-    def __init__(self, device:str='cuda', backend:str='onnxruntime', 
-                 mode:str='performance', to_openpose:bool=False, 
-                 use_thresholding:bool=False,kpt_thr:float=2.5,filter_noise:bool=False) -> None:
+    def __init__(self, device:str='cuda', backend:str='onnxruntime',
+                 mode:str='performance', to_openpose:bool=False,
+                 use_thresholding:bool=False,kpt_thr:float=2.5,filter_noise:bool=False,
+                 verbose:bool=True) -> None:
         """
         Initialize the RTMPoseModel.
 
@@ -22,6 +26,7 @@ class RTMPoseModel:
                 keypoints[scores<self.kpt_thr] = 0
                 ```
             kpt_thr (int): threshold to filtering
+            verbose (bool): If True, shows loading messages. Default: True.
         """
         self.device = device
         self.backend = backend
@@ -30,14 +35,33 @@ class RTMPoseModel:
         self.kpt_thr = kpt_thr
         self.filter_noise = filter_noise
         self.use_thresholding = use_thresholding
+        self.verbose = verbose
         # Check if CUDA is available if device is set to 'cuda'
         if self.device == 'cuda' and not torch.cuda.is_available():
-            print("CUDA is not available. Falling back to CPU.")
+            if self.verbose:
+                print("CUDA is not available. Falling back to CPU.")
             self.device = 'cpu'
 
-        self.model = Wholebody(to_openpose=self.to_openpose, 
-                               mode=self.mode, backend=self.backend,
-                               device=self.device)
+        # Suppress ONNX Runtime C++ warnings
+        if not self.verbose:
+            os.environ["ORT_LOG_LEVEL"] = "3"
+            try:
+                import onnxruntime as ort
+                ort.set_default_logger_severity(3)
+            except ImportError:
+                pass
+
+        # Suppress rtmlib print statements if not verbose
+        if not self.verbose:
+            _stdout = sys.stdout
+            sys.stdout = io.StringIO()
+        try:
+            self.model = Wholebody(to_openpose=self.to_openpose,
+                                   mode=self.mode, backend=self.backend,
+                                   device=self.device)
+        finally:
+            if not self.verbose:
+                sys.stdout = _stdout
         
         self.foot_left_ids = [11,13,15]
         self.foot_right_ids = [12,14,16]

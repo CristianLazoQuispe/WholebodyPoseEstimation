@@ -275,21 +275,23 @@ class Video2Pose:
     - MediaPipe: Google's lightweight pose solution
     """
     
-    def __init__(self, mode_coco: bool = True, model_name: str = "rtmpose") -> None:
+    def __init__(self, mode_coco: bool = True, model_name: str = "rtmpose", verbose: bool = True) -> None:
         """
         Initialize the Video2Pose estimator.
-        
+
         Args:
             mode_coco: If True, uses COCO Wholebody format. If False, adds custom
                       points (middle_chest, middle_hip) and links.
             model_name: Backbone model to use ('rtmpose', 'vitpose', 'mediapipe')
+            verbose: If True, shows loading and processing messages. Default: True.
         """
         self.mode_coco = mode_coco
         self.model_name = model_name
+        self.verbose = verbose
         self.draw_skeleton = DrawerPose(mode_coco=mode_coco)
-        
+
         self.model = self._initialize_model()
-        
+
         self.metadata_extractor = VideoMetadataExtractor()
         self.video_processor = VideoProcessor()
         self.keypoint_cleaner = KeypointCleaner()
@@ -327,7 +329,8 @@ class Video2Pose:
                 device='cuda',
                 use_thresholding=True,
                 filter_noise=True,
-                kpt_thr=2.5
+                kpt_thr=2.5,
+                verbose=self.verbose
             )
     
     def convert_mp4_to_mov(
@@ -431,39 +434,31 @@ class Video2Pose:
         return width, height
     
     def _initialize_video_writer(
-        self, 
-        filepath: str, 
-        folder_results: str, 
-        width: int, 
+        self,
+        filepath: str,
+        folder_results: str,
+        width: int,
         height: int,
         fps: int = DEFAULT_FPS,
 
     ) -> Tuple[cv2.VideoWriter, str]:
         """
         Initialize video writer for output.
-        
+
         Args:
             filepath: Original video filepath
             folder_results: Output folder
             width: Frame width
             height: Frame height
-            
+
         Returns:
             Tuple of (VideoWriter object, output filepath)
         """
         filename_base = Path(filepath).stem
         output_path = os.path.join(
-            folder_results, 
+            folder_results,
             f"{filename_base}_{self.model_name}.mp4"
         )
-        
-        #writer = cv2.VideoWriter(
-        #    output_path,
-        #    cv2.VideoWriter_fourcc(*VIDEO_CODEC_MP4),
-        #    DEFAULT_FPS,
-        #    (width, height)
-        #)
-
 
         # Try web-compatible codecs
         web_codecs = [
@@ -472,25 +467,42 @@ class Video2Pose:
             ('X264', 'H.264 (X264)'),
             ('MJPG', 'Motion JPEG'),  # Web-compatible fallback
         ]
-        
+
         writer = None
         codec_used = None
-        
-        for codec, name in web_codecs:
-            test_writer = cv2.VideoWriter(
-                output_path,
-                cv2.VideoWriter_fourcc(*codec),
-                fps,
-                (width, height)
-            )
-            
-            if test_writer.isOpened():
-                writer = test_writer
-                codec_used = codec
-                print(f"[INFO] Using {name} codec")
-                break
-            else:
-                test_writer.release()        
+
+        # Suppress OpenCV C++ FFMPEG errors during codec probing
+        prev_log_level = cv2.getLogLevel()
+        cv2.setLogLevel(0)  # LOG_LEVEL_SILENT
+        # Redirect C-level stderr to /dev/null
+        _stderr_fd = os.dup(2)
+        _devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(_devnull, 2)
+        os.close(_devnull)
+        try:
+            for codec, name in web_codecs:
+                test_writer = cv2.VideoWriter(
+                    output_path,
+                    cv2.VideoWriter_fourcc(*codec),
+                    fps,
+                    (width, height)
+                )
+
+                if test_writer.isOpened():
+                    writer = test_writer
+                    codec_used = codec
+                    break
+                else:
+                    test_writer.release()
+        finally:
+            # Restore stderr
+            os.dup2(_stderr_fd, 2)
+            os.close(_stderr_fd)
+            cv2.setLogLevel(prev_log_level)
+
+        if self.verbose and codec_used:
+            codec_name = dict(web_codecs).get(codec_used, codec_used)
+            print(f"[INFO] Using {codec_name} codec")
 
         return writer, output_path
     
@@ -564,7 +576,8 @@ class Video2Pose:
             self._copy_input_video(filepath, folder_results)
         
         rotation = self.metadata_extractor.get_rotation_angle(filepath)
-        print(f"[INFO] Detected rotation: {rotation}°")
+        if self.verbose:
+            print(f"[INFO] Detected rotation: {rotation}°")
         
         background_color = self.video_processor.get_background_color(background_plot)
         
@@ -579,10 +592,11 @@ class Video2Pose:
 
 
         frame_skip = max(1, math.ceil(original_fps / video_processing_fps))
-        print(f"[INFO] Original          FPS: {original_fps}")
-        print(f"Processing every {frame_skip} frame(s)")
-        print(f"[INFO] Target processing FPS: {video_processing_fps}")
-        print(f"[INFO] Output video      FPS: {output_video_fps}")
+        if self.verbose:
+            print(f"[INFO] Original          FPS: {original_fps}")
+            print(f"Processing every {frame_skip} frame(s)")
+            print(f"[INFO] Target processing FPS: {video_processing_fps}")
+            print(f"[INFO] Output video      FPS: {output_video_fps}")
 
         width, height = self._get_rotated_frame_dimensions(vid, rotation)
         results['width'] = width
@@ -672,7 +686,8 @@ class Video2Pose:
             frame_count += 1
             processed_count += 1
         
-        print(f"[INFO] Processed {processed_count}/{frame_count} frames")
+        if self.verbose:
+            print(f"[INFO] Processed {processed_count}/{frame_count} frames")
         
         
         vid.release()
@@ -698,6 +713,7 @@ class Video2Pose:
                 )
                 if success:
                     results['filepath_result'] = mov_path
-                    print(f"[INFO] Saved MOV output: {mov_path}")
+                    if self.verbose:
+                        print(f"[INFO] Saved MOV output: {mov_path}")
         
         return results
