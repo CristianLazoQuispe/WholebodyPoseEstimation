@@ -73,7 +73,7 @@ WholebodyPoseEstimation/
 
 ### Using the Package API
 ```python
-from wholebodypose.models.rtmpose import RTMPoseModel
+from wholebodypose.models.rtmpose.model import RTMPoseModel
 from wholebodypose.video.video2pose import Video2Pose
 
 import cv2
