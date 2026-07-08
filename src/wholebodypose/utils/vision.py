@@ -6,6 +6,19 @@ import numpy as np
 from .coco133 import coco133
 
 
+def valid_keypoint_mask(keypoints: np.ndarray, sentinel: float = 0.0) -> np.ndarray:
+    """Boolean mask of DETECTED keypoints.
+
+    Undetected keypoints are stored as the sentinel coordinate (both x and y equal `sentinel`, e.g.
+    (0, 0) in raw image space). Use this to build a `scores` array for the drawers instead of the
+    near-origin proximity heuristic `(x + y) / 2 < thr`, which breaks once the sentinels have been
+    moved by centering/augmentation. Accepts (..., K, 2) and returns (..., K) bool.
+    """
+    x = keypoints[..., 0]
+    y = keypoints[..., 1]
+    return ~((x == sentinel) & (y == sentinel))
+
+
 def draw_text(
     frame: np.ndarray,
     text: str,

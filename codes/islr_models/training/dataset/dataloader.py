@@ -47,11 +47,19 @@ class SimpleHDF5Dataset(Dataset):
                 data = self.filter.apply(data,score)
         data = torch.tensor(data, dtype=torch.float32).permute(0, 2, 1)-0.5  # [T, V, 2]
 
+        # Undetected keypoints are the sentinel (0, 0) in the raw data, i.e. (-0.5, -0.5) after the shift.
+        # Track them so noise/augmentation below don't scatter them to a fixed phantom point (which then
+        # shows up as a cluster in plots and can't be masked by a near-origin test anymore).
+        undetected = (data[..., 0] == -0.5) & (data[..., 1] == -0.5)  # [T, V]
+
         if random.random() < 0.5:
             if self.transform:
                 data += (torch.randn_like(data)*self.noise_std)
                 n_spatial_func  = len(self.transform.spatial_augmentations.keys())
                 data = self.transform.apply_spatial(random.randint(0, n_spatial_func - 1),data)
+
+        # Re-pin undetected keypoints to the sentinel so they stay maskable end-to-end.
+        data[undetected] = -0.5
 
         name = self.labels[idx]
         label = self.map_labels["id_to_label"][name]
