@@ -30,7 +30,12 @@ class AugmentationSpatial:
         return self._rotate_torch(origin, keypoints, angle)
 
     def normalize_keypoints(self,keypoints_np):
-        """
+        """Min-max normalize keypoints to [0, 1], ignoring undetected (0, 0) keypoints.
+
+        Undetected keypoints are stored as the sentinel (0, 0). Including them in the min/max drags the
+        range toward the origin and, after the later -0.5 shift and spatial augmentation, sends them to a
+        fixed non-corner point that shows up as a phantom cluster in plots. We compute the range over the
+        valid keypoints only and leave the undetected ones pinned at (0, 0) so they stay maskable.
         """
 
         if keypoints_np.ndim == 2:
@@ -39,11 +44,15 @@ class AugmentationSpatial:
         x = keypoints_np[..., 0]
         y = keypoints_np[..., 1]
 
-        x_min = x.min()
-        x_max = x.max()
-        y_min = y.min()
-        y_max = y.max()
-    
+        valid = ~((x == 0) & (y == 0))              # (0, 0) marks an undetected keypoint
+        if valid.any():
+            x_min = x[valid].min()
+            x_max = x[valid].max()
+            y_min = y[valid].min()
+            y_max = y[valid].max()
+        else:
+            x_min = x_max = y_min = y_max = 0.0
+
         x_range = max(x_max - x_min, 1e-5)
         y_range = max(y_max - y_min, 1e-5)
 
@@ -52,6 +61,7 @@ class AugmentationSpatial:
         y_norm = (y - y_min) / y_range
 
         normed = np.stack([x_norm, y_norm], axis=-1)
+        normed[~valid] = 0.0                        # keep undetected keypoints at the origin (masked)
 
         return normed, (x_min, x_range), (y_min, y_range)
 
