@@ -115,6 +115,8 @@ def test_onnx_engine_without_torch(monkeypatch, tmp_path):
 
 
 def test_auto_falls_back_to_torch(monkeypatch):
+    pytest.importorskip("onnxruntime")  # without it the fallback reason is the missing package
+
     def missing(key, verbose=True):
         raise RuntimeError("not on the mirror")
 
