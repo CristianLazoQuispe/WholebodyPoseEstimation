@@ -60,6 +60,7 @@ WHOLEBODYPOSE_HOME=/data/wbp wholebodypose download mp_pose_heavy mp_hand mp_fac
 
 ```python
 from wholebodypose.weights import WEIGHTS, get_weight
+
 path = get_weight("rtmw_x_384")
 ```
 

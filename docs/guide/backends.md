@@ -14,9 +14,9 @@ apply your keyword arguments on top:
 ```python
 from wholebodypose import BACKENDS, PoseEstimator, create_model
 
-BACKENDS["rtmpose"].defaults          # {'mode': 'performance', 'use_thresholding': True, 'filter_noise': True}
-est = PoseEstimator("rtmpose", mode="lightweight")    # paper settings, except the model size
-model = create_model("mediapipe", kpt_thr=0.3)        # the bare backend, without drawing/video helpers
+BACKENDS["rtmpose"].defaults  # {'mode': 'performance', 'use_thresholding': True, 'filter_noise': True}
+est = PoseEstimator("rtmpose", mode="lightweight")  # paper settings, except the model size
+model = create_model("mediapipe", kpt_thr=0.3)  # the bare backend, without drawing/video helpers
 ```
 
 | Backend | Paper settings (`BACKENDS[...].defaults`) | Extra |

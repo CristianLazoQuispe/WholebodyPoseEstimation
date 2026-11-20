@@ -18,7 +18,7 @@ in pixel coordinates `(x, y)` of the input image. "Left" and "right" are the **p
 ```python
 BODY, FEET, FACE = slice(0, 17), slice(17, 23), slice(23, 91)
 LEFT_HAND, RIGHT_HAND = slice(91, 112), slice(112, 133)
-left_hand = keypoints[0, LEFT_HAND]        # (21, 2) for the first person
+left_hand = keypoints[0, LEFT_HAND]  # (21, 2) for the first person
 ```
 
 ### Body (0-16) — the 17 COCO keypoints
@@ -84,13 +84,20 @@ To build the 135-point array from library output:
 ```python
 import numpy as np
 
+
 def to135(keypoints, scores):
     """(..., 133, 2), (..., 133) -> (..., 135, 2), (..., 135)."""
     neck = (keypoints[..., 5, :] + keypoints[..., 6, :]) / 2
     pelvis = (keypoints[..., 11, :] + keypoints[..., 12, :]) / 2
     k = np.concatenate([keypoints, neck[..., None, :], pelvis[..., None, :]], axis=-2)
-    s = np.concatenate([scores, ((scores[..., 5] + scores[..., 6]) / 2)[..., None],
-                        ((scores[..., 11] + scores[..., 12]) / 2)[..., None]], axis=-1)
+    s = np.concatenate(
+        [
+            scores,
+            ((scores[..., 5] + scores[..., 6]) / 2)[..., None],
+            ((scores[..., 11] + scores[..., 12]) / 2)[..., None],
+        ],
+        axis=-1,
+    )
     return k, s
 ```
 

@@ -11,7 +11,7 @@ res = PoseEstimator("rtmpose").process_video("sign.mp4", "outputs/", video_proce
 
 # or directly
 runner = Video2Pose(model_name="mediapipe", mode_coco=True, verbose=False)
-res = runner.predict("sign.mp4", folder_results=None, max_frames=100)    # keypoints only
+res = runner.predict("sign.mp4", folder_results=None, max_frames=100)  # keypoints only
 ```
 
 ## Constructor
@@ -73,8 +73,14 @@ processed frames.
 ```python
 from wholebodypose import save_poses, load_poses
 
-save_poses("clip.npz", res["total_keypoints"], res["total_scores"],
-           backend="rtmpose", fps=res["processing_fps"], frame_size=res["frame_size"])
+save_poses(
+    "clip.npz",
+    res["total_keypoints"],
+    res["total_scores"],
+    backend="rtmpose",
+    fps=res["processing_fps"],
+    frame_size=res["frame_size"],
+)
 keypoints, scores, meta = load_poses("clip.npz")
 ```
 
@@ -94,6 +100,7 @@ From NumPy only:
 
 ```python
 import json, numpy as np
+
 d = np.load("clip.npz")
 keypoints, scores, meta = d["keypoints"], d["scores"], json.loads(str(d["meta"]))
 ```
@@ -137,7 +144,8 @@ The filters only see keypoints; select the matching scores with the indices as a
 
 ```python
 from wholebodypose import FilteringNLMS
-kp_f, sc_f = FilteringNLMS(num_keypoints=133).apply(keypoints, scores)   # (T, 133, 2), (T, 133)
+
+kp_f, sc_f = FilteringNLMS(num_keypoints=133).apply(keypoints, scores)  # (T, 133, 2), (T, 133)
 ```
 
 Every coordinate and score of every keypoint has a Normalized Least-Mean-Squares adaptive filter
@@ -167,6 +175,7 @@ unchanged). `reset()` clears the window.
 ```python
 import numpy as np
 from wholebodypose.filters.filtering_mean import MeanMedianFilter
+
 f = MeanMedianFilter(window_size=5)
 smoothed = np.stack([f(k) for k in keypoints])
 ```

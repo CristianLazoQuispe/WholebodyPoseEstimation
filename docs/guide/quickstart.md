@@ -41,11 +41,11 @@ wholebodypose download                                    # pre-fetch every weig
 import cv2
 from wholebodypose import PoseEstimator
 
-est = PoseEstimator("rtmpose")                     # paper defaults; or "vitpose", "mediapipe"
+est = PoseEstimator("rtmpose")  # paper defaults; or "vitpose", "mediapipe"
 
 # from a file
 keypoints, scores = est.predict_image("data/images/image.jpg")
-print(keypoints.shape, scores.shape)               # (N, 133, 2) pixels (x, y), (N, 133)
+print(keypoints.shape, scores.shape)  # (N, 133, 2) pixels (x, y), (N, 133)
 
 # from an array: every backend takes RGB uint8
 bgr = cv2.imread("data/images/image.jpg")
@@ -62,10 +62,10 @@ cv2.imwrite("drawn.png", est.draw(bgr, keypoints, scores))
 Override any backend argument by keyword:
 
 ```python
-PoseEstimator("rtmpose", mode="lightweight", device="cpu")       # faster RTMW-l model
+PoseEstimator("rtmpose", mode="lightweight", device="cpu")  # faster RTMW-l model
 PoseEstimator("vitpose", model_name="ViTPose+_base_coco_wholebody")
-PoseEstimator("mediapipe", image_mode=False)                     # tracking mode for video streams
-PoseEstimator("rtmpose", use_thresholding=False)                 # raw confidences
+PoseEstimator("mediapipe", image_mode=False)  # tracking mode for video streams
+PoseEstimator("rtmpose", use_thresholding=False)  # raw confidences
 ```
 
 All options and their defaults are in [backends.md](backends.md).
@@ -77,8 +77,8 @@ from wholebodypose import PoseEstimator, save_poses, load_poses
 
 est = PoseEstimator("rtmpose")
 res = est.process_video("data/videos/videoTest.mp4", "outputs/", video_processing_fps=15)
-res["total_keypoints"].shape           # (T, 133, 2)
-res["filepath_result"]                 # outputs/videoTest_rtmpose.mp4
+res["total_keypoints"].shape  # (T, 133, 2)
+res["filepath_result"]  # outputs/videoTest_rtmpose.mp4
 
 save_poses("outputs/videoTest.npz", res["total_keypoints"], res["total_scores"], fps=res["processing_fps"])
 keypoints, scores, meta = load_poses("outputs/videoTest.npz")
