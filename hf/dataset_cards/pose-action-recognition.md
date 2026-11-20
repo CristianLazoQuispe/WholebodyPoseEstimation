@@ -234,7 +234,8 @@ If you use the pose extraction pipeline:
   volume       = {14114},
   pages        = {69--79},
   year         = {2026},
-  organization = {SPIE}
+  organization = {SPIE},
+  doi          = {10.1117/12.3096312}
 }
 ```
 

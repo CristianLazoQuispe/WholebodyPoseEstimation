@@ -104,7 +104,8 @@ you use the library:
   volume       = {14114},
   pages        = {69--79},
   year         = {2026},
-  organization = {SPIE}
+  organization = {SPIE},
+  doi          = {10.1117/12.3096312}
 }
 @article{jiang2024rtmw,
   title   = {RTMW: Real-Time Multi-Person 2D and 3D Whole-body Pose Estimation},
