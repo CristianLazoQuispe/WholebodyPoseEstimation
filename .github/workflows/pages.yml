@@ -1,0 +1,53 @@
+# Deploys the static project page in website/ to GitHub Pages:
+#   https://cristianlazoquispe.github.io/WholebodyPoseEstimation/
+# Pages "deploy from a branch" can only serve / or /docs, so the site is published with Actions.
+# One-time setup: Settings -> Pages -> Source: "GitHub Actions" (build_type=workflow).
+# Every push to main that touches website/ (or this file) redeploys it; it can also be run by hand.
+name: Deploy project page
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "website/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check local links
+        run: |
+          python3 - <<'EOF'
+          import pathlib, re, sys
+          html = pathlib.Path("website/index.html").read_text(encoding="utf-8")
+          refs = set(re.findall(r'(?:src|href|poster)="([^"#:?]+)"', html))
+          missing = [r for r in sorted(refs) if not (pathlib.Path("website") / r).exists()]
+          print(f"{len(refs)} local references checked")
+          if missing:
+              sys.exit("missing files: " + ", ".join(missing))
+          EOF
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload website/
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
