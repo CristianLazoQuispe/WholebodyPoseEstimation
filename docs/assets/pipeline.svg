@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="262" viewBox="-20 0 1000 262" role="img" aria-labelledby="t d">
+  <!-- Exported from website/index.html (#pipeline, wide variant). Self-contained: inline attributes only. -->
+  <rect x="-20" y="0" width="1000" height="262" rx="12" fill="#ffffff"/>
+    <title id="t">WholeBodyPose pipeline</title>
+    <desc id="d">Five stages from left to right: input video, image or webcam frames; a pose backend (RTMPose, ViTPose+ or MediaPipe); the unified COCO-WholeBody output of 133 keypoints per person (17 body, 6 feet, 68 face, 42 hands); temporal clean-up with NLMS smoothing and a sequence filter; and training-ready pose sequences of shape T by 133 by 2, saved as npz or json, which feed ISLR models such as SPOTER, SILT, GCN-BERT and Pose-TGCN.</desc>
+    <defs>
+      <marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path fill="#9aa3ad" d="M0 0L10 5L0 10z"/></marker>
+    </defs>
+    <!-- 1 input -->
+    <rect fill="#f6f7f8" stroke="#e3e5e8" stroke-width="1" x="0" y="20" width="164" height="222" rx="10"/>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" letter-spacing="0.6" fill="#5c636b" x="82" y="46" text-anchor="middle">INPUT</text>
+    <g transform="translate(42 66)">
+      <rect x="0" y="0" width="80" height="58" rx="5" fill="#fff" stroke="#9aa3ad" stroke-width="1.4"/>
+      <path d="M0 10h80M0 48h80" stroke="#9aa3ad" stroke-width="1.2"/>
+      <path d="M8 3v4M20 3v4M32 3v4M44 3v4M56 3v4M68 3v4M8 51v4M20 51v4M32 51v4M44 51v4M56 51v4M68 51v4" stroke="#9aa3ad" stroke-width="2"/>
+      <circle cx="40" cy="20" r="4.2" fill="#7a5bb5"/>
+      <path d="M40 24v13M40 37l-7 9M40 37l7 9M32 28l8-2 8 2" stroke="#d9731f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <path d="M28 25l4 3M52 25l-4 3" stroke="#2e8b57" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328" x="82" y="154" text-anchor="middle">Video, image</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328" x="82" y="174" text-anchor="middle">or webcam</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="82" y="200" text-anchor="middle">RGB frames, any FPS</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="82" y="218" text-anchor="middle">optional enhancement</text>
+
+    <path stroke="#9aa3ad" stroke-width="1.6" fill="none" d="M168 131H193" marker-end="url(#ah)"/>
+
+    <!-- 2 backend -->
+    <rect fill="#ffffff" stroke="#cfd3d8" stroke-width="1.2" x="199" y="20" width="164" height="222" rx="10"/>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" letter-spacing="0.6" fill="#5c636b" x="281" y="46" text-anchor="middle">POSE BACKEND</text>
+    <rect fill="#ffffff" stroke="#cfd3d8" stroke-width="1" x="211" y="62" width="140" height="48" rx="7"/>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328" x="281" y="83" text-anchor="middle">RTMPose</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="281" y="101" text-anchor="middle">RTMW-x, multi-person</text>
+    <rect fill="#ffffff" stroke="#cfd3d8" stroke-width="1" x="211" y="118" width="140" height="48" rx="7"/>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328" x="281" y="139" text-anchor="middle">ViTPose+</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="281" y="157" text-anchor="middle">huge … small</text>
+    <rect fill="#ffffff" stroke="#cfd3d8" stroke-width="1" x="211" y="174" width="140" height="48" rx="7"/>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328" x="281" y="195" text-anchor="middle">MediaPipe</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="281" y="213" text-anchor="middle">pose + hands + face</text>
+
+    <path stroke="#9aa3ad" stroke-width="1.6" fill="none" d="M367 131H392" marker-end="url(#ah)"/>
+
+    <!-- 3 unified output -->
+    <rect fill="#e6f2f2" stroke="#0f6f74" stroke-width="1.4" x="398" y="20" width="164" height="222" rx="10"/>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" letter-spacing="0.6" fill="#5c636b" x="480" y="46" text-anchor="middle">UNIFIED OUTPUT</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328" x="480" y="76" text-anchor="middle">COCO-WholeBody</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="480" y="96" text-anchor="middle">133 keypoints per person</text>
+    <g>
+      <rect x="410" y="110" width="17.9" height="12" fill="#d9731f"/>
+      <rect x="427.9" y="110" width="6.3" height="12" fill="#3b6fa3"/>
+      <rect x="434.2" y="110" width="71.6" height="12" fill="#7a5bb5"/>
+      <rect x="505.8" y="110" width="44.2" height="12" fill="#2e8b57"/>
+      <circle cx="418" cy="146" r="5" fill="#d9731f"/><text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="428" y="150.5">body 17</text>
+      <circle cx="484" cy="146" r="5" fill="#3b6fa3"/><text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="494" y="150.5">feet 6</text>
+      <circle cx="418" cy="168" r="5" fill="#7a5bb5"/><text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="428" y="172.5">face 68</text>
+      <circle cx="484" cy="168" r="5" fill="#2e8b57"/><text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="494" y="172.5">hands 42</text>
+    </g>
+    <text font-family="'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11.5" fill="#3b4148" x="480" y="202" text-anchor="middle">(N, 133, 2) + scores</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="480" y="222" text-anchor="middle">pixels · RGB input</text>
+
+    <path stroke="#9aa3ad" stroke-width="1.6" fill="none" d="M566 131H591" marker-end="url(#ah)"/>
+
+    <!-- 4 temporal cleanup -->
+    <rect fill="#ffffff" stroke="#cfd3d8" stroke-width="1.2" x="597" y="20" width="164" height="222" rx="10"/>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" letter-spacing="0.6" fill="#5c636b" x="679" y="46" text-anchor="middle">TEMPORAL CLEAN-UP</text>
+    <rect fill="#ffffff" stroke="#cfd3d8" stroke-width="1" x="609" y="62" width="140" height="70" rx="7"/>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328" x="679" y="88" text-anchor="middle">NLMS smoothing</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="679" y="106" text-anchor="middle">online: uses past</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="679" y="122" text-anchor="middle">frames only</text>
+    <rect fill="#ffffff" stroke="#cfd3d8" stroke-width="1" x="609" y="142" width="140" height="70" rx="7"/>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328" x="679" y="168" text-anchor="middle">Sequence filter</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="679" y="186" text-anchor="middle">drops empty, static</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="679" y="202" text-anchor="middle">or no-hands frames</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="679" y="232" text-anchor="middle" font-style="italic">optional</text>
+
+    <path stroke="#9aa3ad" stroke-width="1.6" fill="none" d="M765 131H790" marker-end="url(#ah)"/>
+
+    <!-- 5 training-ready -->
+    <rect fill="#f6f7f8" stroke="#e3e5e8" stroke-width="1" x="796" y="20" width="164" height="222" rx="10"/>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" letter-spacing="0.6" fill="#5c636b" x="878" y="46" text-anchor="middle">TRAINING-READY</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328" x="878" y="76" text-anchor="middle">Pose sequences</text>
+    <text font-family="'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11.5" fill="#3b4148" x="878" y="98" text-anchor="middle">(T, 133, 2)</text>
+    <text font-family="'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="11.5" fill="#3b4148" x="878" y="116" text-anchor="middle">.npz / .json</text>
+    <path d="M816 134H940" stroke="#cfd3d8" stroke-width="1"/>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" letter-spacing="0.6" fill="#5c636b" x="878" y="158" text-anchor="middle">FEEDS ISLR MODELS</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="878" y="182" text-anchor="middle">SPOTER · SILT</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="878" y="202" text-anchor="middle">GCN-BERT · Pose-TGCN</text>
+  
+</svg>
