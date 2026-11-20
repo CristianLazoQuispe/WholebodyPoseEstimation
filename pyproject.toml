@@ -13,8 +13,8 @@ license-files = ["LICENSE", "NOTICE", "LICENSES/*", "THIRD_PARTY.md"]
 authors = [
     { name = "Cristian Lazo-Quispe" },
     { name = "Renato Castro-Cruz" },
-    { name = "Gissella Bejarano" },
     { name = "Mauricio Salazar-Espinosa" },
+    { name = "Gissella Bejarano" },
 ]
 keywords = ["pose estimation", "whole-body", "coco-wholebody", "sign language", "rtmpose", "vitpose", "mediapipe"]
 classifiers = [

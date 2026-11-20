@@ -20,12 +20,12 @@ authors:
   - family-names: Castro-Cruz
     given-names: Renato
     affiliation: "Universidad Nacional de Ingeniería"
-  - family-names: Bejarano
-    given-names: Gissella
-    affiliation: "Marist University"
   - family-names: Salazar-Espinosa
     given-names: Mauricio
     affiliation: "Pontificia Universidad Católica del Perú"
+  - family-names: Bejarano
+    given-names: Gissella
+    affiliation: "Marist University"
 preferred-citation:
   type: conference-paper
   title: "WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data"

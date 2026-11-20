@@ -404,10 +404,10 @@ authors:
     given-names: Cristian
   - family-names: Castro-Cruz
     given-names: Renato
-  - family-names: Bejarano
-    given-names: Gissella
   - family-names: Salazar-Espinosa
     given-names: Mauricio
+  - family-names: Bejarano
+    given-names: Gissella
 preferred-citation:
   type: conference-paper
   title: "WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data"

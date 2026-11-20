@@ -179,7 +179,7 @@ non-commercial data). Pose datasets: CC BY-NC-SA 4.0, citation required.
 Details: [docs/LICENSING.md]({LICENSE_DOCS_URL}).
 
 **Authors**: Cristian Lazo-Quispe, Renato Castro-Cruz (Universidad Nacional de Ingeniería, Peru),
-Gissella Bejarano (Marist University, USA), Mauricio Salazar-Espinosa (Pontificia Universidad Católica del Perú).
+Mauricio Salazar-Espinosa (Pontificia Universidad Católica del Perú), Gissella Bejarano (Marist University, USA).
 """
 
 FOOTER_MD = f"""

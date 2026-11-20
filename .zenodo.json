@@ -12,12 +12,12 @@
       "affiliation": "Universidad Nacional de Ingeniería"
     },
     {
-      "name": "Bejarano, Gissella",
-      "affiliation": "Marist University"
-    },
-    {
       "name": "Salazar-Espinosa, Mauricio",
       "affiliation": "Pontificia Universidad Católica del Perú"
+    },
+    {
+      "name": "Bejarano, Gissella",
+      "affiliation": "Marist University"
     }
   ],
   "license": "Apache-2.0",

@@ -4,6 +4,8 @@ One interface for RTMPose, ViTPose+ and MediaPipe that always returns the 133 CO
 keypoints, plus the video pipeline that turns sign language videos into training-ready pose sequences
 (ICMV 2025, Proceedings of SPIE).
 
+Cristian Lazo-Quispe, Renato Castro-Cruz, Mauricio Salazar-Espinosa, Gissella Bejarano
+
 [![Paper](https://img.shields.io/badge/Paper-PDF-b31b1b?style=flat-square)](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/paper/WholeBodyPose_ICMV2025.pdf)
 [![DOI](https://img.shields.io/badge/DOI-10.1117%2F12.3096312-blue?style=flat-square)](https://doi.org/10.1117/12.3096312)
 [![Project page](https://img.shields.io/badge/Project-Page-6f42c1?style=flat-square)](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/)
