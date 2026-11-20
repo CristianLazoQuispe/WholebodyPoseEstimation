@@ -1,24 +1,39 @@
+# From the repository root:
+#   docker compose -f docker/docker-compose-cpu.yaml build
+#   docker compose -f docker/docker-compose-cpu.yaml run --rm wholebodypose \
+#       wholebodypose video data/videos/videoTest.mp4 -b rtmpose --max-frames 30
+#   docker compose -f docker/docker-compose-cpu.yaml up jupyter        # JupyterLab on http://localhost:8888
+x-build: &build
+  context: ..
+  dockerfile: docker/Dockerfile.cpu
+  args:
+    INSTALL_JUPYTER: "true"
+
+x-volumes: &volumes
+  - ..:/workspace
+  - weights:/home/wbp/.cache/wholebodypose
+
 services:
-  wholebody-pose-cpu:
-    build:
-      context: ..                       # build context is the parent directory 
-      dockerfile: docker/Dockerfile.cpu
-    image: wholebody-pose-cpu          # name of the image
-    container_name: wholebody-pose-cpu # name of the container
+  wholebodypose:
+    build: *build
+    image: wholebodypose:cpu
+    volumes: *volumes
     deploy:
       resources:
         limits:
+          cpus: "4.0"
           memory: 8g
-          cpus: '4.0'
-    volumes:
-      - ../:/workspace
-    ports:
-      - "8888:8888"
-    environment:      
-      - DISPLAY=host.docker.internal:0.0
     stdin_open: true
     tty: true
 
-# from root of the project:
-#docker compose -f docker/docker-compose-cpu.yaml up --build
-#docker compose -f docker/docker-compose-cpu.yaml up --remove-orphans
+  jupyter:
+    profiles: [jupyter]
+    build: *build
+    image: wholebodypose:cpu
+    command: ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser"]
+    ports:
+      - "8888:8888"
+    volumes: *volumes
+
+volumes:
+  weights:

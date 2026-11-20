@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/tree/main/docs
+    about: Installation, backends, keypoint layout, video pipeline and weights.
+  - name: Online demo
+    url: https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo
+    about: Try the backends on your own image or video without installing anything.

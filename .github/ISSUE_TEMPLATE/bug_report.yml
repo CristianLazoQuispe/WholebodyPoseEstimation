@@ -1,0 +1,52 @@
+name: Bug report
+description: Something does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please check the [docs](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/tree/main/docs) and existing issues first.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Code or command, ideally on `data/images/image.jpg` or `data/videos/videoTest.mp4`.
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: traceback
+    attributes:
+      label: Error / traceback
+      render: text
+  - type: dropdown
+    id: backend
+    attributes:
+      label: Backend
+      multiple: true
+      options: [rtmpose, vitpose, mediapipe, none / not backend-specific]
+    validations:
+      required: true
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options: [CPU, CUDA GPU, Apple Silicon, other]
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: |
+        Output of:
+        `python -c "import sys, platform, wholebodypose; print(sys.version, platform.platform(), wholebodypose.__version__)"`
+        and `pip list | grep -iE "wholebodypose|numpy|opencv|onnxruntime|rtmlib|mediapipe|torch|onepose|padasip"`
+      render: text
+    validations:
+      required: true

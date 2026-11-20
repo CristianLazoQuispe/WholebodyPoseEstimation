@@ -1,44 +1,58 @@
-FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
+# syntax=docker/dockerfile:1
+# WholeBodyPose, GPU image: RTMPose on ONNX Runtime CUDA, ViTPose on CUDA PyTorch, MediaPipe on CPU.
+# Needs an NVIDIA driver for CUDA 12 and the NVIDIA Container Toolkit on the host.
+#
+#   docker build -f docker/Dockerfile.gpu -t wholebodypose:gpu .
+#   docker run --rm --gpus all -v "$PWD:/workspace" wholebodypose:gpu \
+#       wholebodypose video data/videos/videoTest.mp4 -b rtmpose --device cuda
+#
+# Build args:
+#   CUDA_IMAGE       CUDA 12 + cuDNN 9 runtime base (what onnxruntime-gpu and torch cu12x expect)
+#   TORCH_INDEX      PyTorch wheel index matching that CUDA version
+#   EXTRAS           pip extras to install (default: all)
+#   INSTALL_JUPYTER  "true" adds JupyterLab (run: jupyter lab --ip=0.0.0.0 --no-browser)
+ARG CUDA_IMAGE=nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
+FROM ${CUDA_IMAGE}
 
-# use the official PyTorch image with CUDA support
-ENV LD_LIBRARY_PATH=/opt/conda/lib/python3.10/site-packages/torch/lib:$LD_LIBRARY_PATH
+ARG TORCH_INDEX=https://download.pytorch.org/whl/cu126
+ARG EXTRAS=all
+ARG INSTALL_JUPYTER=false
 
-# Set default timezone to UTC or allow override
-ARG CONTAINER_TIMEZONE=Etc/UTC
-ENV CONTAINER_TIMEZONE=${CONTAINER_TIMEZONE}
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    VIRTUAL_ENV=/opt/venv \
+    PATH=/opt/venv/bin:$PATH
 
-# Fix time sync issue and install tzdata properly
-RUN apt-get update 
+# Ubuntu 24.04 ships Python 3.12. git: onepose (vitpose extra); libgl1, libglib2.0-0: MediaPipe's OpenCV.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 python3-venv git libgl1 libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/* \
+    && python3 -m venv /opt/venv
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata && \
-    ln -snf /usr/share/zoneinfo/${CONTAINER_TIMEZONE} /etc/localtime && \
-    echo ${CONTAINER_TIMEZONE} > /etc/timezone && \
-    dpkg-reconfigure -f noninteractive tzdata && \
-    apt-get clean
+RUN pip install torch --index-url "${TORCH_INDEX}"
 
-# Install system packages in one go (to reduce layers)
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    ffmpeg libsm6 libxext6 libxrender-dev \
-    libgl1 libglib2.0-0 libgtk2.0-dev \
-    python3-opencv git curl wget unzip && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+WORKDIR /opt/wholebodypose
+COPY pyproject.toml README.md LICENSE ./
+COPY src ./src
+# onnxruntime (CPU) and onnxruntime-gpu provide the same module: keep only the GPU build.
+RUN pip install ".[${EXTRAS}]" \
+    && pip uninstall -y onnxruntime \
+    && pip install "onnxruntime-gpu>=1.19" \
+    && if [ "$INSTALL_JUPYTER" = "true" ]; then pip install jupyterlab; fi
 
-# Upgrade pip and install jupyterlab
-RUN pip install --upgrade pip && pip install jupyterlab
+# The Ubuntu 24.04 CUDA images already have an "ubuntu" user with uid 1000.
+RUN mkdir -p /workspace /home/ubuntu/.cache/wholebodypose \
+    && chown -R ubuntu:ubuntu /workspace /home/ubuntu/.cache \
+    && python -c "import importlib.util as u, pathlib as p; s = u.find_spec('onepose'); \
+d = s and p.Path(s.origin).parent / 'models' / 'weights'; d and d.mkdir(parents=True, exist_ok=True); \
+d and d.chmod(0o777)"
 
-# Copy requirements
-COPY docker/requirements.txt .
+USER ubuntu
+ENV WHOLEBODYPOSE_HOME=/home/ubuntu/.cache/wholebodypose
+WORKDIR /workspace
 
-# Install Python dependencies
-RUN pip install -r requirements.txt
-
-# Expose port and default command
 EXPOSE 8888
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--allow-root", "--no-browser"]
-
-
-# Instructions for building and running the Docker container
-# from root of the project:
-#docker build -f docker/Dockerfile.gpu -t wholebody-pose-gpu .
-#docker run --gpus all --name wholebody-windows-gpu -v .:/workspace -e DISPLAY=host.docker.internal:0.0 --cpus=8 --memory=20g -p 8888:8888 -it wholebody-pose-gpu
+CMD ["wholebodypose", "--help"]
