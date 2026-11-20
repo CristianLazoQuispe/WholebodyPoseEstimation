@@ -2,5 +2,6 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
 gradio==6.32.0
 torch
+torchvision
 onnxruntime
 wholebodypose[rtmpose,mediapipe,video,vitpose] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git@v1.0.0

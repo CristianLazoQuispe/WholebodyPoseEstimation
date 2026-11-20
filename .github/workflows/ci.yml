@@ -73,7 +73,7 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libegl1 libgles2 libgl1
       - name: Install (CPU PyTorch + every backend)
         run: |
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
           pip install -e ".[all,dev]"
           pip list | grep -iE "^(torch|onnxruntime|rtmlib|mediapipe|onepose|padasip|numpy|opencv)" || true
       - name: Restore model weights # default WHOLEBODYPOSE_HOME

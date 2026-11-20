@@ -32,7 +32,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && python3 -m venv /opt/venv
 
-RUN pip install torch --index-url "${TORCH_INDEX}"
+RUN pip install torch torchvision --index-url "${TORCH_INDEX}"
 
 WORKDIR /opt/wholebodypose
 COPY pyproject.toml README.md LICENSE ./

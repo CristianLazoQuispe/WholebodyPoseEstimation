@@ -27,7 +27,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # CPU-only PyTorch first, so the vitpose extra does not pull the CUDA wheels.
-RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
+RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 WORKDIR /opt/wholebodypose
 COPY pyproject.toml README.md LICENSE ./
