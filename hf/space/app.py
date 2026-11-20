@@ -429,9 +429,11 @@ if __name__ == "__main__":
                 print(f"[demo] warm-up of {key} failed: {e}", flush=True)
 
     threading.Thread(target=_warm_up, daemon=True).start()
-    build_demo().queue(default_concurrency_limit=1, max_size=20).launch(
+    demo = build_demo()
+    demo.queue(default_concurrency_limit=1, max_size=20).launch(
         theme=gr.themes.Soft(primary_hue="blue", secondary_hue="indigo"),
         css=ui.CSS,
         max_file_size="50mb",
         show_error=True,
+        ssr_mode=False,  # plain Python server: faster start-up, no Node proxy
     )
