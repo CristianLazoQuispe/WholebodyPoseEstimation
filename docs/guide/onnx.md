@@ -84,8 +84,8 @@ noisier than on an idle machine; compare ratios within a row, not with [backends
 | ViTPose+ base | 616 (273) | 234 (176) | 2.6× |
 | ViTPose+ large | 1462 (863) | 663 (463) | 2.2× |
 | ViTPose+ huge (paper) | 2439 (1751) | 1321 (955) | 1.8× |
-| RTMPose `performance` (YOLOX-m + RTMW-x 384×288), reference | — | 692 (574) | |
-| RTMPose `lightweight` (YOLOX-tiny + RTMW-l 256×192), reference | — | 305 (260) | |
+| RTMPose `performance` (YOLOX-m + RTMW-l 384×288), reference | — | 692 (574) | |
+| RTMPose `lightweight` (YOLOX-tiny + RTMW-m 256×192), reference | — | 305 (260) | |
 
 ONNX Runtime was faster for every size in this run. The ratio under load is not a promise for an idle
 machine; rerun the command on your hardware.
@@ -93,7 +93,7 @@ machine; rerun the command on your hardware.
 ## Quantization study
 
 `python scripts/vitpose_onnx_study.py quant` then `quant-latency` (8 threads, `taskset -c 120-127`), for the
-two models where it matters most: ViTPose+ base (a candidate for a cheaper Space) and RTMW-x 384×288 (the
+two models where it matters most: ViTPose+ base (a candidate for a cheaper Space) and RTMW-l 384×288 (the
 paper's RTMPose model). Variants, all made with ONNX Runtime 1.32 tools:
 
 - **int8 dynamic**: `quantize_dynamic(weight_type=QUInt8)` after `quant_pre_process`; weights int8,
@@ -104,8 +104,8 @@ For ViTPose the shipped graph stores float16 weights behind `Cast` nodes, which 
 the study first expands it to a plain float32 graph (343.5 MiB, numerically the same model).
 
 Deviation is measured against the float32 model on the 62 inputs above (ViTPose: full frame, 8246
-keypoints; RTMW-x: on the YOLOX-m boxes of the float32 run, 106 people, 14098 keypoints). "Visible" means
-score above the paper threshold of the float32 model (ViTPose 0.5, RTMW-x 2.5); "mask agreement" is
+keypoints; RTMW-l: on the YOLOX-m boxes of the float32 run, 106 people, 14098 keypoints). "Visible" means
+score above the paper threshold of the float32 model (ViTPose 0.5, RTMW-l 2.5); "mask agreement" is
 the fraction of keypoints whose above/below-threshold decision is the same.
 
 Latency is one `session.run` on a batch of one, timed round-robin over the variants (30 rounds, median
@@ -117,9 +117,9 @@ Latency is one `session.run` on a batch of one, timed round-robin over the varia
 | ViTPose+ base | float32 (plain) | 343.5 | 149 (130) | reference | | |
 | ViTPose+ base | int8 dynamic | 98.8 | 137 (126) | 0 / 10.0 / 457.1 | 17.6 % | 98.36 % |
 | ViTPose+ base | fp16 | 171.9 | 157 (141) | 0 / 0 / 13.3 | 0.09 % | 99.99 % |
-| RTMW-x 384×288 | float32 (shipped) | 218.7 | 246 (147) | reference | | |
-| RTMW-x 384×288 | int8 dynamic | 54.9 | 492 (270) | 7.0 / 242.6 / 2848.7 | 95.8 % | 50.71 % |
-| RTMW-x 384×288 | fp16 | 109.4 | 283 (132) | 0 / 0 / 7.3 | 1.34 % | 99.99 % |
+| RTMW-l 384×288 | float32 (shipped) | 218.7 | 246 (147) | reference | | |
+| RTMW-l 384×288 | int8 dynamic | 54.9 | 492 (270) | 7.0 / 242.6 / 2848.7 | 95.8 % | 50.71 % |
+| RTMW-l 384×288 | fp16 | 109.4 | 283 (132) | 0 / 0 / 7.3 | 1.34 % | 99.99 % |
 
 Recommendations (CPU, ONNX Runtime):
 
@@ -127,10 +127,10 @@ Recommendations (CPU, ONNX Runtime):
   and 1.6 % of the keypoints change visibility, for 8 % lower median latency.
 - **ViTPose+ fp16: no.** Nearly identical keypoints, but the shipped float32 graph already has the same
   size (171.8 vs 171.9 MiB) and fp16 is not faster on CPU.
-- **RTMW-x int8 dynamic: no.** The SimCC outputs do not survive dynamic quantization: half of the
+- **RTMW-l int8 dynamic: no.** The SimCC outputs do not survive dynamic quantization: half of the
   visibility decisions change (the number of visible keypoints drops from 13440 to 6517) and it is
   slower than float32.
-- **RTMW-x fp16: not by default.** It halves the file (218.7 → 109.4 MiB) with near-identical keypoints
+- **RTMW-l fp16: not by default.** It halves the file (218.7 → 109.4 MiB) with near-identical keypoints
   (visible: 1.3 % move by more than 0.5 px, max 7.3 px; 2 of 14098 visibility decisions change), but it
   is not faster on CPU and the paper numbers were produced with the float32 file. It could be offered as
   an opt-in download-size option, or evaluated on GPU (not measured here).

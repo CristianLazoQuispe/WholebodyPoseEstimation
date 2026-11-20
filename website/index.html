@@ -117,7 +117,7 @@
         <text class="t-head" x="281" y="46" text-anchor="middle">Pose backend</text>
         <rect class="chip" x="211" y="62" width="140" height="48" rx="7"/>
         <text class="t-main" x="281" y="83" text-anchor="middle">RTMPose</text>
-        <text class="t-sub" x="281" y="101" text-anchor="middle">RTMW-x, multi-person</text>
+        <text class="t-sub" x="281" y="101" text-anchor="middle">RTMW-l, multi-person</text>
         <rect class="chip" x="211" y="118" width="140" height="48" rx="7"/>
         <text class="t-main" x="281" y="139" text-anchor="middle">ViTPose+</text>
         <text class="t-sub" x="281" y="157" text-anchor="middle">huge … small</text>
@@ -189,7 +189,7 @@
         <text class="t-head" x="20" y="142">2 · Pose backend</text>
         <rect class="chip" x="16" y="154" width="104" height="54" rx="7"/>
         <text class="t-main" x="68" y="177" text-anchor="middle">RTMPose</text>
-        <text class="t-sub" x="68" y="196" text-anchor="middle">RTMW-x</text>
+        <text class="t-sub" x="68" y="196" text-anchor="middle">RTMW-l</text>
         <rect class="chip" x="128" y="154" width="104" height="54" rx="7"/>
         <text class="t-main" x="180" y="177" text-anchor="middle">ViTPose+</text>
         <text class="t-sub" x="180" y="196" text-anchor="middle">huge … small</text>
@@ -276,7 +276,7 @@
           <tr><th scope="col">Backend</th><th scope="col">Model</th><th scope="col" class="c">People</th><th scope="col">Runs on</th><th scope="col">Install extra</th></tr>
         </thead>
         <tbody>
-          <tr><th scope="row"><code>rtmpose</code></th><td>YOLOX-m + RTMW-x 384×288 (OpenMMLab)</td><td class="c">multi</td><td>ONNX Runtime CPU / CUDA</td><td><code>[rtmpose]</code> (+&nbsp;<code>[gpu]</code>)</td></tr>
+          <tr><th scope="row"><code>rtmpose</code></th><td>YOLOX-m + RTMW-l 384×288 (OpenMMLab)</td><td class="c">multi</td><td>ONNX Runtime CPU / CUDA</td><td><code>[rtmpose]</code> (+&nbsp;<code>[gpu]</code>)</td></tr>
           <tr><th scope="row"><code>vitpose</code></th><td>ViTPose+ huge / large / base / small, full-frame top-down</td><td class="c">single</td><td>PyTorch CPU / CUDA</td><td><code>[vitpose]</code></td></tr>
           <tr><th scope="row"><code>mediapipe</code></th><td>BlazePose heavy + Hands + Face Mesh</td><td class="c">single</td><td>CPU</td><td><code>[mediapipe]</code></td></tr>
         </tbody>
@@ -395,7 +395,7 @@ data96 = f[key][<span class="st">"data"</span>][()][:, :, SIGNERT_96]   <span cl
       <article class="step">
         <h3><span class="n" aria-hidden="true">3</span>Extraction</h3>
         <ul>
-          <li>RTMPose-WholeBody (YOLOX-m + RTMW-x 384×288) on every frame at the original resolution, no temporal subsampling.</li>
+          <li>RTMPose-WholeBody (YOLOX-m + RTMW-l 384×288) on every frame at the original resolution, no temporal subsampling.</li>
           <li>Keypoints with score below 2.5 are set to (0, 0), and an incomplete hand or foot chain is zeroed rather than guessed.</li>
           <li>Coordinates are normalized by the frame size; the original width and height are stored with each clip.</li>
           <li>Clip length <code>T</code> equals the number of decoded video frames (checked for every WLASL clip).</li>

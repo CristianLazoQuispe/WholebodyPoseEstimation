@@ -33,13 +33,13 @@ Interactive demo of **[WholeBodyPose](https://github.com/CristianLazoQuispe/Whol
 
 | Backend (`backend=`) | Model | People |
 |:--|:--|:-:|
-| RTMPose (`rtmpose`) | YOLOX-m + RTMW-x 384×288, paper setting | multi |
-| RTMPose-lite (`rtmpose_lite`) | YOLOX-tiny + RTMW-l 256×192, default for videos on CPU | multi |
+| RTMPose (`rtmpose`) | YOLOX-m + RTMW-l 384×288, paper setting | multi |
+| RTMPose-lite (`rtmpose_lite`) | YOLOX-tiny + RTMW-m 256×192, default for videos on CPU | multi |
 | MediaPipe (`mediapipe`) | BlazePose heavy + Hands + Face Mesh | single |
 | ViTPose+ (`vitpose`) | ViTPose+ whole-body (base on CPU, huge on GPU) | single |
 
-On 2 CPU cores RTMW-x processed 0.5-0.9 frames/s in our tests, so on CPU hardware the Video tab defaults to
-RTMPose-lite (about 3x faster on 2 CPU cores in our tests); the Image tab uses the paper model.
+On 2 CPU cores RTMW-l processed 0.5-0.9 frames/s in our tests, so on CPU hardware the Video tab defaults to
+RTMPose-lite (about 2-3x faster on 2 CPU cores in our tests); the Image tab uses the paper model.
 
 Upload a video (or record one with the webcam) or an image, choose the backend, the skeleton style
 (COCO-WholeBody 133 or OpenPose-style 135), the drawing options and the processing FPS, and get

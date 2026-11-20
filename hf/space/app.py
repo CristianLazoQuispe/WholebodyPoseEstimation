@@ -50,8 +50,8 @@ VITPOSE_SIZE = "huge" if GPU else "base"  # huge is the paper model but too slow
 
 # value -> (label, library backend, overrides of the paper defaults, multi-person capable)
 BACKENDS: dict[str, tuple[str, str, dict, bool]] = {
-    "rtmpose": ("RTMPose · RTMW-x 384 (paper model)", "rtmpose", {}, True),
-    "rtmpose_lite": ("RTMPose-lite · RTMW-l 256 (faster on CPU)", "rtmpose", {"mode": "lightweight"}, True),
+    "rtmpose": ("RTMPose · RTMW-l 384 (paper model)", "rtmpose", {}, True),
+    "rtmpose_lite": ("RTMPose-lite · RTMW-m 256 (faster on CPU)", "rtmpose", {"mode": "lightweight"}, True),
     "mediapipe": ("MediaPipe · pose + hands + face (fastest)", "mediapipe", {}, False),
     "vitpose": (
         f"ViTPose+ {VITPOSE_SIZE}",
@@ -61,7 +61,7 @@ BACKENDS: dict[str, tuple[str, str, dict, bool]] = {
     ),
 }
 # On 2 CPU cores the paper model ran at 0.5-0.9 frames/s in our tests, so videos default to the lighter
-# RTMW-l (about 3x faster on 2 CPU cores in our tests). A single image is cheap: use the paper model.
+# RTMW-m (about 2-3x faster on 2 CPU cores in our tests). A single image is cheap: use the paper model.
 DEFAULT_VIDEO_BACKEND = "rtmpose" if GPU else "rtmpose_lite"
 DEFAULT_IMAGE_BACKEND = "rtmpose"
 DEFAULT_FPS = 10

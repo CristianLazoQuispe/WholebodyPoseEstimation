@@ -97,8 +97,8 @@ used as they are. All backends return the same **133 COCO-WholeBody keypoints** 
 
 | Backend | Model | People | Notes |
 |:--|:--|:-:|:--|
-| RTMPose | YOLOX-m + RTMW-x 384×288 | multi | Paper setting |
-| RTMPose-lite | YOLOX-tiny + RTMW-l 256×192 | multi | About 3× faster than RTMW-x on 2 CPU cores in our tests; default for videos on CPU |
+| RTMPose | YOLOX-m + RTMW-l 384×288 | multi | Paper setting |
+| RTMPose-lite | YOLOX-tiny + RTMW-m 256×192 | multi | About 2–3× faster than RTMW-l 384 on 2 CPU cores in our tests; default for videos on CPU |
 | MediaPipe | BlazePose heavy + Hands + Face Mesh | single | Fastest on CPU |
 | ViTPose+ | ViTPose+ whole-body (base on CPU, huge on GPU) | single | Full-frame transformer |
 

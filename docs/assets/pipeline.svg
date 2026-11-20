@@ -29,7 +29,7 @@
     <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" letter-spacing="0.6" fill="#5c636b" x="281" y="46" text-anchor="middle">POSE BACKEND</text>
     <rect fill="#ffffff" stroke="#cfd3d8" stroke-width="1" x="211" y="62" width="140" height="48" rx="7"/>
     <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328" x="281" y="83" text-anchor="middle">RTMPose</text>
-    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="281" y="101" text-anchor="middle">RTMW-x, multi-person</text>
+    <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="281" y="101" text-anchor="middle">RTMW-l, multi-person</text>
     <rect fill="#ffffff" stroke="#cfd3d8" stroke-width="1" x="211" y="118" width="140" height="48" rx="7"/>
     <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="600" fill="#1f2328" x="281" y="139" text-anchor="middle">ViTPose+</text>
     <text font-family="'Noto Sans', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" fill="#3b4148" x="281" y="157" text-anchor="middle">huge … small</text>

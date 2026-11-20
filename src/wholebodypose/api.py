@@ -30,7 +30,7 @@ BACKENDS: dict[str, Backend] = {
             "rtmpose",
             "wholebodypose.models.rtmpose.model:RTMPoseModel",
             "rtmpose",
-            "YOLOX + RTMW-x (OpenMMLab), multi-person, ONNX Runtime",
+            "YOLOX + RTMW-l (OpenMMLab), multi-person, ONNX Runtime",
             {"mode": "performance", "use_thresholding": True, "filter_noise": True},
             multiperson=True,
         ),

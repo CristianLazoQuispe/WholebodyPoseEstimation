@@ -5,6 +5,9 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+- Model naming: the RTMPose `performance`/`balanced` model (`rtmw-dw-x-l`) is RTMW-l and the `lightweight` one (`rtmw-dw-l-m`) is RTMW-m, per the MMPose RTMW table. Docs, page and demo said RTMW-x / RTMW-l. Weights and outputs are unchanged.
+
 ### Added
 - ViTPose on ONNX Runtime: `VITPoseModel(engine="auto" | "onnx" | "torch")` and the `[vitpose-onnx]` extra
   (only `onnxruntime`, no PyTorch or onepose). Pre- and post-processing are NumPy/OpenCV ports of onepose's;
@@ -12,7 +15,7 @@ All notable changes to this project are documented here. The format follows
 - `scripts/export_vitpose_onnx.py` (opset 17, dynamic batch) and the weight keys
   `vitpose_{small,base,large,huge}_onnx` with pinned SHA-256 (mirror only, no upstream URL).
 - `scripts/vitpose_onnx_study.py` and `docs/guide/onnx.md`: torch-vs-ONNX agreement, CPU latency and an
-  int8/fp16 quantization study for ViTPose-base and RTMW-x.
+  int8/fp16 quantization study for ViTPose-base and RTMW-l.
 
 ### Changed
 - Project page: the pipeline diagram is now the hero figure; the teaser video (and its generator code) is

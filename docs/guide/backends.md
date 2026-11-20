@@ -31,7 +31,7 @@ model = create_model("mediapipe", kpt_thr=0.3)  # the bare backend, without draw
 
 | Backend | Model | People | Runs on | Install extra |
 |:--|:--|:-:|:--|:--|
-| `rtmpose` | YOLOX-m + RTMW-x 384×288 (OpenMMLab) | multi | ONNX Runtime CPU / CUDA | `[rtmpose]` (+ `[gpu]`) |
+| `rtmpose` | YOLOX-m + RTMW-l 384×288 (OpenMMLab) | multi | ONNX Runtime CPU / CUDA | `[rtmpose]` (+ `[gpu]`) |
 | `vitpose` | ViTPose+ huge/large/base/small, top-down | single · multi with YOLOX crops | PyTorch CPU / CUDA | `[vitpose]` (+ `[rtmpose]` for multi) |
 | `mediapipe` | BlazePose heavy + Hands + Face landmarker | single · multi (`max_people`) | CPU | `[mediapipe]` |
 
@@ -62,7 +62,7 @@ The confidence scales differ between models, which is why the thresholds differ:
 
 | Backend | Raw score | Default `kpt_thr` |
 |:--|:--|:--|
-| RTMPose `performance` (RTMW-x 384×288) | SimCC, not calibrated; about 5-8 on visible joints | **2.5** |
+| RTMPose `performance` (RTMW-l 384×288) | SimCC, not calibrated; about 5-8 on visible joints | **2.5** |
 | RTMPose `balanced` / `lightweight` (256×192) | SimCC; about 1 on visible joints | **0.35** |
 | ViTPose+ | heatmap maximum, 0-1 | 0.5 |
 | MediaPipe | already 0/1 (landmark present and visible) | 0.5 |
@@ -79,9 +79,11 @@ whole-body model (OpenMMLab, [arXiv:2407.08634](https://arxiv.org/abs/2407.08634
 
 | `mode` | Detector | Pose model | Input |
 |:--|:--|:--|:--|
-| `"performance"` (paper) | YOLOX-m (640×640) | RTMW-x | 384×288 |
-| `"balanced"` | YOLOX-m (640×640) | RTMW-x | 256×192 |
-| `"lightweight"` | YOLOX-tiny (416×416) | RTMW-l | 256×192 |
+| `"performance"` (paper) | YOLOX-m (640×640) | RTMW-l | 384×288 |
+| `"balanced"` | YOLOX-m (640×640) | RTMW-l | 256×192 |
+| `"lightweight"` | YOLOX-tiny (416×416) | RTMW-m | 256×192 |
+
+Model names follow the [MMPose RTMW table](https://github.com/open-mmlab/mmpose/tree/main/projects/rtmpose#wholebody-2d-133-keypoints): the rtmlib files `rtmw-dw-x-l_*` are **RTMW-l** (distilled from RTMW-x; 70.1 whole-body AP at 384×288) and `rtmw-dw-l-m_*` is **RTMW-m**. Earlier versions of these docs and the paper called the paper model "RTMW-x"; the weights were always the RTMW-l files above. Weight keys such as `rtmw_x_384` keep their old names for compatibility.
 
 | Argument | Default (class) | Notes |
 |:--|:--|:--|

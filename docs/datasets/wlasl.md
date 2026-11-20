@@ -20,7 +20,7 @@
   `wlasl_{N}_maplabels.json` (gloss -> int in the official class order: `book`=0, `drink`=1,
   `computer`=2, ...). Despite its name, the key `id_to_label` maps gloss -> int.
 - **Pose:** RTMPose-WholeBody (rtmlib `Wholebody`, mode `performance`: YOLOX-m HumanArt detector +
-  RTMW-x-l 384x288) on every frame, 133 COCO-WholeBody keypoints plus mid-chest (133) and mid-hip
+  RTMW-l 384x288) on every frame, 133 COCO-WholeBody keypoints plus mid-chest (133) and mid-hip
   (134). Schema: [README](README.md#hdf5-schema).
 
 ## 2. Sources

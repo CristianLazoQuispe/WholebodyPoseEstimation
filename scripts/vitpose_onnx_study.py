@@ -240,7 +240,7 @@ def cmd_quant(args) -> dict:
     # ViTPose-base: unfold the fp16 storage first so that quantizers see float32 weights.
     vb = work / "vitpose_base.fp32.onnx"
     unfold_fp16_storage(str(get_weight("vitpose_base_onnx")), str(vb))
-    # RTMW-x 384x288 (paper RTMPose model).
+    # RTMW-l 384x288 (paper RTMPose model).
     rx = str(get_weight("rtmw_x_384"))
 
     dummy_v = np.zeros((1, 3, 256, 192), np.float32)

@@ -130,7 +130,7 @@ Python API: `wholebodypose.datasets.build.build_dataset(...)`, `extract_video(..
 
 | | `icmv2025` (reproduces the release) | `v1` (recommended for new data) |
 |:--|:--|:--|
-| model | RTMW-x 384x288 + YOLOX-m, rtmlib `performance` | same |
+| model | RTMW-l 384x288 + YOLOX-m, rtmlib `performance` | same |
 | colour fed to rtmlib | **RGB** (`legacy_rgb_input=True`, the original bug) | BGR (correct) |
 | resolution | original (no resize) | original |
 | person | first detection | largest bounding box |

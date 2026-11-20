@@ -62,7 +62,7 @@ cv2.imwrite("drawn.png", est.draw(bgr, keypoints, scores))
 Override any backend argument by keyword:
 
 ```python
-PoseEstimator("rtmpose", mode="lightweight", device="cpu")  # faster RTMW-l model
+PoseEstimator("rtmpose", mode="lightweight", device="cpu")  # faster RTMW-m model
 PoseEstimator("vitpose", model_name="ViTPose+_base_coco_wholebody")
 PoseEstimator("mediapipe", image_mode=False)  # tracking mode for video streams
 PoseEstimator("rtmpose", use_thresholding=False)  # raw confidences
