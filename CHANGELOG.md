@@ -8,6 +8,11 @@ All notable changes to this project are documented here. The format follows
 First stable release, consolidating the library, project page and demo of the ICMV 2025 paper in one repository.
 
 ### Added
+- Multi-person for every backend: `PoseEstimator(backend, multiperson=True, max_people=...)`. ViTPose runs
+  on YOLOX person crops (`detector="yolox_m"`), MediaPipe detects up to `max_people` bodies and attaches
+  hands/faces to the nearest body. RTMPose was already multi-person.
+- `PoseTracker` (`wholebodypose.tracking`): stable person IDs across frames; `Video2Pose` returns
+  `track_ids` and draws `#id` labels in multi-person mode; the CLI stores them in the pose file metadata.
 - `PoseEstimator` / `create_model`: one entry point for every backend, with the paper settings as defaults.
 - `wholebodypose` command line tool (`image`, `video`, `backends`, `download`).
 - `save_poses` / `load_poses` for `.npz` and `.json`, including multi-person sequences.

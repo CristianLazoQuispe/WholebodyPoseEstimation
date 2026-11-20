@@ -25,6 +25,7 @@ _LAZY = {
     "PoseSequenceFilter": "wholebodypose.filters.sequence",
     "FilteringNLMS": "wholebodypose.filters.filtering_nlms",
     "get_weight": "wholebodypose.weights",
+    "PoseTracker": "wholebodypose.tracking",
 }
 
 __all__ = ["__version__", *_LAZY]

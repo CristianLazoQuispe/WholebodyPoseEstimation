@@ -62,11 +62,25 @@ class Hand(Landmarks):
 
 @dataclass
 class MPFrame:
-    """Engine-independent MediaPipe output for one frame."""
+    """Engine-independent MediaPipe output for one frame.
+
+    ``poses`` / ``faces`` hold every detected body / face; ``pose`` / ``face`` are shortcuts for a
+    single person (both forms are accepted by the constructor).
+    """
 
     pose: Landmarks | None = None
     hands: list[Hand] = field(default_factory=list)
     face: Landmarks | None = None
+    poses: list[Landmarks] = field(default_factory=list)
+    faces: list[Landmarks] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if self.pose is not None and not self.poses:
+            self.poses = [self.pose]
+        if self.face is not None and not self.faces:
+            self.faces = [self.face]
+        self.pose = self.poses[0] if self.poses else None
+        self.face = self.faces[0] if self.faces else None
 
 
 def landmarks_from_list(landmarks) -> Landmarks:
@@ -86,31 +100,94 @@ def landmarks_from_list(landmarks) -> Landmarks:
     return Landmarks(xy, valid)
 
 
-def to_coco133(frame: MPFrame, width: int, height: int) -> tuple[np.ndarray, np.ndarray]:
-    """Convert one :class:`MPFrame` to ``(1, 133, 2)`` pixel keypoints and ``(1, 133)`` scores."""
+def _person_arrays(pose: Landmarks | None) -> tuple[np.ndarray, np.ndarray]:
     kpts = np.zeros((133, 2), np.float32)
     scores = np.zeros(133, np.float32)
-
-    if frame.pose is not None:
+    if pose is not None:
         for mp_id, coco_ids in POSE_TO_COCO.items():
-            if mp_id < len(frame.pose.valid) and frame.pose.valid[mp_id]:
-                kpts[coco_ids] = frame.pose.xy[mp_id]
+            if mp_id < len(pose.valid) and pose.valid[mp_id]:
+                kpts[coco_ids] = pose.xy[mp_id]
                 scores[coco_ids] = 1.0
+    return kpts, scores
 
-    if frame.face is not None:
-        for mp_id, coco_id in FACE_TO_COCO.items():
-            if mp_id < len(frame.face.xy):
-                kpts[coco_id] = frame.face.xy[mp_id]
-                scores[coco_id] = 1.0
 
-    for hand, side in zip(frame.hands[:2], assign_hands(frame), strict=True):
-        part = LEFT_HAND if side == "left" else RIGHT_HAND
-        kpts[part] = hand.xy
-        scores[part] = hand.valid.astype(np.float32)
+def _put_face(kpts: np.ndarray, scores: np.ndarray, face: Landmarks) -> None:
+    for mp_id, coco_id in FACE_TO_COCO.items():
+        if mp_id < len(face.xy):
+            kpts[coco_id] = face.xy[mp_id]
+            scores[coco_id] = 1.0
 
-    kpts = np.round(kpts * [width, height]).astype(np.float32)
+
+def _put_hand(kpts: np.ndarray, scores: np.ndarray, hand: Hand, side: str) -> None:
+    part = LEFT_HAND if side == "left" else RIGHT_HAND
+    kpts[part] = hand.xy
+    scores[part] = hand.valid.astype(np.float32)
+
+
+def _greedy_match(cost: np.ndarray, max_cost: float) -> list[tuple[int, int]]:
+    """Greedy minimum-cost one-to-one matching of rows to columns (small problems only)."""
+    pairs = []
+    cost = cost.astype(np.float64).copy()
+    while cost.size and np.isfinite(cost).any():
+        r, c = np.unravel_index(np.argmin(cost), cost.shape)
+        if cost[r, c] > max_cost:
+            break
+        pairs.append((int(r), int(c)))
+        cost[r, :] = np.inf
+        cost[:, c] = np.inf
+    return pairs
+
+
+def _body_scale(pose: Landmarks) -> float:
+    pts = pose.xy[pose.valid]
+    if len(pts) < 2:
+        return 0.1
+    return float(max(np.ptp(pts[:, 0]), np.ptp(pts[:, 1]), 0.05))
+
+
+def to_coco133(frame: MPFrame, width: int, height: int) -> tuple[np.ndarray, np.ndarray]:
+    """Convert one :class:`MPFrame` to ``(N, 133, 2)`` pixel keypoints and ``(N, 133)`` scores.
+
+    With a single (or no) body the paper's single-person logic is used. With several bodies,
+    hands are matched to body wrists and faces to noses by greedy minimum distance.
+    """
+    if len(frame.poses) <= 1:
+        kpts, scores = _person_arrays(frame.pose)
+        if frame.face is not None:
+            _put_face(kpts, scores, frame.face)
+        for hand, side in zip(frame.hands[:2], assign_hands(frame), strict=True):
+            _put_hand(kpts, scores, hand, side)
+        people = [(kpts, scores)]
+    else:
+        people = [_person_arrays(p) for p in frame.poses]
+        # hands -> (person, side) slots, by wrist distance
+        slots = [(i, side, wid) for i in range(len(frame.poses)) for side, wid in (("left", 15), ("right", 16))]
+        if frame.hands:
+            cost = np.full((len(frame.hands), len(slots)), np.inf)
+            for h, hand in enumerate(frame.hands):
+                for j, (i, _, wid) in enumerate(slots):
+                    pose = frame.poses[i]
+                    if pose.valid[wid]:
+                        cost[h, j] = np.linalg.norm(hand.xy[0] - pose.xy[wid]) / _body_scale(pose)
+            for h, j in _greedy_match(cost, max_cost=0.5):
+                i, side, _ = slots[j]
+                _put_hand(*people[i], frame.hands[h], side)
+        # faces -> persons, by face centroid vs nose
+        if frame.faces:
+            cost = np.full((len(frame.faces), len(frame.poses)), np.inf)
+            for f, face in enumerate(frame.faces):
+                center = face.xy.mean(axis=0)
+                for i, pose in enumerate(frame.poses):
+                    if pose.valid[0]:
+                        cost[f, i] = np.linalg.norm(center - pose.xy[0]) / _body_scale(pose)
+            for f, i in _greedy_match(cost, max_cost=0.5):
+                _put_face(*people[i], frame.faces[f])
+
+    kpts = np.stack([k for k, _ in people]) * np.array([width, height], np.float32)
+    scores = np.stack([s for _, s in people])
+    kpts = np.round(kpts).astype(np.float32)
     kpts[scores == 0] = 0
-    return kpts[None], scores[None]
+    return kpts, scores
 
 
 def assign_hands(frame: MPFrame) -> list[str]:

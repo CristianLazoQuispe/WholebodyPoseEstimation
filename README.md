@@ -46,8 +46,15 @@ res = est.process_video("sign.mp4", "outputs/")        # res["total_keypoints"]:
 | Backend | Model | People | Runs on | Install extra |
 |:--|:--|:-:|:--|:--|
 | `rtmpose` | YOLOX-m + RTMW-x 384×288 (OpenMMLab) | multi | ONNX Runtime CPU / CUDA | `[rtmpose]` (+ `[gpu]`) |
-| `vitpose` | ViTPose+ huge/large/base/small, full-frame top-down | single | PyTorch CPU / CUDA | `[vitpose]` |
-| `mediapipe` | BlazePose heavy + Hands + Face Mesh | single | CPU | `[mediapipe]` |
+| `vitpose` | ViTPose+ huge/large/base/small, top-down | single · multi with YOLOX crops | PyTorch CPU / CUDA | `[vitpose]` (+ `[rtmpose]` for multi) |
+| `mediapipe` | BlazePose heavy + Hands + Face landmarker | single · multi (`max_people`) | CPU | `[mediapipe]` |
+
+Multi-person mode works with every backend and adds stable person IDs in videos:
+
+```python
+est = PoseEstimator("vitpose", multiperson=True, max_people=4)
+res = est.process_video("dance.mp4", "outputs/")   # res["total_keypoints"][t]: (N_t, 133, 2), res["track_ids"][t]: (N_t,)
+```
 
 All backends take an **RGB** image and return `float32` pixel coordinates in COCO-WholeBody order;
 undetected keypoints are `(0, 0)` with score `0`. Default settings reproduce the paper

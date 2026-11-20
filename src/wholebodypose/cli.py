@@ -40,7 +40,14 @@ def cmd_image(args) -> int:
 def cmd_video(args) -> int:
     from wholebodypose import PoseEstimator, save_poses
 
-    est = PoseEstimator(args.backend, device=args.device, mode_coco=args.style == "coco133", verbose=not args.quiet)
+    est = PoseEstimator(
+        args.backend,
+        device=args.device,
+        mode_coco=args.style == "coco133",
+        verbose=not args.quiet,
+        multiperson=args.multiperson,
+        max_people=args.max_people,
+    )
     res = est.process_video(
         str(args.input),
         None if args.no_render else args.output,
@@ -51,15 +58,11 @@ def cmd_video(args) -> int:
         resize_width=args.resize_width or None,
     )
     out = Path(args.output) / f"{Path(args.input).stem}_{args.backend}.{args.format}"
-    save_poses(
-        out,
-        res["total_keypoints"],
-        res["total_scores"],
-        backend=args.backend,
-        source=str(args.input),
-        fps=res["processing_fps"],
-        frame_size=res["frame_size"],
-    )
+    meta = {"backend": args.backend, "source": str(args.input), "fps": res["processing_fps"]}
+    meta["frame_size"] = res["frame_size"]
+    if "track_ids" in res:  # per-frame person IDs, aligned with the people of each frame
+        meta["track_ids"] = [ids.tolist() for ids in res["track_ids"]]
+    save_poses(out, res["total_keypoints"], res["total_scores"], **meta)
     print(f"{res['n_frames']} frames -> {out}" + (f", {res['filepath_result']}" if "filepath_result" in res else ""))
     return 0
 
@@ -99,7 +102,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("input", type=Path)
     p.add_argument("--output", "-o", default="outputs")
     p.add_argument("--format", choices=["npz", "json"], default="npz")
-    p.add_argument("--multiperson", action="store_true")
+    p.add_argument("--multiperson", action="store_true", help="keep every person, with stable track IDs")
+    p.add_argument("--max-people", type=int, default=None, help="cap on people (vitpose/mediapipe)")
     p.add_argument("--fps", type=float, default=None, help="sub-sample input to this FPS")
     p.add_argument("--max-frames", type=int, default=None)
     p.add_argument("--resize-width", type=int, default=640, help="0 keeps original size")

@@ -20,7 +20,7 @@ class Backend:
     extra: str  # pip extra that installs its dependencies
     description: str
     defaults: dict = field(default_factory=dict)  # paper settings
-    multiperson: bool = False
+    multiperson: bool = False  # can return several people (some need an option, see description)
 
 
 BACKENDS: dict[str, Backend] = {
@@ -38,17 +38,27 @@ BACKENDS: dict[str, Backend] = {
             "vitpose",
             "wholebodypose.models.vitpose.model:VITPoseModel",
             "vitpose",
-            "ViTPose+ (full-frame top-down), single person, PyTorch",
+            "ViTPose+ top-down, PyTorch; multi-person with detector='yolox_m'",
             {"model_name": "ViTPose+_huge_coco_wholebody", "use_thresholding": True, "kpt_thr": 0.5},
+            multiperson=True,
         ),
         Backend(
             "mediapipe",
             "wholebodypose.models.mediapipe.model:MediapipeModel",
             "mediapipe",
-            "MediaPipe pose + hands + face mesh, single person, CPU friendly",
+            "MediaPipe pose + hands + face, CPU friendly; multi-person with max_people>1",
             {"mode_coco": True, "use_thresholding": True, "kpt_thr": 0.5},
+            multiperson=True,
         ),
     ]
+}
+
+
+# Extra settings that turn a backend into multi-person mode.
+MULTIPERSON_DEFAULTS: dict[str, dict] = {
+    "rtmpose": {},
+    "vitpose": {"detector": "yolox_m"},
+    "mediapipe": {"engine": "tasks", "max_people": 4},
 }
 
 
@@ -57,8 +67,19 @@ def available_backends() -> list[str]:
     return list(BACKENDS)
 
 
-def create_model(backend: str = "rtmpose", device: str = "auto", verbose: bool = True, **kwargs) -> BasePoseModel:
+def create_model(
+    backend: str = "rtmpose",
+    device: str = "auto",
+    verbose: bool = True,
+    multiperson: bool = False,
+    max_people: int | None = None,
+    **kwargs,
+) -> BasePoseModel:
     """Build a backend with the paper defaults, overridden by ``kwargs``.
+
+    ``multiperson=True`` applies ``MULTIPERSON_DEFAULTS`` (YOLOX detector for ViTPose,
+    ``max_people`` for MediaPipe; RTMPose is always multi-person). ``max_people`` caps the
+    number of people for ViTPose and MediaPipe.
 
     Example:
         >>> model = create_model("mediapipe")            # doctest: +SKIP
@@ -73,7 +94,9 @@ def create_model(backend: str = "rtmpose", device: str = "auto", verbose: bool =
         cls = getattr(importlib.import_module(module_name), cls_name)
     except ImportError as e:
         raise ImportError(f"Backend '{key}' needs: pip install 'wholebodypose[{spec.extra}]' ({e})") from e
-    params = {**spec.defaults, **kwargs}
+    params = {**spec.defaults, **(MULTIPERSON_DEFAULTS[key] if multiperson else {}), **kwargs}
+    if max_people is not None and key in ("vitpose", "mediapipe"):
+        params["max_people"] = max_people
     if key != "mediapipe":
         params.setdefault("device", device)
     params.setdefault("verbose", verbose)
@@ -89,6 +112,9 @@ class PoseEstimator:
         mode_coco: Visualization style. ``True``: COCO-WholeBody 133 keypoints;
             ``False``: adds neck and pelvis points (135, OpenPose-like).
         verbose: Print loading information.
+        multiperson: Detect every person (see :func:`create_model`); videos then return one
+            array per frame plus stable ``track_ids``.
+        max_people: Upper bound on people for ViTPose / MediaPipe.
         **kwargs: Backend-specific overrides (e.g. ``model_name='ViTPose+_base_coco_wholebody'``).
 
     Example:
@@ -104,10 +130,15 @@ class PoseEstimator:
         device: str = "auto",
         mode_coco: bool = True,
         verbose: bool = True,
+        multiperson: bool = False,
+        max_people: int | None = None,
         **kwargs,
     ) -> None:
         self.backend = backend.lower()
-        self.model = create_model(self.backend, device=device, verbose=verbose, **kwargs)
+        self.multiperson = multiperson
+        self.model = create_model(
+            self.backend, device=device, verbose=verbose, multiperson=multiperson, max_people=max_people, **kwargs
+        )
         self.mode_coco = mode_coco
         self.verbose = verbose
 
@@ -147,5 +178,6 @@ class PoseEstimator:
         """Run the video pipeline; see :meth:`wholebodypose.video.Video2Pose.predict`."""
         from wholebodypose.video.video2pose import Video2Pose
 
+        kwargs.setdefault("multiperson", self.multiperson)
         runner = Video2Pose(mode_coco=self.mode_coco, model=self.model, verbose=self.verbose)
         return runner.predict(filepath, folder_results, **kwargs)

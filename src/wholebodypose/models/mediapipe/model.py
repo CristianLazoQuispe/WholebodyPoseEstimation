@@ -72,6 +72,9 @@ class MediapipeModel(BasePoseModel):
             :class:`MPFrame` (kept for backwards compatibility).
         use_thresholding, kpt_thr: See :class:`BasePoseModel`. MediaPipe scores are 0/1.
         engine: ``'auto'``, ``'solutions'`` or ``'tasks'``.
+        verbose: Print loading information.
+        max_people: Maximum number of people (``1`` = paper setting). Values above 1 need the
+            ``tasks`` engine; hands and faces are attached to the nearest body.
     """
 
     name = "mediapipe"
@@ -88,6 +91,7 @@ class MediapipeModel(BasePoseModel):
         kpt_thr: float = 0.5,
         engine: str = "auto",
         verbose: bool = True,
+        max_people: int = 1,
     ) -> None:
         super().__init__(use_thresholding=use_thresholding, kpt_thr=kpt_thr)
         try:
@@ -111,6 +115,11 @@ class MediapipeModel(BasePoseModel):
             raise ImportError("engine='solutions' needs mediapipe<0.10.30; use engine='tasks'.")
         if engine not in ("solutions", "tasks"):
             raise ValueError(f"engine must be 'auto', 'solutions' or 'tasks', got {engine!r}")
+        if max_people < 1:
+            raise ValueError("max_people must be >= 1")
+        if max_people > 1 and engine == "solutions":
+            raise ValueError("max_people > 1 needs engine='tasks' (mp.solutions is single-person).")
+        self.max_people = max_people
         self.engine = engine
         self._timestamp_ms = 0
         if not verbose:
@@ -194,7 +203,7 @@ class MediapipeModel(BasePoseModel):
                 vision.PoseLandmarkerOptions(
                     base_options=opts("mp_pose_heavy" if c["model_complexity"] >= 2 else "mp_pose_full"),
                     running_mode=mode,
-                    num_poses=1,
+                    num_poses=self.max_people,
                     min_pose_detection_confidence=c["min_detection_confidence"],
                     min_tracking_confidence=c["min_tracking_confidence"],
                 )
@@ -205,7 +214,7 @@ class MediapipeModel(BasePoseModel):
                 vision.HandLandmarkerOptions(
                     base_options=opts("mp_hand"),
                     running_mode=mode,
-                    num_hands=c["max_num_hands"],
+                    num_hands=max(c["max_num_hands"], 2 * self.max_people),
                     min_hand_detection_confidence=c["min_detection_confidence"],
                     min_tracking_confidence=c["min_tracking_confidence"],
                 )
@@ -217,7 +226,7 @@ class MediapipeModel(BasePoseModel):
                 vision.FaceLandmarkerOptions(
                     base_options=opts("mp_face"),
                     running_mode=vision.RunningMode.IMAGE,
-                    num_faces=c["max_num_faces"],
+                    num_faces=max(c["max_num_faces"], self.max_people),
                     min_face_detection_confidence=c["min_detection_confidence"],
                     min_tracking_confidence=c["min_tracking_confidence"],
                 )
@@ -241,10 +250,13 @@ class MediapipeModel(BasePoseModel):
         frame = MPFrame()
         if "pose" in self.models:
             r = call(self.pose_model)
-            if r.pose_landmarks:
-                frame.pose = landmarks_from_list(r.pose_landmarks[0])
+            frame.poses = [landmarks_from_list(p) for p in (r.pose_landmarks or [])][: self.max_people]
+            frame.pose = frame.poses[0] if frame.poses else None
         if "face" in self.models:
-            frame.face = self._detect_face_tasks(image_rgb, frame.pose)
+            # one head-crop search per body (or one full-image search without bodies)
+            faces = [self._detect_face_tasks(image_rgb, p) for p in (frame.poses or [None])]
+            frame.faces = [f for f in faces if f is not None]
+            frame.face = frame.faces[0] if frame.faces else None
         if "hands" in self.models:
             r = call(self.hands_model)
             for i, hand in enumerate(r.hand_landmarks or []):
@@ -292,9 +304,8 @@ class MediapipeModel(BasePoseModel):
     def _predict(self, image_rgb: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         h, w = image_rgb.shape[:2]
         keypoints, scores = to_coco133(self.process(image_rgb), w, h)
-        if not scores.any():
-            return np.zeros((0, 133, 2), np.float32), np.zeros((0, 133), np.float32)
-        return keypoints, scores
+        keep = scores.any(axis=1)  # drop empty people (nothing detected)
+        return keypoints[keep], scores[keep]
 
     def predict(self, image_rgb: np.ndarray):
         if not self.mode_coco:

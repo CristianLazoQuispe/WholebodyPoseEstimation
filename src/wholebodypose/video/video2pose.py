@@ -19,6 +19,7 @@ import cv2
 import numpy as np
 
 from wholebodypose.models.base import BasePoseModel
+from wholebodypose.tracking import PoseTracker, pose_bbox
 from wholebodypose.utils.vision import DrawerPose
 
 DEFAULT_LINE_WIDTH = 2
@@ -112,6 +113,17 @@ def select_largest_person(keypoints: np.ndarray, scores: np.ndarray) -> int:
     return int(np.argmax(areas))
 
 
+def _draw_ids(canvas: np.ndarray, keypoints: np.ndarray, scores: np.ndarray, ids: np.ndarray) -> None:
+    """Write ``#id`` above each person's bounding box (in place)."""
+    for k, s, tid in zip(keypoints, scores, ids, strict=True):
+        box = pose_bbox(k, s, DEFAULT_KPT_THRESHOLD)
+        if box is None:
+            continue
+        x, y = int(box[0]), max(int(box[1]) - 8, 12)
+        cv2.putText(canvas, f"#{tid}", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 4, cv2.LINE_AA)
+        cv2.putText(canvas, f"#{tid}", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, cv2.LINE_AA)
+
+
 def _open_writer(path: str, fps: float, size: tuple[int, int]) -> cv2.VideoWriter:
     for codec in ("mp4v", "avc1", "MJPG"):
         writer = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*codec), fps, size)
@@ -167,6 +179,8 @@ class Video2Pose:
         save_as_mov: bool = False,
         background_plot: str | None = None,
         multiperson: bool = False,
+        track: bool = True,
+        draw_ids: bool = True,
         video_processing_fps: float | None = None,
         output_video_fps: float | None = None,
         resize_width: int | None = DEFAULT_RESIZE_WIDTH,
@@ -184,6 +198,9 @@ class Video2Pose:
             save_as_mov: Also convert the rendered video to MOV.
             background_plot: Draw on a solid background (``red|blue|green|white|black``).
             multiperson: Keep every detected person instead of the largest one.
+            track: In multi-person mode, assign stable per-person IDs across frames
+                (:class:`wholebodypose.tracking.PoseTracker`), returned as ``track_ids``.
+            draw_ids: Draw the track ID above each person in the rendered video.
             video_processing_fps: Sub-sample the input to roughly this FPS.
             output_video_fps: FPS of the rendered video (default: the effective processing FPS,
                 so playback speed matches the input).
@@ -236,6 +253,8 @@ class Video2Pose:
         tmp_path = None
         kp_list: list[np.ndarray] = []
         sc_list: list[np.ndarray] = []
+        id_list: list[np.ndarray] = []
+        tracker = PoseTracker() if (multiperson and track) else None
         frame_idx = processed = 0
         if show:
             cv2.namedWindow("Pose Estimation", cv2.WINDOW_NORMAL)
@@ -259,10 +278,14 @@ class Video2Pose:
                 keypoints, scores = self.model.predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
                 keypoints = np.array([clean_outliers(k) for k in keypoints], np.float32).reshape(-1, 133, 2)
 
+                ids = None
                 if multiperson:
                     kp_list.append(keypoints)
                     sc_list.append(scores)
                     draw_kp, draw_sc = keypoints, scores
+                    if tracker is not None:
+                        ids = tracker.update(keypoints, scores)
+                        id_list.append(ids)
                 else:
                     if len(keypoints):
                         i = select_largest_person(keypoints, scores)
@@ -283,6 +306,8 @@ class Video2Pose:
                         line_width=line_width,
                         radius=radius,
                     )
+                    if ids is not None and draw_ids:
+                        _draw_ids(canvas, draw_kp, draw_sc, ids)
                     if folder_results:
                         if writer is None:
                             Path(folder_results).mkdir(parents=True, exist_ok=True)
@@ -312,6 +337,8 @@ class Video2Pose:
         results["frame_size"] = (w, h) if processed else None
         if multiperson:
             results["total_keypoints"], results["total_scores"] = kp_list, sc_list
+            if tracker is not None:
+                results["track_ids"] = id_list
         else:
             results["total_keypoints"] = np.array(kp_list, np.float32).reshape(-1, 133, 2)
             results["total_scores"] = np.array(sc_list, np.float32).reshape(-1, 133)

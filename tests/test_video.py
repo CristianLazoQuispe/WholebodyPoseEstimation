@@ -86,3 +86,11 @@ def test_clean_outliers_removes_corner_cluster():
 @pytest.mark.parametrize("angle,shape", [(0, (2, 3)), (90, (3, 2)), (180, (2, 3)), (-90, (3, 2)), (270, (3, 2))])
 def test_rotate_frame(angle, shape):
     assert rotate_frame(np.zeros((2, 3, 3), np.uint8), angle).shape[:2] == shape
+
+
+def test_multiperson_tracking_ids(synthetic_video):
+    res = Video2Pose(model=FakePoseModel(n_people=2), verbose=False).predict(str(synthetic_video), multiperson=True)
+    ids = res["track_ids"]
+    assert len(ids) == 20 and all(len(i) == 2 for i in ids)
+    assert all(list(i) == list(ids[0]) for i in ids)  # same (static) people keep their IDs
+    assert len(set(ids[0].tolist())) == 2
