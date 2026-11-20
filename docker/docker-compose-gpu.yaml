@@ -1,29 +1,44 @@
+# Needs the NVIDIA Container Toolkit. From the repository root:
+#   docker compose -f docker/docker-compose-gpu.yaml build
+#   docker compose -f docker/docker-compose-gpu.yaml run --rm wholebodypose \
+#       wholebodypose video data/videos/videoTest.mp4 -b rtmpose --device cuda
+#   docker compose -f docker/docker-compose-gpu.yaml up jupyter        # JupyterLab on http://localhost:8888
+x-build: &build
+  context: ..
+  dockerfile: docker/Dockerfile.gpu
+  args:
+    INSTALL_JUPYTER: "true"
+
+x-volumes: &volumes
+  - ..:/workspace
+  - weights:/home/ubuntu/.cache/wholebodypose
+
+x-gpu: &gpu
+  resources:
+    reservations:
+      devices:
+        - driver: nvidia
+          count: all
+          capabilities: [gpu]
+
 services:
-  wholebody-pose-gpu:
-    build:
-      context: ..                       # build context is the parent directory
-      dockerfile: docker/Dockerfile.gpu
-    image: wholebody-pose-gpu          # name of the image
-    container_name: wholebody-pose-gpu # name of the container
-    runtime: nvidia
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - capabilities: [gpu]
-        limits:
-          memory: 16g
-          cpus: '8.0'
-    volumes:
-      - ../:/workspace
-    ports:
-      - "8888:8888"
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - DISPLAY=host.docker.internal:0.0
+  wholebodypose:
+    build: *build
+    image: wholebodypose:gpu
+    volumes: *volumes
+    deploy: *gpu
     stdin_open: true
     tty: true
 
-# from root of the project:
-#docker compose -f docker/docker-compose-gpu.yaml up --build
+  jupyter:
+    profiles: [jupyter]
+    build: *build
+    image: wholebodypose:gpu
+    command: ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser"]
+    ports:
+      - "8888:8888"
+    volumes: *volumes
+    deploy: *gpu
+
+volumes:
+  weights:
