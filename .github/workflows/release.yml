@@ -1,0 +1,91 @@
+# On a version tag (v1.0.0, v1.1.0rc1, ...): build the sdist and wheel, check that the tag matches
+# the package version, and publish a GitHub Release whose notes are the matching CHANGELOG section.
+#
+#   git tag -a v1.0.0 -m "WholeBodyPose 1.0.0" && git push origin v1.0.0
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build distributions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tag must match the version in pyproject.toml
+        run: |
+          version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} does not match pyproject version ${version}"
+            exit 1
+          fi
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check --strict dist/*
+      - name: Smoke test the wheel
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install dist/*.whl
+          "$RUNNER_TEMP/venv/bin/wholebodypose" --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  github-release:
+    name: GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Release notes from CHANGELOG.md
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v ver="$version" '/^## \[/ { if (p) exit; p = index($0, "## [" ver "]") == 1; next } p' \
+            CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          if [ ! -s "$RUNNER_TEMP/notes.md" ]; then
+            echo "::warning::no '## [$version]' section in CHANGELOG.md"
+            echo "See [CHANGELOG.md](CHANGELOG.md)." > "$RUNNER_TEMP/notes.md"
+          fi
+          cat "$RUNNER_TEMP/notes.md"
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: WholeBodyPose ${{ github.ref_name }}
+          body_path: ${{ runner.temp }}/notes.md
+          files: dist/*
+          prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'a') || contains(github.ref_name, 'b') }}
+
+  # Disabled: PyPI rejects packages whose metadata has direct URL dependencies, and the `vitpose`
+  # extra depends on `onepose @ git+https://...`. Enable once onepose is on PyPI (or the extra is
+  # dropped). Uses Trusted Publishing: on pypi.org add a publisher for this repository, workflow
+  # `release.yml` and environment `pypi`; no token is needed.
+  pypi:
+    name: Publish to PyPI
+    if: false
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/wholebodypose
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

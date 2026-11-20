@@ -1,0 +1,114 @@
+# Lint, unit tests on every supported Python (core install only), a package build check and,
+# on main / weekly / on demand, the real backends with downloaded weights.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 5 * * 1" # Mondays 05:00 UTC: catches upstream breakage (MediaPipe, rtmlib, weights URLs)
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  RUFF_VERSION: "0.17.6" # keep in sync with .pre-commit-config.yaml
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "ruff==${RUFF_VERSION}"
+      - run: ruff check --output-format=github .
+      - run: ruff format --check .
+
+  test:
+    name: Tests (Python ${{ matrix.python-version }}, core only)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      # No backend extras: tests that need one are skipped, everything else uses a fake model.
+      - run: pip install -e ".[dev]"
+      - run: pytest -m "not slow" --cov --cov-report=term-missing:skip-covered
+      - name: CLI smoke test
+        run: |
+          wholebodypose --version
+          wholebodypose backends
+
+  test-backends:
+    name: Real backends (Python 3.11, CPU)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install (CPU PyTorch + every backend)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[all,dev]"
+          pip list | grep -iE "^(torch|onnxruntime|rtmlib|mediapipe|onepose|padasip|numpy|opencv)" || true
+      - name: Restore model weights # default WHOLEBODYPOSE_HOME
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/wholebodypose
+          key: wholebodypose-weights-${{ hashFiles('src/wholebodypose/weights.py') }}
+          restore-keys: wholebodypose-weights-
+      - name: Tests, including slow ones
+        run: pytest -ra
+      - name: Examples smoke test
+        run: |
+          python examples/image_inference.py data/images/image.jpg -b mediapipe -o "$RUNNER_TEMP/out"
+          python examples/video_to_npz.py data/videos/videoTest.mp4 -b rtmpose --device cpu --max-frames 5 -o "$RUNNER_TEMP/out"
+          python examples/filter_sequence.py "$RUNNER_TEMP/out/videoTest_rtmpose.npz" --nlms
+          python examples/webcam_realtime.py --source data/videos/videoTest.mp4 --no-show --max-frames 5 --smooth nlms
+
+  build:
+    name: Build and check the package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check --strict dist/*
+      - name: Install the wheel in a clean environment
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install dist/*.whl
+          "$RUNNER_TEMP/venv/bin/wholebodypose" --version
+          "$RUNNER_TEMP/venv/bin/wholebodypose" backends
+          "$RUNNER_TEMP/venv/bin/python" -c "import wholebodypose, wholebodypose.models.mediapipe.map_mp2coco"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
