@@ -61,18 +61,18 @@ One file per split: `<Prefix>_135-{Train,Val,Test}.hdf5`, plus `<name>_<N>_mapla
 ## Loading
 
 ```python
-from wholebodypose.datasets import read_hdf5, iter_samples   # pip install "wholebodypose[datasets]"
+from wholebodypose.datasets import read_hdf5, iter_samples  # pip install "wholebodypose[datasets]"
 
 samples = read_hdf5("ISLR/WLASL/WLASL100/WLASL100_135-Test.hdf5")
 s = samples[0]
 s["data"].shape, s["label"], s["video_name"], s["width"], s["height"]
 # ((35, 2, 135), 'accident', 'rgb/WLASL100/test/00625.mp4', 256, 256)
 
-xy = s["data"].transpose(0, 2, 1)          # (T, 135, 2) normalized
-detected = (xy != 0).any(-1)               # (T, 135) bool
-pixels = xy * [s["width"], s["height"]]    # back to pixels of the original video
+xy = s["data"].transpose(0, 2, 1)  # (T, 135, 2) normalized
+detected = (xy != 0).any(-1)  # (T, 135) bool
+pixels = xy * [s["width"], s["height"]]  # back to pixels of the original video
 
-for s in iter_samples(path, with_data=False):   # metadata only, adds s["T"]
+for s in iter_samples(path, with_data=False):  # metadata only, adds s["T"]
     ...
 ```
 
@@ -80,11 +80,12 @@ Plain h5py:
 
 ```python
 import h5py, json
+
 with h5py.File(path) as f:
     for k in sorted(f, key=int):
         g = f[k]
         data, label = g["data"][()], g["label"][()].decode()
-label_map = json.load(open("wlasl_100_maplabels.json"))["id_to_label"]   # gloss -> int
+label_map = json.load(open("wlasl_100_maplabels.json"))["id_to_label"]  # gloss -> int
 ```
 
 ## Rebuilding from videos
