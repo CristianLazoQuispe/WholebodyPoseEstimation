@@ -65,6 +65,10 @@ USED_BY = {
     "vitpose_base": "`vitpose`, `model_name='ViTPose+_base_coco_wholebody'`",
     "vitpose_large": "`vitpose`, `model_name='ViTPose+_large_coco_wholebody'`",
     "vitpose_huge": "`vitpose` (paper default)",
+    "vitpose_small_onnx": "`vitpose`, ONNX engine, `model_name='ViTPose+_small_coco_wholebody'`",
+    "vitpose_base_onnx": "`vitpose`, ONNX engine, `model_name='ViTPose+_base_coco_wholebody'`",
+    "vitpose_large_onnx": "`vitpose`, ONNX engine, `model_name='ViTPose+_large_coco_wholebody'`",
+    "vitpose_huge_onnx": "`vitpose`, ONNX engine (paper model)",
     "mp_pose_heavy": "`mediapipe` body, `model_complexity=2` (paper default)",
     "mp_pose_full": "`mediapipe` body, `model_complexity` < 2",
     "mp_hand": "`mediapipe` hands",
@@ -153,9 +157,10 @@ def files_table(rows: list[dict]) -> str:
         "|:--|--:|:--|:--|:--|",
     ]
     for r in rows:
+        upstream = f"[link]({r['upstream_url']})" if r["upstream_url"] else "exported by WholeBodyPose"
         lines.append(
             f"| `{r['path']}` | {human(int(r['size']))} | `{r['sha256'][:12]}…` | {USED_BY.get(r['key'], '')} "
-            f"| [link]({r['upstream_url']}) |"
+            f"| {upstream} |"
         )
     return "\n".join(lines)
 
@@ -186,7 +191,7 @@ def build(args) -> int:
                 "path": w.filename,
                 "size": size,
                 "sha256": digest,
-                "upstream_url": w.upstream,
+                "upstream_url": w.upstream or "",
                 "license": w.license,
                 "source": w.source,
             }

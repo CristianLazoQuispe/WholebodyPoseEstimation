@@ -6,7 +6,8 @@ Hugging Face Hub (``WEIGHTS_REPO``) together with its SHA-256. Resolution order:
 
 1. ``$WHOLEBODYPOSE_HOME`` (default ``~/.cache/wholebodypose``) if the file is already there;
 2. the Hugging Face mirror;
-3. the original upstream URL (``.zip`` archives are extracted).
+3. the original upstream URL (``.zip`` archives are extracted), when there is one. Files produced by
+   WholeBodyPose itself (the ViTPose ONNX exports) have no upstream and come only from the mirror.
 
 Every download is checked against the pinned SHA-256 when one is known.
 """
@@ -36,7 +37,7 @@ class WeightFile:
 
     key: str
     filename: str  # path inside the mirror repo and the local cache
-    upstream: str  # original URL (may be a .zip that contains ``Path(filename).name``)
+    upstream: str | None  # original URL (may be a .zip with ``Path(filename).name``); None = mirror only
     sha256: str | None = None
     license: str = "Apache-2.0"
     source: str = ""
@@ -53,6 +54,15 @@ _VITPOSE_SHA256 = {
     "base": "461a67e2c5b7f8c0a3a29df06d9036a82bae1e8e4298f4747e9c77c8f29864f5",
     "large": "53b138636b34d3b1c926e42dc446f34e9135524b4cacd1f8b0bd09d14cfb8952",
     "huge": "712a9ccb350f295e9036302adb38be9179502c264db01600aa39c483dd0f782a",
+}
+
+# SHA-256 of the ViTPose+ ONNX graphs written by ``scripts/export_vitpose_onnx.py`` (opset 17, dynamic
+# batch, float32 compute, float16-stored weights). They exist only on the WholeBodyPose mirror.
+_VITPOSE_ONNX_SHA256 = {
+    "small": "2cc364025711805eeb0d4a613eaf4cebdb3ef69623c06bfc3fb494ed8816786b",
+    "base": "61cb598570d01f4575b90e516332c2473a81ca0b17e94fa6ac9a66ebe07fdabe",
+    "large": "64c250be2730cae07c4bb59a29752856cd1410c4e1f5770211de377b8e7bfe73",
+    "huge": "b8605dfbc33ff292d4e05e922cf175a2387facc9cc93da87ca3304bdd6544718",
 }
 
 
@@ -105,6 +115,17 @@ WEIGHTS: dict[str, WeightFile] = {
                 "ViTPose / onepose",
             )
             for size, sha in _VITPOSE_SHA256.items()
+        ],
+        # --- ViTPose+ whole-body exported to ONNX by WholeBodyPose (mirror only) ----------
+        *[
+            _wf(
+                f"vitpose_{size}_onnx",
+                f"vitpose/vitpose+_{size}_coco_wholebody.onnx",
+                None,
+                sha,
+                "ViTPose / onepose, ONNX export by WholeBodyPose",
+            )
+            for size, sha in _VITPOSE_ONNX_SHA256.items()
         ],
         # --- MediaPipe Tasks models --------------------------------------------------------
         _wf(
@@ -199,7 +220,7 @@ def get_weight(key: str, verbose: bool = True, offline: bool | None = None) -> P
         raise FileNotFoundError(f"{dst} missing and WHOLEBODYPOSE_OFFLINE=1")
 
     errors = []
-    for url in (mirror_url(w), w.upstream):
+    for url in (u for u in (mirror_url(w), w.upstream) if u):
         try:
             if url.endswith(".zip"):
                 with tempfile.TemporaryDirectory() as td:
