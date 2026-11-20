@@ -3,7 +3,7 @@
 Usage::
 
     python hf/space/smoke_test.py http://127.0.0.1:7860
-    python hf/space/smoke_test.py https://cristianlazoquispe-wholebodyposedemo.hf.space --backends mediapipe rtmpose
+    python hf/space/smoke_test.py https://cristianlazoquispe-wholebodyposedemo.hf.space --backends mediapipe
 
 Calls the ``/video`` endpoint once per backend on an example video and the ``/image`` endpoint
 once, and checks that an MP4, an ``.npz`` and a ``.json`` come back with ``frames > 0``.
@@ -54,7 +54,8 @@ def check_video(client: Client, backend: str, video: Path, fps: float) -> dict:
 
 def check_image(client: Client, backend: str, image: Path) -> dict:
     out, files, summary = client.predict(image=handle_file(str(image)), backend=backend, api_name="/image")
-    assert Path(_path(out)).stat().st_size > 0, "image: no output"
+    png = Path(_path(out))
+    assert png.suffix == ".png" and png.stat().st_size > 0, f"image: no png ({png})"
     _check_files(files, f"image/{backend}")
     assert summary["frames"] == 1 and summary["people"] > 0, f"image: nobody detected ({summary})"
     return summary
@@ -63,7 +64,7 @@ def check_image(client: Client, backend: str, image: Path) -> dict:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("url", help="Demo URL, e.g. http://127.0.0.1:7860 or the *.hf.space URL")
-    parser.add_argument("--backends", nargs="+", default=["rtmpose", "mediapipe", "vitpose"])
+    parser.add_argument("--backends", nargs="+", default=["rtmpose_lite", "rtmpose", "mediapipe", "vitpose"])
     parser.add_argument("--video", type=Path, default=EXAMPLES / "sign_goodbye.mp4")
     parser.add_argument("--image", type=Path, default=EXAMPLES / "people.jpg")
     parser.add_argument("--fps", type=float, default=10, help="processing FPS sent to the video endpoint")

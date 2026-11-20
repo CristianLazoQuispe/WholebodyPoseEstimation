@@ -25,25 +25,30 @@ tags:
   - computer-vision
 ---
 
-# 🧠 WholeBodyPose demo
+# WholeBodyPose demo
 
 Interactive demo of **[WholeBodyPose](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation)**
 (ICMV 2025): whole-body pose estimation that returns the same **133 COCO-WholeBody keypoints**
-(body, feet, face, both hands) from three backends.
+(body, feet, face, both hands) from every backend.
 
-| Backend | Model | People |
+| Backend (`backend=`) | Model | People |
 |:--|:--|:-:|
-| ⚡ RTMPose | YOLOX-m + RTMW-x 384×288 | multi |
-| 🔷 MediaPipe | BlazePose heavy + Hands + Face Mesh | single |
-| 🎯 ViTPose+ | ViTPose+ whole-body (base on CPU, huge on GPU) | single |
+| RTMPose (`rtmpose`) | YOLOX-m + RTMW-x 384×288, paper setting | multi |
+| RTMPose-lite (`rtmpose_lite`) | YOLOX-tiny + RTMW-l 256×192, default for videos on CPU | multi |
+| MediaPipe (`mediapipe`) | BlazePose heavy + Hands + Face Mesh | single |
+| ViTPose+ (`vitpose`) | ViTPose+ whole-body (base on CPU, huge on GPU) | single |
+
+On 2 CPU cores RTMW-x processed 0.5-0.9 frames/s in our tests, so on CPU hardware the Video tab defaults to
+RTMPose-lite (about 3x faster on 2 CPU cores in our tests); the Image tab uses the paper model.
 
 Upload a video (or record one with the webcam) or an image, choose the backend, the skeleton style
 (COCO-WholeBody 133 or OpenPose-style 135), the drawing options and the processing FPS, and get
 
-- the rendered skeleton video (H.264 MP4) or image,
-- the keypoints as `.npz` and `.json` (`wholebodypose.load_poses(path)` reads both),
-- a short summary (frames, people, processing time).
+- the rendered skeleton video (H.264 MP4) or image (PNG), named `<input>_<backend>_pose.*`,
+- the keypoints as `<input>_<backend>.npz` and `.json` (`wholebodypose.load_poses(path)` reads both),
+- a summary (frames, people, processing time).
 
+The *About* tab links the paper, the ISLR results and code, and every split of the pose datasets.
 Videos are limited to their first 15 seconds. The app can also be called programmatically:
 
 ```python
@@ -51,8 +56,9 @@ from gradio_client import Client, handle_file
 
 client = Client("CristianLazoQuispe/WholeBodyPoseDemo")
 video, files, summary = client.predict(
-    video=handle_file("sign.mp4"), backend="mediapipe", processing_fps=10, api_name="/video"
+    video=handle_file("sign.mp4"), backend="rtmpose_lite", processing_fps=10, api_name="/video"
 )
+image, files, summary = client.predict(image=handle_file("person.jpg"), backend="rtmpose", api_name="/image")
 ```
 
 This Space is deployed automatically from
@@ -66,7 +72,6 @@ pip install -e ".[demo,vitpose]" && python hf/space/app.py
 
 - 🌐 Project page: <https://cristianlazoquispe.github.io/WholebodyPoseEstimation/>
 - 🤟 Pose datasets: [CristianLazoQuispe/pose-action-recognition](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition)
-- 📦 Weights mirror: [CristianLazoQuispe/wholebodypose-weights](https://huggingface.co/CristianLazoQuispe/wholebodypose-weights)
 
 ## Citation
 
