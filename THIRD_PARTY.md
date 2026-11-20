@@ -15,6 +15,6 @@ projects and downloads (or mirrors on the Hugging Face Hub, unchanged) their mod
 
 Weights mirrored in [`CristianLazoQuispe/wholebodypose-weights`](https://huggingface.co/CristianLazoQuispe/wholebodypose-weights)
 are byte-identical copies, listed with their SHA-256 and original URL in its `MANIFEST.csv`; their original
-licenses and authors apply. Please cite the original papers (see README) when you use a backend.
+licenses and authors apply. Please cite the original papers (BibTeX in [docs/guide/backends.md](docs/guide/backends.md#citing-the-backends)) when you use a backend.
 
 Example images and videos in `data/` and `hf/space/examples/` are stock media used for demonstration only.

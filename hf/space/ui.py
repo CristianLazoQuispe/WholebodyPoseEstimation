@@ -105,7 +105,7 @@ PUCP-DGI30 are available at [CristianLazoQuispe/pose-action-recognition]({DATASE
 }}
 ```
 
-Please also cite the backend you use (RTMW, ViTPose++ or MediaPipe); see the [README]({REPO_URL}#citation).
+Please also cite the backend you use (RTMW, ViTPose++ or MediaPipe); see [docs/guide/backends.md]({REPO_URL}/blob/main/docs/guide/backends.md#citing-the-backends).
 
 **Authors**: Cristian Lazo-Quispe, Renato Castro-Cruz (Universidad Nacional de Ingeniería, Peru),
 Gissella Bejarano (Marist University, USA), Mauricio Salazar-Espinosa (Pontificia Universidad Católica del Perú).

@@ -27,6 +27,30 @@ model = create_model("mediapipe", kpt_thr=0.3)  # the bare backend, without draw
 
 `create_model` also passes `device` (default `"auto"`) to RTMPose and ViTPose, and `verbose` to all.
 
+## Overview
+
+| Backend | Model | People | Runs on | Install extra |
+|:--|:--|:-:|:--|:--|
+| `rtmpose` | YOLOX-m + RTMW-x 384×288 (OpenMMLab) | multi | ONNX Runtime CPU / CUDA | `[rtmpose]` (+ `[gpu]`) |
+| `vitpose` | ViTPose+ huge/large/base/small, top-down | single · multi with YOLOX crops | PyTorch CPU / CUDA | `[vitpose]` (+ `[rtmpose]` for multi) |
+| `mediapipe` | BlazePose heavy + Hands + Face landmarker | single · multi (`max_people`) | CPU | `[mediapipe]` |
+
+## Multi-person
+
+`PoseEstimator(backend, multiperson=True)` works with every backend. It applies
+`wholebodypose.api.MULTIPERSON_DEFAULTS` on top of the paper settings: RTMPose is always multi-person;
+ViTPose gets `detector="yolox_m"` (YOLOX person crops, which needs the `rtmpose` extra); MediaPipe gets
+`engine="tasks"` and `max_people=4`. `max_people` caps the number of people for ViTPose and MediaPipe.
+In videos, every frame keeps all people and `process_video` adds stable person IDs (`track_ids`):
+
+```python
+est = PoseEstimator("vitpose", multiperson=True, max_people=4)
+res = est.process_video("dance.mp4", "outputs/")
+# res["total_keypoints"][t]: (N_t, 133, 2), res["track_ids"][t]: (N_t,)
+```
+
+The per-backend sections below describe the default (single-person) behavior.
+
 ## Thresholding
 
 With `use_thresholding=True` (paper setting for all three backends), `BasePoseModel.thresholding`
@@ -152,3 +176,46 @@ three warm-up frames. Only the ratios matter; your numbers will differ.
 
 Subclass `BasePoseModel`, implement `_predict(image_rgb) -> (keypoints, scores)` in COCO-WholeBody
 order, and register it in `wholebodypose.api.BACKENDS`. See [CONTRIBUTING.md](../../CONTRIBUTING.md#adding-a-backend).
+
+## Citing the backends
+
+If you use WholeBodyPose, please cite the paper (BibTeX in the [README](../../README.md#citation)) and
+also the backend you use, plus COCO-WholeBody for the keypoint layout:
+
+```bibtex
+@article{jiang2024rtmw,
+  title   = {RTMW: Real-Time Multi-Person 2D and 3D Whole-body Pose Estimation},
+  author  = {Jiang, Tao and Xie, Xinchen and Li, Yining},
+  journal = {arXiv preprint arXiv:2407.08634},
+  year    = {2024}
+}
+@article{xu2024vitpose++,
+  title   = {ViTPose++: Vision Transformer for Generic Body Pose Estimation},
+  author  = {Xu, Yufei and Zhang, Jing and Zhang, Qiming and Tao, Dacheng},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume  = {46},
+  number  = {2},
+  pages   = {1212--1230},
+  year    = {2024},
+  doi     = {10.1109/TPAMI.2023.3330016}
+}
+@article{lugaresi2019mediapipe,
+  title   = {MediaPipe: A Framework for Building Perception Pipelines},
+  author  = {Lugaresi, Camillo and others},
+  journal = {arXiv preprint arXiv:1906.08172},
+  year    = {2019}
+}
+@inproceedings{jin2020whole,
+  title     = {Whole-Body Human Pose Estimation in the Wild},
+  author    = {Jin, Sheng and Xu, Lumin and Xu, Jin and Wang, Can and Liu, Wentao and Qian, Chen and Ouyang, Wanli and Luo, Ping},
+  booktitle = {ECCV},
+  year      = {2020}
+}
+```
+
+## Acknowledgements
+
+WholeBodyPose builds on [rtmlib](https://github.com/Tau-J/rtmlib) / [MMPose](https://github.com/open-mmlab/mmpose),
+[onepose](https://github.com/developer0hye/onepose) / [ViTPose](https://github.com/ViTAE-Transformer/ViTPose),
+[MediaPipe](https://github.com/google-ai-edge/mediapipe) and [padasip](https://github.com/matousc89/padasip).
+See [THIRD_PARTY.md](../../THIRD_PARTY.md) for licenses.

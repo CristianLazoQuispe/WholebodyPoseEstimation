@@ -22,7 +22,7 @@ from GitHub at a pinned commit.
 | `filters` | `padasip` | `FilteringNLMS` (temporal smoothing of the paper) |
 | `video` | `imageio-ffmpeg` | a bundled `ffmpeg` that re-encodes rendered videos to browser-playable H.264 |
 | `gpu` | `onnxruntime-gpu` | RTMPose on CUDA |
-| `demo` | `gradio` + `rtmpose,mediapipe,video` | the Gradio app in `hf/space/` |
+| `demo` | `gradio` + `rtmpose,mediapipe,vitpose,video` | the Gradio app in `hf/space/` |
 | `all` | `rtmpose,vitpose,mediapipe,filters,video` | everything except `gpu`, `demo` and `dev` |
 | `dev` | `pytest`, `pytest-cov`, `ruff`, `pre-commit`, `build` | development |
 
@@ -83,6 +83,16 @@ docker run --rm -v "$PWD:/workspace" wholebodypose:cpu \
 ```
 
 See [`docker/README.md`](../../docker/README.md) for the GPU image, Compose and Jupyter.
+
+## Demo app
+
+The [demo Space](https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo) (upload a video
+or an image, pick a backend, get the skeleton overlay and the keypoints) is built from
+[`hf/space/`](../../hf/space) by CI. To run it locally:
+
+```bash
+pip install -e ".[demo]" && python hf/space/app.py   # [demo] includes all three backends
+```
 
 ## Check the installation
 

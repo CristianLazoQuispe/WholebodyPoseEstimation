@@ -6,6 +6,8 @@ WholeBodyPose for the ICMV 2025 paper, are published on the Hugging Face Hub:
 (folder `ISLR/`). This page describes the files, how to load them, and how to rebuild them from the
 raw videos with `wholebodypose-build-islr`.
 
+The pose files are derived data; the original videos keep the licenses of their authors.
+
 Per-dataset provenance: [WLASL](wlasl.md). <!-- TODO (author): msasl.md, asl_citizen.md, lsa64.md, pucp_dgi.md -->
 
 ## Overview
