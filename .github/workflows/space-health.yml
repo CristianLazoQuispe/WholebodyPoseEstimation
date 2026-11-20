@@ -1,0 +1,57 @@
+# Keep the demo Space up: wake it if it sleeps, restart it if it is in error, fail (and notify) if it
+# does not come back. Needs the repository secret HF_TOKEN.
+name: Demo Space health
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hf-space
+  cancel-in-progress: false
+
+env:
+  SPACE_ID: CristianLazoQuispe/WholeBodyPoseDemo
+  SPACE_URL: https://cristianlazoquispe-wholebodyposedemo.hf.space
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "huggingface_hub>=0.30"
+      - name: Wake or restart, then wait until RUNNING
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'EOF'
+          import os, sys, time, urllib.request
+          from huggingface_hub import HfApi
+
+          api, space, url = HfApi(token=os.environ["HF_TOKEN"]), os.environ["SPACE_ID"], os.environ["SPACE_URL"]
+          stage = api.get_space_runtime(space).stage
+          print("stage:", stage)
+          if stage in ("RUNTIME_ERROR", "BUILD_ERROR", "CONFIG_ERROR", "PAUSED", "STOPPED"):
+              print("restarting"); api.restart_space(space)
+          elif stage != "RUNNING":
+              try:  # a visit wakes a sleeping Space
+                  urllib.request.urlopen(url, timeout=60).read(1)
+              except Exception as e:
+                  print("wake request:", e)
+          for _ in range(50):
+              stage = api.get_space_runtime(space).stage
+              if stage == "RUNNING":
+                  urllib.request.urlopen(url, timeout=60).read(1)
+                  print("RUNNING"); sys.exit(0)
+              if stage.endswith("ERROR"):
+                  break
+              time.sleep(20)
+          print("Space is not running:", stage); sys.exit(1)
+          EOF
