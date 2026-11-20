@@ -28,8 +28,8 @@ jobs:
     name: Build distributions
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Tag must match the version in pyproject.toml
@@ -53,7 +53,7 @@ jobs:
           "$RUNNER_TEMP/venv/bin/pip" install dist/*.whl
           "$RUNNER_TEMP/venv/bin/wholebodypose" --version
           "$RUNNER_TEMP/venv/bin/wholebodypose" backends
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
@@ -66,8 +66,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
@@ -85,7 +85,7 @@ jobs:
         id: pre
         run: |
           if [[ "${GITHUB_REF_NAME#v}" =~ (a|b|rc|\.dev)[0-9]*$ ]]; then echo "flag=true" >> "$GITHUB_OUTPUT"; else echo "flag=false" >> "$GITHUB_OUTPUT"; fi
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           name: WholeBodyPose ${{ github.ref_name }}
           body_path: ${{ runner.temp }}/notes.md
@@ -108,7 +108,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
@@ -130,7 +130,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
