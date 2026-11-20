@@ -12,7 +12,7 @@ dataset         subsets                metadata used (``root`` defaults in ``DEF
 ``msasl``       100, 200, 500, 1000    ``MSASL/msasl{N}_metadata.csv`` + clips in ``MSASL/{split}``
 ``asl_citizen`` 100, 300, 1000, 2731   ``ASL_Citizen/splits/{train,val,test}.csv``
 ``lsa64``       64                     ``lsa64_full_metadata.csv`` (signer 9 = val, 10 = test)
-``pucp_dgi``    30                     ``DGI305AEC_SignERT_metadata.csv`` (30-gloss subset)
+``pucp_dgi``    30, 38                 ``DGI305AEC_SignERT_metadata.csv`` (30-gloss subset / all 38 glosses)
 ==============  =====================  ===================================================
 """
 
@@ -55,7 +55,7 @@ SPECS: dict[str, DatasetSpec] = {
         "asl_citizen", (100, 300, 1000, 2731), "ASLCITIZEN", "ASLCitizen{n}", "asl_citizen_{n}_maplabels.json", True
     ),
     "lsa64": DatasetSpec("lsa64", (64,), "LSA64", "LSA64", "lsa64_64_maplabels.json", False),
-    "pucp_dgi": DatasetSpec("pucp_dgi", (30,), "DGI_PUCP30", "DGI_PUCP{n}", "dgi_pucp_{n}_maplabels.json", False),
+    "pucp_dgi": DatasetSpec("pucp_dgi", (30, 38), "DGI_PUCP30", "DGI_PUCP{n}", "dgi_pucp_{n}_maplabels.json", False),
 }
 ALIASES = {"asl-citizen": "asl_citizen", "aslcitizen": "asl_citizen", "dgi_pucp": "pucp_dgi", "pucp-dgi": "pucp_dgi"}
 
@@ -65,7 +65,7 @@ PUBLISHED = {
     "msasl": (100, 200, 1000),
     "asl_citizen": (100, 300, 2731),
     "lsa64": (64,),
-    "pucp_dgi": (30,),
+    "pucp_dgi": (30, 38),
 }
 
 DEFAULT_ROOTS = {
@@ -298,17 +298,17 @@ def lsa64(subset: int = 64, root: str | Path | None = None):
 
 # --------------------------------------------------------------------------- PUCP-DGI
 def pucp_dgi(subset: int = 30, root: str | Path | None = None):
-    """PUCP-DGI305 (DGI305AEC_SignERT) restricted to the 30 glosses of :data:`PUCP_DGI_30`.
+    """PUCP-DGI305 (DGI305AEC_SignERT): the 30 glosses of :data:`PUCP_DGI_30` (paper) or all 38.
 
     Files were renamed ``<gloss>_<k>.mp4 -> <gloss>_<k>_<row id>.mp4`` inside ``split/<split>/``.
     Samples are sorted (stably) by the original label; labels are re-numbered 0..29 in that order.
     """
-    if subset != 30:
-        raise ValueError("PUCP-DGI only has subset 30")
+    if subset not in (30, 38):
+        raise ValueError("PUCP-DGI subsets are 30 (paper) and 38 (all glosses)")
     root = Path(root or DEFAULT_ROOTS["pucp_dgi"])
     rows = []
     for r in _read_csv(root / "DGI305AEC_SignERT_metadata.csv"):
-        if r["gloss"] not in PUCP_DGI_30:
+        if subset == 30 and r["gloss"] not in PUCP_DGI_30:
             continue
         stem = Path(r["relative_path"]).stem
         fname = f"{stem}_{r['id']}.mp4"

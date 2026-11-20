@@ -123,8 +123,9 @@ def read_group(g) -> dict:
         "data": g["data"][()],
         "label": _decode(g["label"][()]),
         "video_name": _decode(g["video_name"][()]),
-        "width": int(g["width"][()]),
-        "height": int(g["height"][()]),
+        # older files (e.g. the SignERT *_96 files) have no width/height
+        "width": int(g["width"][()]) if "width" in g else None,
+        "height": int(g["height"][()]) if "height" in g else None,
     }
     if "scores" in g:
         out["scores"] = g["scores"][()]
@@ -149,7 +150,11 @@ def iter_samples(path: str | Path, with_data: bool = True) -> Iterator[dict]:
                 d = read_group(g)
             else:
                 d = {k: _decode(g[k][()]) for k in ("label", "video_name")}
-                d.update(width=int(g["width"][()]), height=int(g["height"][()]), T=int(g["data"].shape[0]))
+                d.update(
+                    width=int(g["width"][()]) if "width" in g else None,
+                    height=int(g["height"][()]) if "height" in g else None,
+                    T=int(g["data"].shape[0]),
+                )
             d["index"] = int(name) if name.isdigit() else name
             yield d
 
