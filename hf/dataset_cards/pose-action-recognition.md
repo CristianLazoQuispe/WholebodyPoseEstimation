@@ -7,7 +7,7 @@ task_categories: [video-classification, keypoint-detection, other]
 task_ids: [pose-estimation, multi-class-classification]
 license: other
 license_name: research-only
-license_link: LICENSE.md
+license_link: https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/LICENSE.md
 pretty_name: Pose-Based Action Recognition (135 keypoints)
 size_categories: [100K<n<1M]
 tags:
