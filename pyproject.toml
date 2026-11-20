@@ -48,11 +48,13 @@ filters = ["padasip>=1.2,<2"]
 video = ["imageio-ffmpeg>=0.5"]
 demo = ["gradio>=6", "gradio_client>=1", "wholebodypose[rtmpose,mediapipe,vitpose,video]"]
 hf = ["huggingface_hub>=0.25"]
+datasets = ["h5py>=3.8", "pandas>=1.5"]
 all = ["wholebodypose[rtmpose,vitpose,mediapipe,filters,video]"]
-dev = ["pytest>=8", "pytest-cov>=5", "ruff==0.17.6", "pre-commit>=3", "build>=1.2", "wholebodypose[hf]"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff==0.17.6", "pre-commit>=3", "build>=1.2", "wholebodypose[hf,datasets]"]
 
 [project.scripts]
 wholebodypose = "wholebodypose.cli:main"
+wholebodypose-build-islr = "wholebodypose.datasets.build:main"
 
 [project.urls]
 Homepage = "https://cristianlazoquispe.github.io/WholebodyPoseEstimation/"
