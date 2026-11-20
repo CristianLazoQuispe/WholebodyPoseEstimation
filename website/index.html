@@ -1,0 +1,459 @@
+<!doctype html>
+<!--
+  Project page: "WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and
+  Pose-Based Training Data" (ICMV 2025, Proceedings of SPIE).
+  Static HTML/CSS/vanilla JS, no build step. Preview: `python -m http.server -d website`.
+  Every asset path is relative: the page is served under /WholebodyPoseEstimation/ on GitHub Pages.
+-->
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WholeBodyPose | ICMV 2025</title>
+  <meta name="description" content="WholeBodyPose puts RTMPose, ViTPose+ and MediaPipe behind one interface that returns the 133 COCO-WholeBody keypoints, with video processing, NLMS temporal filtering and visualization to turn sign language videos into training-ready pose sequences. ICMV 2025.">
+  <meta name="keywords" content="sign language recognition, whole-body pose estimation, COCO-WholeBody, RTMPose, ViTPose, MediaPipe, NLMS filtering">
+  <meta name="author" content="Cristian Lazo-Quispe, Renato Castro-Cruz, Mauricio Salazar-Espinosa, Gissella Bejarano">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="canonical" href="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/">
+  <link rel="icon" href="static/images/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="static/images/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="static/images/apple-touch-icon.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="WholeBodyPose">
+  <meta property="og:title" content="WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data">
+  <meta property="og:description" content="RTMPose, ViTPose+ and MediaPipe behind one API that returns 133 COCO-WholeBody keypoints, plus the video pipeline and NLMS filtering for training-ready pose sequences. ICMV 2025 (SPIE).">
+  <meta property="og:url" content="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/">
+  <meta property="og:image" content="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="WholeBodyPose title card next to a sign language video with MediaPipe, ViTPose and WholeBodyPose skeletons.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="WholeBodyPose (ICMV 2025)">
+  <meta name="twitter:description" content="One API, three pose backends, 133 COCO-WholeBody keypoints: training-ready pose sequences for sign language recognition.">
+  <meta name="twitter:image" content="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/og.png">
+
+  <script>document.documentElement.classList.remove('no-js');</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="static/css/style.css">
+  <script defer src="static/js/main.js"></script>
+</head>
+<body>
+<a class="skip" href="#abstract">Skip to content</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-paper" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></g></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5C5.73.5.5 5.74.5 12.02c0 5.1 3.29 9.41 7.86 10.94.58.1.79-.25.79-.56v-1.97c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.77.11 3.06.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.53 11.53 0 0 0 23.5 12.02C23.5 5.74 18.27.5 12 .5Z"/></symbol>
+  <symbol id="i-quote" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-4 5 4 5M16 7l4 5-4 5"/></g></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.5v13a1 1 0 0 0 1.53.85l10.2-6.5a1 1 0 0 0 0-1.7L9.53 4.65A1 1 0 0 0 8 5.5z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path fill="currentColor" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></g></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></g></symbol>
+</svg>
+
+<main id="top">
+<!-- ======================= HEADER ======================= -->
+<header class="hero">
+  <div class="container">
+    <h1 class="title">WholeBodyPose</h1>
+    <p class="subtitle">A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data</p>
+    <p class="authors">
+      <span class="author"><a href="https://github.com/CristianLazoQuispe">Cristian Lazo-Quispe</a><sup>1</sup>,</span>
+      <span class="author">Renato Castro-Cruz<sup>1</sup>,</span>
+      <span class="author">Mauricio Salazar-Espinosa<sup>2</sup>,</span>
+      <span class="author">Gissella Bejarano<sup>3</sup></span>
+    </p>
+    <p class="affils">
+      <span><sup>1</sup>Universidad Nacional de Ingeniería, Lima, Peru</span>
+      <span><sup>2</sup>Pontificia Universidad Católica del Perú</span>
+      <span><sup>3</sup>Marist University, New York, USA</span>
+    </p>
+    <p class="venue">18th International Conference on Machine Vision (ICMV 2025) · Proceedings of SPIE</p>
+
+    <nav class="links" aria-label="Paper resources">
+      <a class="btn" href="static/paper/WholeBodyPose_ICMV2025.pdf"><svg aria-hidden="true"><use href="#i-paper"/></svg>Paper</a>
+      <a class="btn" href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation"><svg aria-hidden="true"><use href="#i-github"/></svg>Code</a>
+      <a class="btn" href="https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo"><span class="emoji" aria-hidden="true">🤗</span>Demo</a>
+      <a class="btn" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition"><span class="emoji" aria-hidden="true">🤗</span>Datasets</a>
+      <a class="btn" href="https://huggingface.co/CristianLazoQuispe/wholebodypose-weights"><span class="emoji" aria-hidden="true">🤗</span>Weights</a>
+      <a class="btn" href="#bibtex"><svg aria-hidden="true"><use href="#i-quote"/></svg>BibTeX</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ======================= TEASER ======================= -->
+<section class="teaser" aria-label="Teaser video">
+  <div class="container">
+    <figure>
+      <div class="teaser-media">
+        <video id="teaserVideo" autoplay muted loop playsinline preload="metadata" poster="static/images/teaser_poster.jpg" width="598" height="448"
+               aria-label="Four-panel video of a signer: the input clip, and the same clip with the MediaPipe, ViTPose and WholeBodyPose skeletons drawn over it.">
+          <source src="static/videos/teaser.webm" type="video/webm">
+          <source src="static/videos/teaser.mp4" type="video/mp4">
+          <img src="static/images/teaser_poster.jpg" alt="One frame of the four-panel comparison: input, MediaPipe, ViTPose and WholeBodyPose skeletons on a signer.">
+        </video>
+        <button class="teaser-ctl" type="button" id="teaserToggle" aria-pressed="false" hidden><svg aria-hidden="true"><use href="#i-pause"/></svg><span>Pause</span></button>
+      </div>
+      <figcaption>A Peruvian Sign Language clip (top left) processed with MediaPipe, ViTPose and WholeBodyPose (<i>ours</i>), all drawn in the same 133-keypoint COCO-WholeBody layout. Slowed down.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ======================= TL;DR + ABSTRACT ======================= -->
+<section class="section" id="abstract">
+  <div class="container narrow">
+    <p class="tldr"><b class="tag">TL;DR</b> Every pose estimator speaks its own dialect. WholeBodyPose puts <b>RTMPose (RTMW)</b>, <b>ViTPose+</b> and <b>MediaPipe</b> behind one interface that always returns the <b>133 COCO-WholeBody keypoints</b> (body, feet, face, both hands), plus the video pipeline, temporal filtering (NLMS) and visualization needed to turn raw sign language videos into training-ready pose sequences.</p>
+    <h2>Abstract</h2>
+    <div class="prose justify">
+      <p>Sign language recognition systems require high-quality, temporally consistent pose estimation data for effective training. However, existing approaches suffer from inconsistent output formats across different pose estimation models, inadequate temporal filtering, and a lack of standardized preprocessing pipelines. We present WholeBodyPose, an end-to-end framework that unifies multiple state-of-the-art pose estimation models (MediaPipe, RTMPose, ViTPose) under a standardized COCO-133 format. Our framework addresses the critical gaps identified in recent work, providing researchers with a consistent interface to generate high-quality training data.</p>
+      <p>We provide a modular architecture that supports the easy integration of new pose estimation models, including preprocessing pipelines from raw video input to training-ready keypoint sequences, quality control mechanisms, and visualization tools. Additionally, our library is optimized for real-time use cases, enabling seamless integration into live inference pipelines and interactive sign language systems. This capability makes it suitable not only for research and training, but also for deployment in production-level applications. Our open-source library democratizes access to high-quality pose-based sign language recognition research and establishes a new standard for preprocessing pipelines in this domain.</p>
+    </div>
+    <p class="small keywords"><b>Keywords:</b> Sign Language Recognition, Pose Estimation, Framework, Keypoint Filtering, Real Time Processing</p>
+  </div>
+</section>
+
+<!-- ======================= CONTRIBUTIONS ======================= -->
+<section class="section" id="contributions">
+  <div class="container">
+    <h2>Key contributions</h2>
+    <ul class="cards">
+      <li class="card">
+        <h3><span class="n" aria-hidden="true">1</span>One API, three backends</h3>
+        <p>MediaPipe, RTMPose and ViTPose behind the same call: <code>predict(frame)</code> returns keypoints and confidence scores, so switching backend needs no code changes.</p>
+      </li>
+      <li class="card">
+        <h3><span class="n" aria-hidden="true">2</span>COCO-133 standardization</h3>
+        <p>Heterogeneous outputs aligned to the 133-keypoint COCO-WholeBody indexing (17 body, 6 feet, 68 face, 42 hands), optionally extended with virtual chest and mid-hip points (135).</p>
+      </li>
+      <li class="card">
+        <h3><span class="n" aria-hidden="true">3</span>Video to training-ready sequences</h3>
+        <p>A complete preprocessing pipeline from raw video to keypoint sequences, with image enhancement for poor lighting, quality control, real-time NLMS smoothing and visualization.</p>
+      </li>
+      <li class="card">
+        <h3><span class="n" aria-hidden="true">4</span>Validated on ISLR benchmarks</h3>
+        <p>Pose versions of six sign language datasets, and consistent accuracy gains for Pose-TGCN, GCN-BERT, SILT and SPOTER trained from scratch on WholeBodyPose keypoints.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ======================= PIPELINE ======================= -->
+<section class="section" id="pipeline">
+  <div class="container">
+    <h2>Pipeline</h2>
+    <p class="lead">From a raw video to a pose sequence a recognizer can train on, with the same output whichever backend runs.</p>
+    <figure class="fig">
+      <svg class="pipe-svg pipe-wide" viewBox="-6 0 972 262" role="img" aria-labelledby="pipeTitle pipeDesc">
+        <title id="pipeTitle">WholeBodyPose pipeline</title>
+        <desc id="pipeDesc">Five stages from left to right: input video, image or webcam frames; a pose backend (RTMPose, ViTPose+ or MediaPipe); the unified COCO-WholeBody output of 133 keypoints per person (17 body, 6 feet, 68 face, 42 hands); temporal clean-up with NLMS smoothing and a sequence filter; and training-ready pose sequences of shape T by 133 by 2, saved as npz or json, which feed ISLR models such as SPOTER, SILT, GCN-BERT and Pose-TGCN.</desc>
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow-head" d="M0 0L10 5L0 10z"/></marker>
+        </defs>
+        <!-- 1 input -->
+        <rect class="box-soft" x="0" y="20" width="164" height="222" rx="10"/>
+        <text class="t-head" x="82" y="46" text-anchor="middle">Input</text>
+        <g transform="translate(42 66)" aria-hidden="true">
+          <rect x="0" y="0" width="80" height="58" rx="5" fill="#fff" stroke="#9aa3ad" stroke-width="1.4"/>
+          <path d="M0 10h80M0 48h80" stroke="#9aa3ad" stroke-width="1.2"/>
+          <path d="M8 3v4M20 3v4M32 3v4M44 3v4M56 3v4M68 3v4M8 51v4M20 51v4M32 51v4M44 51v4M56 51v4M68 51v4" stroke="#9aa3ad" stroke-width="2"/>
+          <circle cx="40" cy="20" r="4.2" fill="var(--k-face)"/>
+          <path d="M40 24v13M40 37l-7 9M40 37l7 9M32 28l8-2 8 2" stroke="var(--k-body)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <path d="M28 25l4 3M52 25l-4 3" stroke="var(--k-hand)" stroke-width="2.4" stroke-linecap="round"/>
+        </g>
+        <text class="t-main" x="82" y="154" text-anchor="middle">Video, image</text>
+        <text class="t-main" x="82" y="174" text-anchor="middle">or webcam</text>
+        <text class="t-sub" x="82" y="200" text-anchor="middle">RGB frames, any FPS</text>
+        <text class="t-sub" x="82" y="218" text-anchor="middle">optional enhancement</text>
+
+        <path class="arrow" d="M168 131H193" marker-end="url(#ah)"/>
+
+        <!-- 2 backend -->
+        <rect class="box" x="199" y="20" width="164" height="222" rx="10"/>
+        <text class="t-head" x="281" y="46" text-anchor="middle">Pose backend</text>
+        <rect class="chip" x="211" y="62" width="140" height="48" rx="7"/>
+        <text class="t-main" x="281" y="83" text-anchor="middle">RTMPose</text>
+        <text class="t-sub" x="281" y="101" text-anchor="middle">RTMW-x, multi-person</text>
+        <rect class="chip" x="211" y="118" width="140" height="48" rx="7"/>
+        <text class="t-main" x="281" y="139" text-anchor="middle">ViTPose+</text>
+        <text class="t-sub" x="281" y="157" text-anchor="middle">huge … small</text>
+        <rect class="chip" x="211" y="174" width="140" height="48" rx="7"/>
+        <text class="t-main" x="281" y="195" text-anchor="middle">MediaPipe</text>
+        <text class="t-sub" x="281" y="213" text-anchor="middle">pose + hands + face</text>
+
+        <path class="arrow" d="M367 131H392" marker-end="url(#ah)"/>
+
+        <!-- 3 unified output -->
+        <rect class="box-accent" x="398" y="20" width="164" height="222" rx="10"/>
+        <text class="t-head" x="480" y="46" text-anchor="middle">Unified output</text>
+        <text class="t-main" x="480" y="76" text-anchor="middle">COCO-WholeBody</text>
+        <text class="t-sub" x="480" y="96" text-anchor="middle">133 keypoints per person</text>
+        <g aria-hidden="true">
+          <rect x="410" y="110" width="17.9" height="12" fill="var(--k-body)"/>
+          <rect x="427.9" y="110" width="6.3" height="12" fill="var(--k-feet)"/>
+          <rect x="434.2" y="110" width="71.6" height="12" fill="var(--k-face)"/>
+          <rect x="505.8" y="110" width="44.2" height="12" fill="var(--k-hand)"/>
+          <circle cx="418" cy="146" r="5" fill="var(--k-body)"/><text class="t-sub" x="428" y="150.5">body 17</text>
+          <circle cx="490" cy="146" r="5" fill="var(--k-feet)"/><text class="t-sub" x="500" y="150.5">feet 6</text>
+          <circle cx="418" cy="168" r="5" fill="var(--k-face)"/><text class="t-sub" x="428" y="172.5">face 68</text>
+          <circle cx="490" cy="168" r="5" fill="var(--k-hand)"/><text class="t-sub" x="500" y="172.5">hands 42</text>
+        </g>
+        <text class="t-mono" x="480" y="202" text-anchor="middle">(N, 133, 2) + scores</text>
+        <text class="t-sub" x="480" y="222" text-anchor="middle">pixels · RGB input</text>
+
+        <path class="arrow" d="M566 131H591" marker-end="url(#ah)"/>
+
+        <!-- 4 temporal cleanup -->
+        <rect class="box" x="597" y="20" width="164" height="222" rx="10"/>
+        <text class="t-head" x="679" y="46" text-anchor="middle">Temporal clean-up</text>
+        <rect class="chip" x="609" y="62" width="140" height="70" rx="7"/>
+        <text class="t-main" x="679" y="88" text-anchor="middle">NLMS smoothing</text>
+        <text class="t-sub" x="679" y="106" text-anchor="middle">online: uses past</text>
+        <text class="t-sub" x="679" y="122" text-anchor="middle">frames only</text>
+        <rect class="chip" x="609" y="142" width="140" height="70" rx="7"/>
+        <text class="t-main" x="679" y="168" text-anchor="middle">Sequence filter</text>
+        <text class="t-sub" x="679" y="186" text-anchor="middle">drops empty, static</text>
+        <text class="t-sub" x="679" y="202" text-anchor="middle">or no-hands frames</text>
+        <text class="t-sub" x="679" y="232" text-anchor="middle" font-style="italic">optional</text>
+
+        <path class="arrow" d="M765 131H790" marker-end="url(#ah)"/>
+
+        <!-- 5 training-ready -->
+        <rect class="box-soft" x="796" y="20" width="164" height="222" rx="10"/>
+        <text class="t-head" x="878" y="46" text-anchor="middle">Training-ready</text>
+        <text class="t-main" x="878" y="76" text-anchor="middle">Pose sequences</text>
+        <text class="t-mono" x="878" y="98" text-anchor="middle">(T, 133, 2)</text>
+        <text class="t-mono" x="878" y="116" text-anchor="middle">.npz / .json</text>
+        <path d="M816 134H940" stroke="var(--line-2)" stroke-width="1"/>
+        <text class="t-head" x="878" y="158" text-anchor="middle">feeds ISLR models</text>
+        <text class="t-sub" x="878" y="182" text-anchor="middle">SPOTER · SILT</text>
+        <text class="t-sub" x="878" y="202" text-anchor="middle">GCN-BERT · Pose-TGCN</text>
+      </svg>
+
+      <svg class="pipe-svg pipe-narrow" viewBox="0 0 360 590" role="img" aria-labelledby="pipeTitle2">
+        <title id="pipeTitle2">WholeBodyPose pipeline: input frames, pose backend, COCO-WholeBody 133 keypoints, temporal clean-up, training-ready pose sequences.</title>
+        <defs>
+          <marker id="ah2" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow-head" d="M0 0L10 5L0 10z"/></marker>
+        </defs>
+        <rect class="box-soft" x="4" y="4" width="352" height="86" rx="10"/>
+        <text class="t-head" x="20" y="28">1 · Input</text>
+        <text class="t-main" x="20" y="52">Video, image or webcam</text>
+        <text class="t-sub" x="20" y="72">RGB frames, any FPS · optional enhancement</text>
+        <path class="arrow" d="M180 92V112" marker-end="url(#ah2)"/>
+
+        <rect class="box" x="4" y="118" width="352" height="104" rx="10"/>
+        <text class="t-head" x="20" y="142">2 · Pose backend</text>
+        <rect class="chip" x="16" y="154" width="104" height="54" rx="7"/>
+        <text class="t-main" x="68" y="177" text-anchor="middle">RTMPose</text>
+        <text class="t-sub" x="68" y="196" text-anchor="middle">RTMW-x</text>
+        <rect class="chip" x="128" y="154" width="104" height="54" rx="7"/>
+        <text class="t-main" x="180" y="177" text-anchor="middle">ViTPose+</text>
+        <text class="t-sub" x="180" y="196" text-anchor="middle">huge … small</text>
+        <rect class="chip" x="240" y="154" width="104" height="54" rx="7"/>
+        <text class="t-main" x="292" y="177" text-anchor="middle">MediaPipe</text>
+        <text class="t-sub" x="292" y="196" text-anchor="middle">holistic</text>
+        <path class="arrow" d="M180 224V244" marker-end="url(#ah2)"/>
+
+        <rect class="box-accent" x="4" y="250" width="352" height="112" rx="10"/>
+        <text class="t-head" x="20" y="274">3 · Unified output</text>
+        <text class="t-main" x="20" y="298">COCO-WholeBody, 133 keypoints</text>
+        <g aria-hidden="true">
+          <rect x="20" y="310" width="41" height="11" fill="var(--k-body)"/>
+          <rect x="61" y="310" width="14.5" height="11" fill="var(--k-feet)"/>
+          <rect x="75.5" y="310" width="164" height="11" fill="var(--k-face)"/>
+          <rect x="239.5" y="310" width="101" height="11" fill="var(--k-hand)"/>
+        </g>
+        <text class="t-sub" x="20" y="343">body 17 · feet 6 · face 68 · hands 42</text>
+        <text class="t-mono" x="340" y="343" text-anchor="end">(N, 133, 2)</text>
+        <path class="arrow" d="M180 364V384" marker-end="url(#ah2)"/>
+
+        <rect class="box" x="4" y="390" width="352" height="86" rx="10"/>
+        <text class="t-head" x="20" y="414">4 · Temporal clean-up (optional)</text>
+        <text class="t-main" x="20" y="438">NLMS smoothing · sequence filter</text>
+        <text class="t-sub" x="20" y="458">online, past frames only · drop empty/static frames</text>
+        <path class="arrow" d="M180 478V498" marker-end="url(#ah2)"/>
+
+        <rect class="box-soft" x="4" y="504" width="352" height="82" rx="10"/>
+        <text class="t-head" x="20" y="528">5 · Training-ready</text>
+        <text class="t-main" x="20" y="552">Pose sequences <tspan class="t-mono">(T, 133, 2)</tspan></text>
+        <text class="t-sub" x="20" y="572">.npz / .json → SPOTER, SILT, GCN-BERT, Pose-TGCN</text>
+      </svg>
+      <figcaption>Every backend takes an RGB image and returns <code>float32</code> pixel coordinates in COCO-WholeBody order; undetected keypoints are <code>(0, 0)</code> with score 0. The video pipeline runs at a chosen processing FPS, writes a browser-playable overlay and saves the sequence with its scores and FPS.</figcaption>
+    </figure>
+
+    <h3 id="layouts" class="center">Keypoint layouts</h3>
+    <div class="kp-row">
+      <figure>
+        <img src="static/images/kpts_coco133.jpg" width="290" height="386" loading="lazy" alt="A person with the 133 COCO-WholeBody keypoints drawn: body, feet, face and both hands, colour-coded by part.">
+        <figcaption>(a) COCO-133 keypoints</figcaption>
+      </figure>
+      <figure>
+        <img src="static/images/kpts_openpose135.jpg" width="288" height="386" loading="lazy" alt="The same person drawn in the OpenPose-style 135-keypoint layout, with virtual chest and mid-hip points added.">
+        <figcaption>(b) OpenPose-135 keypoints</figcaption>
+      </figure>
+    </div>
+    <p class="small center fig-note">Paper, Figure 1. The <code>DrawerPose</code> renderer draws every backend with the same colour coding and skeletal links; the OpenPose-135 mode adds virtual chest and mid-hip points.</p>
+  </div>
+</section>
+
+<!-- ======================= BACKENDS ======================= -->
+<section class="section" id="backends">
+  <div class="container">
+    <h2>Backends</h2>
+    <p class="lead">Default settings reproduce the paper; any backend argument can be overridden, e.g. <code>PoseEstimator("rtmpose", mode="lightweight")</code>.</p>
+    <div class="tbl-wrap wide">
+      <table class="tbl">
+        <thead>
+          <tr><th scope="col">Backend</th><th scope="col">Model</th><th scope="col" class="c">People</th><th scope="col">Runs on</th><th scope="col">Install extra</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row"><code>rtmpose</code></th><td>YOLOX-m + RTMW-x 384×288 (OpenMMLab)</td><td class="c">multi</td><td>ONNX Runtime CPU / CUDA</td><td><code>[rtmpose]</code> (+ <code>[gpu]</code>)</td></tr>
+          <tr><th scope="row"><code>vitpose</code></th><td>ViTPose+ huge/large/base/small, full-frame top-down</td><td class="c">single</td><td>PyTorch CPU / CUDA</td><td><code>[vitpose]</code></td></tr>
+          <tr><th scope="row"><code>mediapipe</code></th><td>BlazePose heavy + Hands + Face Mesh</td><td class="c">single</td><td>CPU</td><td><code>[mediapipe]</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= RESULTS ======================= -->
+<section class="section" id="results">
+  <div class="container">
+    <h2>Results</h2>
+    <p class="lead">Replacing the original pose inputs of four ISLR models with WholeBodyPose (RTMPose, 135 keypoints) improves accuracy on WLASL100 for every model, all trained from scratch on pose only.</p>
+    <figure class="tbl-fig">
+      <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr class="grp"><th scope="col" rowspan="2">Method</th><th scope="colgroup" colspan="2" class="c">Per-instance</th><th scope="colgroup" colspan="2" class="c">Per-class</th><th scope="col" rowspan="2" class="r">Δ Top-1</th></tr>
+          <tr><th scope="col" class="r">Top-1</th><th scope="col" class="r">Top-5</th><th scope="col" class="r">Top-1</th><th scope="col" class="r">Top-5</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Pose-TGCN</th><td class="r">55.43</td><td class="r">78.68</td><td class="r">–</td><td class="r">–</td><td></td></tr>
+          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">58.14</td><td class="r best">82.58</td><td class="r">59.22</td><td class="r">83.58</td><td class="r gain">+2.71</td></tr>
+          <tr><th scope="row">GCN-BERT</th><td class="r">60.15</td><td class="r">83.98</td><td class="r">–</td><td class="r">–</td><td></td></tr>
+          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">66.67</td><td class="r best">91.47</td><td class="r">68.15</td><td class="r">92.08</td><td class="r gain">+6.52</td></tr>
+          <tr><th scope="row">SILT</th><td class="r">62.79</td><td class="r">–</td><td class="r">–</td><td class="r">–</td><td></td></tr>
+          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">66.67</td><td class="r">84.88</td><td class="r">68.15</td><td class="r">85.72</td><td class="r gain">+3.88</td></tr>
+          <tr><th scope="row">SPOTER</th><td class="r">63.18</td><td class="r">–</td><td class="r">–</td><td class="r">–</td><td></td></tr>
+          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">67.05</td><td class="r">86.43</td><td class="r">67.47</td><td class="r">87.42</td><td class="r gain">+3.87</td></tr>
+        </tbody>
+      </table>
+    </div>
+      <figcaption>Paper, Table 3: accuracy (%) on WLASL100. Models trained from scratch using only pose inputs, with simple geometric augmentations (rotation, zoom, perspective) on the keypoints. Baseline numbers are those reported by each method; “–” not reported.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ======================= QUICK START ======================= -->
+<section class="section" id="quickstart">
+  <div class="container narrow">
+    <h2>Quick start</h2>
+    <div class="code has-lbl">
+      <span class="lbl">Install</span>
+      <button class="copy-btn" type="button" data-copy="code-install" hidden><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Copy</span></button>
+      <pre><code id="code-install">pip install "wholebodypose[all] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"</code></pre>
+    </div>
+    <div class="code has-lbl">
+      <span class="lbl">Python</span>
+      <button class="copy-btn" type="button" data-copy="code-py" hidden><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Copy</span></button>
+      <pre><code id="code-py"><span class="kw">from</span> wholebodypose <span class="kw">import</span> PoseEstimator
+
+est = PoseEstimator(<span class="st">"rtmpose"</span>)                         <span class="cm"># or "vitpose", "mediapipe"</span>
+keypoints, scores = est.predict_image(<span class="st">"person.jpg"</span>)    <span class="cm"># (N, 133, 2), (N, 133)</span>
+res = est.process_video(<span class="st">"sign.mp4"</span>, <span class="st">"outputs/"</span>)        <span class="cm"># res["total_keypoints"]: (T, 133, 2)</span></code></pre>
+    </div>
+    <div class="code has-lbl">
+      <span class="lbl">Command line</span>
+      <button class="copy-btn" type="button" data-copy="code-cli" hidden><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Copy</span></button>
+      <pre><code id="code-cli">wholebodypose backends                                   <span class="cm"># list backends</span>
+wholebodypose image data/images/image.jpg -b mediapipe   <span class="cm"># -> outputs/image_mediapipe.{png,json}</span>
+wholebodypose video data/videos/videoTest.mp4 -b rtmpose --fps 15
+wholebodypose download                                   <span class="cm"># pre-fetch every weight</span></code></pre>
+    </div>
+    <p class="small">Extras: <code>[rtmpose]</code>, <code>[vitpose]</code>, <code>[mediapipe]</code>, <code>[filters]</code> (NLMS), <code>[video]</code>, <code>[gpu]</code>. The core package only needs NumPy and OpenCV; model weights are downloaded on first use from our <a href="https://huggingface.co/CristianLazoQuispe/wholebodypose-weights">Hugging Face mirror</a>, with a fallback to the original upstream URLs. More in the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation#readme">README</a>.</p>
+  </div>
+</section>
+
+<!-- ======================= DATASETS ======================= -->
+<section class="section" id="datasets">
+  <div class="container">
+    <h2>Pose datasets</h2>
+    <p class="lead">Pose sequences extracted with WholeBodyPose for six isolated sign language recognition benchmarks, on the Hugging Face Hub: <a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition"><code>CristianLazoQuispe/pose-action-recognition</code></a>.</p>
+    <figure class="tbl-fig">
+      <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr><th scope="col">Dataset</th><th scope="col" class="r">Classes</th><th scope="col" class="r">Samples</th><th scope="col">Language</th><th scope="col">Split</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">WLASL100</th><td class="r">100</td><td class="r">2,038</td><td>American SL</td><td>official</td></tr>
+          <tr><th scope="row">WLASL300</th><td class="r">300</td><td class="r">5,117</td><td>American SL</td><td>official</td></tr>
+          <tr><th scope="row">MSASL100</th><td class="r">100</td><td class="r">5,721</td><td>American SL</td><td>official</td></tr>
+          <tr><th scope="row">ASL-Citizen</th><td class="r">2,731</td><td class="r">83,399</td><td>American SL</td><td>official</td></tr>
+          <tr><th scope="row">LSA64</th><td class="r">64</td><td class="r">3,200</td><td>Argentinian SL</td><td>signer-independent</td></tr>
+          <tr><th scope="row">PUCP-DGI30</th><td class="r">30</td><td class="r">715</td><td>Peruvian SL</td><td>stratified random</td></tr>
+        </tbody>
+      </table>
+    </div>
+      <figcaption>The pose files are derived data; the original videos keep the licenses of their authors.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ======================= DEMO ======================= -->
+<section class="section" id="demo">
+  <div class="container">
+    <h2>Demo</h2>
+    <p class="lead">Upload a video or an image, pick a backend and get the skeleton overlay plus the keypoints, without installing anything.</p>
+    <div class="demo-box" id="demoBox" data-src="https://cristianlazoquispe-wholebodyposedemo.hf.space">
+      <div class="demo-ph">
+        <p>The demo runs on a free Hugging Face Space and may take a minute to wake up.</p>
+        <div class="demo-actions">
+          <a class="btn" href="https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo"><span class="emoji" aria-hidden="true">🤗</span>Open the Space<svg aria-hidden="true"><use href="#i-ext"/></svg></a>
+          <button class="btn btn-light" type="button" id="demoLoad" hidden>Load it on this page</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= PAPER + BIBTEX ======================= -->
+<section class="section" id="bibtex">
+  <div class="container narrow">
+    <h2>Paper and citation</h2>
+    <div class="paper-row">
+      <a class="paper-thumb" href="static/paper/WholeBodyPose_ICMV2025.pdf" aria-label="Open the paper PDF"><img src="static/images/paper_thumb.jpg" width="425" height="550" loading="lazy" alt="First page of the WholeBodyPose paper."></a>
+      <div class="paper-meta">
+        <p class="ptitle">WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data</p>
+        <p>Cristian Lazo-Quispe, Renato Castro-Cruz, Mauricio Salazar-Espinosa, Gissella Bejarano</p>
+        <p class="small">Eighteenth International Conference on Machine Vision (ICMV 2025), Proceedings of SPIE.</p>
+        <p><a href="static/paper/WholeBodyPose_ICMV2025.pdf">PDF (7 MB)</a></p>
+      </div>
+    </div>
+    <div class="code bib has-lbl paper-gap">
+      <span class="lbl">BibTeX</span>
+      <button class="copy-btn" type="button" data-copy="bibtex-code" hidden><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Copy</span></button>
+      <pre><code id="bibtex-code">@inproceedings{lazo2025wholebodypose,
+  title     = {WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data},
+  author    = {Lazo-Quispe, Cristian and Castro-Cruz, Renato and Salazar-Espinosa, Mauricio and Bejarano, Gissella},
+  booktitle = {Eighteenth International Conference on Machine Vision (ICMV 2025)},
+  series    = {Proceedings of SPIE},
+  publisher = {SPIE},
+  year      = {2025}
+}</code></pre>
+    </div>
+    <p class="small">Please also cite the backend you use (RTMW, ViTPose++, MediaPipe) and COCO-WholeBody; the entries are in the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation#citation">README</a>.</p>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <p>WholeBodyPose builds on <a href="https://github.com/Tau-J/rtmlib">rtmlib</a> / <a href="https://github.com/open-mmlab/mmpose">MMPose</a>, <a href="https://github.com/developer0hye/onepose">onepose</a> / <a href="https://github.com/ViTAE-Transformer/ViTPose">ViTPose</a>, <a href="https://github.com/google-ai-edge/mediapipe">MediaPipe</a> and <a href="https://github.com/matousc89/padasip">padasip</a>.</p>
+    <p>Code under the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/LICENSE">MIT License</a>; model weights keep their original licenses (<a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/THIRD_PARTY.md">third-party notices</a>). Page layout in the style of <a href="https://nerfies.github.io/">Nerfies</a>.</p>
+  </div>
+</footer>
+</body>
+</html>
