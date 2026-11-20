@@ -83,7 +83,7 @@ jobs:
           path: ~/.cache/wholebodypose
           key: wholebodypose-core-weights-${{ hashFiles('src/wholebodypose/weights.py') }}
           restore-keys: wholebodypose-core-weights-
-      # ViTPose .onnx files come only from the weight mirror: those tests skip while it is private.
+      # ViTPose .onnx files come from the public weight mirror.
       - name: Real backends (RTMPose lightweight, ViTPose small ONNX)
         run: |
           pytest -ra -m slow tests/test_backends_slow.py -k "rtmpose or vitpose-onnx"

@@ -440,7 +440,7 @@
       <a class="btn" href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation"><svg aria-hidden="true"><use href="#i-github"/></svg>Code</a>
       <a class="btn" href="https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo"><svg aria-hidden="true"><use href="#i-play"/></svg>Demo</a>
       <a class="btn" href="#datasets"><svg aria-hidden="true"><use href="#i-db"/></svg>Datasets</a>
-      <span class="btn btn-soon" aria-disabled="true" title="The model-weights mirror on Hugging Face is not public yet"><svg aria-hidden="true"><use href="#i-box"/></svg>Weights <small>soon</small></span>
+      <a class="btn" href="https://huggingface.co/CristianLazoQuispe/wholebodypose-weights"><svg aria-hidden="true"><use href="#i-box"/></svg>Weights</a>
       <a class="btn" href="#bibtex"><svg aria-hidden="true"><use href="#i-quote"/></svg>BibTeX</a>
     </nav>
   </div>
@@ -839,7 +839,7 @@ wholebodypose image data/images/image.jpg -b mediapipe   <span class="cm"># -> o
 wholebodypose video data/videos/videoTest.mp4 -b rtmpose --fps 15
 wholebodypose download                                   <span class="cm"># pre-fetch every weight</span></code></pre>
     </div>
-    <p class="small">Extras: <code>[rtmpose]</code>, <code>[vitpose]</code>, <code>[mediapipe]</code>, <code>[filters]</code> (NLMS), <code>[video]</code>, <code>[datasets]</code>, <code>[gpu]</code>. The core package only needs NumPy and OpenCV. Model weights are downloaded on first use from the original upstream URLs (a Hugging Face mirror is coming soon). More in the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation#readme">README</a>.</p>
+    <p class="small">The core install (NumPy, OpenCV, ONNX Runtime) runs RTMPose and ViTPose. Extras: <code>[mediapipe]</code>, <code>[filters]</code> (NLMS), <code>[video]</code>, <code>[datasets]</code>, <code>[gpu]</code>, <code>[torch]</code>. Model weights are downloaded on first use from the <a href="https://huggingface.co/CristianLazoQuispe/wholebodypose-weights">Hugging Face mirror</a> (sha256-verified), with the upstream URLs as fallback. More in the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation#readme">README</a>.</p>
   </div>
 </section>
 

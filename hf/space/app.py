@@ -35,16 +35,16 @@ KPT_THR = 0.5  # drawing threshold (scores are binarized by the paper settings)
 RESIZE_WIDTH = 640  # paper setting: frames are resized to 640 px wide before inference
 
 
-def _torch_cuda() -> bool:
+def _onnx_cuda() -> bool:
     try:
-        import torch
+        import onnxruntime as ort
 
-        return torch.cuda.is_available()
+        return "CUDAExecutionProvider" in ort.get_available_providers()
     except ImportError:
         return False
 
 
-GPU = _torch_cuda()
+GPU = _onnx_cuda()
 VITPOSE_SIZE = "huge" if GPU else "base"  # huge is the paper model but too slow on a CPU Space
 
 
@@ -56,7 +56,7 @@ BACKENDS: dict[str, tuple[str, str, dict, bool]] = {
     "vitpose": (
         f"ViTPose+ {VITPOSE_SIZE}",
         "vitpose",
-        {"model_name": f"ViTPose+_{VITPOSE_SIZE}_coco_wholebody", "engine": "auto"},  # ONNX if the weight is reachable
+        {"model_name": f"ViTPose+_{VITPOSE_SIZE}_coco_wholebody", "engine": "onnx"},
         False,
     ),
 }
@@ -418,7 +418,7 @@ def build_demo() -> gr.Blocks:
 
 
 if __name__ == "__main__":
-    print(f"[demo] wholebodypose {__version__}, gradio {gr.__version__}, torch CUDA: {GPU}", flush=True)
+    print(f"[demo] wholebodypose {__version__}, gradio {gr.__version__}, ONNX Runtime CUDA: {GPU}", flush=True)
 
     # Warm up the default backends so the first request does not pay for the weight download.
     def _warm_up() -> None:

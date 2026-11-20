@@ -94,4 +94,4 @@ jobs:
       - name: Smoke test the live Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: python hf/space/smoke_test.py "$SPACE_URL" --backends rtmpose_lite mediapipe rtmpose --hf-token "$HF_TOKEN"
+        run: python hf/space/smoke_test.py "$SPACE_URL" --backends rtmpose_lite mediapipe rtmpose vitpose --hf-token "$HF_TOKEN"

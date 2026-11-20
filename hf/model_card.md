@@ -1,7 +1,7 @@
 ---
 license: other
 license_name: apache-2.0-with-dataset-restrictions
-license_link: WEIGHTS_LICENSE.md
+license_link: https://huggingface.co/CristianLazoQuispe/wholebodypose-weights/blob/main/WEIGHTS_LICENSE.md
 library_name: wholebodypose
 pipeline_tag: keypoint-detection
 tags:

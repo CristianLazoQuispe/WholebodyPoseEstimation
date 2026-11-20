@@ -13,9 +13,8 @@ and PyPI), so no API token is stored anywhere.
 
 Do these once the package is ready to be public; nothing here has been done yet.
 
-1. **Weights mirror public.** `CristianLazoQuispe/wholebodypose-weights` is private. The ViTPose `.onnx`
-   files (the default ViTPose engine) exist only there, so a PyPI install cannot run ViTPose until the
-   mirror is public. Check from a machine without a Hugging Face login:
+1. **Weights mirror.** `CristianLazoQuispe/wholebodypose-weights` is public. Check a clean download from a machine
+   without a Hugging Face login:
    `WHOLEBODYPOSE_HOME=$(mktemp -d) wholebodypose download vitpose_small_onnx yolox_tiny rtmw_l_256`.
 2. **License.** `LICENSE`, `NOTICE`, the `license` field of `pyproject.toml` (`Apache-2.0 AND MIT`),
    the README badge and `CITATION.cff` agree.

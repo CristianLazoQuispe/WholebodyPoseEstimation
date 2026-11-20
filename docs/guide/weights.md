@@ -5,10 +5,6 @@ disappear, so every file the library uses is mirrored on the Hugging Face Hub in
 [`CristianLazoQuispe/wholebodypose-weights`](https://huggingface.co/CristianLazoQuispe/wholebodypose-weights).
 The logic is in `wholebodypose.weights`.
 
-> **Mirror status:** the mirror repository is private for now and will be made public before the next
-> release. Until then the RTMPose (YOLOX, RTMW) and MediaPipe files come from their upstream URLs (step 3
-> below) and the ViTPose files have to be placed in `$WHOLEBODYPOSE_HOME` by hand; the ViTPose `.onnx`
-> files, which have no upstream, are only available that way.
 
 ## Resolution order
 
