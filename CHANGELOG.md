@@ -13,6 +13,10 @@ First stable release, consolidating the library, project page and demo of the IC
   hands/faces to the nearest body. RTMPose was already multi-person.
 - `PoseTracker` (`wholebodypose.tracking`): stable person IDs across frames; `Video2Pose` returns
   `track_ids` and draws `#id` labels in multi-person mode; the CLI stores them in the pose file metadata.
+- `wholebodypose.datasets` and `wholebodypose-build-islr` (extra `[datasets]`): read/write the published ISLR
+  pose HDF5 schema, adapters for WLASL, MS-ASL, ASL Citizen, LSA64 and PUCP-DGI that rebuild the published
+  sample lists, and a resumable multi-process/multi-GPU video -> HDF5 builder. Preset `icmv2025` reproduces
+  the released keypoints; `RTMPoseModel(legacy_rgb_input=True)` replays the RGB-to-rtmlib input it needs.
 - `PoseEstimator` / `create_model`: one entry point for every backend, with the paper settings as defaults.
 - `wholebodypose` command line tool (`image`, `video`, `backends`, `download`).
 - `save_poses` / `load_poses` for `.npz` and `.json`, including multi-person sequences.

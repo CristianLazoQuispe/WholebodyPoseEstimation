@@ -139,6 +139,8 @@ are on the Hugging Face Hub: [`CristianLazoQuispe/pose-action-recognition`](http
 | PUCP-DGI30 | 30 | 715 | Peruvian SL 🇵🇪 | stratified random |
 
 The pose files are derived data; the original videos keep the licenses of their authors.
+Schema, loading code and how to rebuild them from the videos (`wholebodypose-build-islr`):
+[docs/datasets](docs/datasets/README.md).
 
 ## Demo
 

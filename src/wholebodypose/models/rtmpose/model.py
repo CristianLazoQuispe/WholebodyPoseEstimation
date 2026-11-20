@@ -51,6 +51,9 @@ class RTMPoseModel(BasePoseModel):
             (paper, performance mode: ``2.5``).
         filter_noise: Drop feet/hands whose anchoring limb joints are not confidently detected.
         verbose: Print loading information.
+        legacy_rgb_input: Reproduce the pre-1.0 behaviour that fed the RGB image to rtmlib, which
+            expects BGR (red and blue swapped). Off by default; only needed to regenerate the
+            ICMV 2025 ISLR keypoints bit-for-bit (see ``docs/datasets``).
     """
 
     name = "rtmpose"
@@ -65,6 +68,7 @@ class RTMPoseModel(BasePoseModel):
         kpt_thr: float | None = None,
         filter_noise: bool = False,
         verbose: bool = True,
+        legacy_rgb_input: bool = False,
     ) -> None:
         if mode not in MODES:
             raise ValueError(f"mode must be one of {list(MODES)}, got {mode!r}")
@@ -81,6 +85,7 @@ class RTMPoseModel(BasePoseModel):
         self.to_openpose = to_openpose
         self.filter_noise = filter_noise
         self.verbose = verbose
+        self.legacy_rgb_input = legacy_rgb_input
 
         if not verbose:
             os.environ.setdefault("ORT_LOG_LEVEL", "3")
@@ -106,8 +111,9 @@ class RTMPoseModel(BasePoseModel):
             )
 
     def _predict(self, image_rgb: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        # rtmlib (like OpenMMLab) expects BGR input.
-        keypoints, scores = self.model(cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+        # rtmlib (like OpenMMLab) expects BGR input; legacy_rgb_input replays the old RGB bug.
+        image = image_rgb if self.legacy_rgb_input else cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
+        keypoints, scores = self.model(image)
         keypoints = np.asarray(keypoints, dtype=np.float32)
         scores = np.asarray(scores, dtype=np.float32)
         if keypoints.size == 0:
