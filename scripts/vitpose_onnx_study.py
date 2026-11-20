@@ -3,6 +3,7 @@
     python scripts/vitpose_onnx_study.py compare --out compare.json   # torch vs ONNX keypoints
     taskset -c 0-7 python scripts/vitpose_onnx_study.py bench --threads 8 --out bench.json
     taskset -c 0-7 python scripts/vitpose_onnx_study.py quant --threads 8 --work DIR --out quant.json
+    taskset -c 0-7 python scripts/vitpose_onnx_study.py quant-latency --threads 8 --work DIR --out qlat.json
 
 ``compare`` needs the ``[vitpose]`` and ``[vitpose-onnx]`` extras plus ``rtmlib`` (multi-person cases);
 ``quant`` also needs ``onnx``. Weights come from ``get_weight`` (set ``WHOLEBODYPOSE_HOME``).
@@ -132,26 +133,34 @@ def cmd_bench(args) -> dict:
     torch.set_num_threads(args.threads)
     im = read_rgb(BENCH_IMAGE)
     out = {"image": f"{BENCH_IMAGE.relative_to(ROOT)} {im.shape[1]}x{im.shape[0]}", "threads": args.threads}
-    rows = {}
+    # Every configuration is built first, then timed round-robin (one call each per round), so that
+    # all of them see the same machine load. Median and minimum over the rounds are reported.
+    runs = {}
     for size in args.sizes:
         t = vitpose(size, "torch")
         o = vitpose(size, "onnx")
         o.onnx = ViTPoseOnnx(str(get_weight(f"vitpose_{size}_onnx")), device="cpu", intra_op_num_threads=args.threads)
-        tt, to = [], []
-        for _ in range(3):  # interleave so that both engines see the same machine load
-            tt += _time(lambda m=t: m.predict(im), args.repeats // 3)
-            to += _time(lambda m=o: m.predict(im), args.repeats // 3)
-        rows[f"vitpose_{size}"] = {"torch_ms": statistics.median(tt), "onnx_ms": statistics.median(to)}
-        print(size, rows[f"vitpose_{size}"])
-        del t, o
+        runs[f"vitpose_{size}_torch"] = t
+        runs[f"vitpose_{size}_onnx"] = o
     from wholebodypose.models.rtmpose.model import RTMPoseModel
 
     for mode in ("performance", "lightweight"):
         r = RTMPoseModel(device="cpu", mode=mode, verbose=False)
         for tool in (r.model.det_model, r.model.pose_model):
             tool.session = _ort_session(tool.onnx_model, args.threads)
-        rows[f"rtmpose_{mode}"] = {"onnx_ms": statistics.median(_time(lambda m=r: m.predict(im), args.repeats))}
-        print(mode, rows[f"rtmpose_{mode}"])
+        runs[f"rtmpose_{mode}"] = r
+    times = {k: [] for k in runs}
+    for m in runs.values():
+        for _ in range(3):
+            m.predict(im)
+    for _ in range(args.repeats):
+        for k, m in runs.items():
+            t0 = time.perf_counter()
+            m.predict(im)
+            times[k].append((time.perf_counter() - t0) * 1000)
+    rows = {k: {"median_ms": statistics.median(v), "min_ms": min(v)} for k, v in times.items()}
+    for k, v in rows.items():
+        print(k, v, flush=True)
     out["rows"] = rows
     return out
 
@@ -279,10 +288,55 @@ def cmd_quant(args) -> dict:
     return out
 
 
+def cmd_quant_latency(args) -> dict:
+    """Latency of the variants written by ``quant``, timed round-robin so they share the machine load."""
+    from wholebodypose.weights import get_weight
+
+    work = Path(args.work)
+    shapes = {"vitpose_base": (1, 3, 256, 192), "rtmw_x_384": (1, 3, 384, 288)}
+    files = {
+        "vitpose_base": {
+            "fp32 (shipped, fp16-stored)": str(get_weight("vitpose_base_onnx")),
+            "fp32": str(work / "vitpose_base.fp32.onnx"),
+            "int8_dynamic": str(work / "vitpose_base.int8.onnx"),
+            "fp16": str(work / "vitpose_base.fp16.onnx"),
+        },
+        "rtmw_x_384": {
+            "fp32": str(get_weight("rtmw_x_384")),
+            "int8_dynamic": str(work / "rtmw_x_384.int8.onnx"),
+            "fp16": str(work / "rtmw_x_384.fp16.onnx"),
+        },
+    }
+    out = {"threads": args.threads, "rounds": args.repeats, "models": {}}
+    for model, variants in files.items():
+        x = np.random.default_rng(0).standard_normal(shapes[model]).astype(np.float32)
+        sess = {v: _ort_session(p, args.threads) for v, p in variants.items()}
+        feeds = {v: {s.get_inputs()[0].name: x} for v, s in sess.items()}
+        times = {v: [] for v in sess}
+        for v, s in sess.items():  # warm-up
+            for _ in range(3):
+                s.run(None, feeds[v])
+        for _ in range(args.repeats):
+            for v, s in sess.items():
+                t0 = time.perf_counter()
+                s.run(None, feeds[v])
+                times[v].append((time.perf_counter() - t0) * 1000)
+        out["models"][model] = {
+            v: {
+                "median_ms": statistics.median(t),
+                "min_ms": min(t),
+                "size_mib": Path(variants[v]).stat().st_size / 2**20,
+            }
+            for v, t in times.items()
+        }
+        print(model, json.dumps(out["models"][model]), flush=True)
+    return out
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for name in ("compare", "bench", "quant"):
+    for name in ("compare", "bench", "quant", "quant-latency"):
         p = sub.add_parser(name)
         p.add_argument("--sizes", nargs="+", default=SIZES)
         p.add_argument("--frames", type=int, default=10, help="frames sampled per video")
@@ -291,7 +345,8 @@ def main(argv=None) -> int:
         p.add_argument("--work", default="onnx_study_work")
         p.add_argument("--out", type=Path, required=True)
     args = ap.parse_args(argv)
-    res = {"compare": cmd_compare, "bench": cmd_bench, "quant": cmd_quant}[args.cmd](args)
+    cmds = {"compare": cmd_compare, "bench": cmd_bench, "quant": cmd_quant, "quant-latency": cmd_quant_latency}
+    res = cmds[args.cmd](args)
     args.out.write_text(json.dumps(res, indent=2))
     return 0
 

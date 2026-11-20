@@ -3,6 +3,17 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- ViTPose on ONNX Runtime: `VITPoseModel(engine="auto" | "onnx" | "torch")` and the `[vitpose-onnx]` extra
+  (only `onnxruntime`, no PyTorch or onepose). Pre- and post-processing are NumPy/OpenCV ports of onepose's;
+  multi-person crops run as one batch. `auto` picks ONNX when the `.onnx` file can be found, else PyTorch.
+- `scripts/export_vitpose_onnx.py` (opset 17, dynamic batch) and the weight keys
+  `vitpose_{small,base,large,huge}_onnx` with pinned SHA-256 (mirror only, no upstream URL).
+- `scripts/vitpose_onnx_study.py` and `docs/guide/onnx.md`: torch-vs-ONNX agreement, CPU latency and an
+  int8/fp16 quantization study for ViTPose-base and RTMW-x.
+
 ## [1.0.0] - 2026-11-19
 
 First stable release, consolidating the library, project page and demo of the ICMV 2025 paper in one repository.

@@ -46,7 +46,7 @@ res = est.process_video("sign.mp4", "outputs/")  # res["total_keypoints"]: (T, 1
 | Backend | Model | People | Runs on | Install extra |
 |:--|:--|:-:|:--|:--|
 | `rtmpose` | YOLOX-m + RTMW-x 384×288 (OpenMMLab) | multi | ONNX Runtime CPU / CUDA | `[rtmpose]` (+ `[gpu]`) |
-| `vitpose` | ViTPose+ huge/large/base/small, top-down | single · multi with YOLOX crops | PyTorch CPU / CUDA | `[vitpose]` (+ `[rtmpose]` for multi) |
+| `vitpose` | ViTPose+ huge/large/base/small, top-down | single · multi with YOLOX crops | ONNX Runtime or PyTorch, CPU / CUDA | `[vitpose-onnx]` or `[vitpose]` (+ `[rtmpose]` for multi) |
 | `mediapipe` | BlazePose heavy + Hands + Face landmarker | single · multi (`max_people`) | CPU | `[mediapipe]` |
 
 Multi-person mode works with every backend and adds stable person IDs in videos:
@@ -69,7 +69,8 @@ undetected keypoints are `(0, 0)` with score `0`. Default settings reproduce the
 pip install "wholebodypose[all] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"
 ```
 
-Pick only what you need: `[rtmpose]`, `[vitpose]`, `[mediapipe]`, `[filters]` (NLMS), `[video]`
+Pick only what you need: `[rtmpose]`, `[vitpose-onnx]` (ViTPose on ONNX Runtime, no PyTorch),
+`[vitpose]` (ViTPose on PyTorch, as in the paper), `[mediapipe]`, `[filters]` (NLMS), `[video]`
 (bundled ffmpeg for browser-playable MP4s), `[gpu]` (ONNX Runtime CUDA). The core package only
 depends on NumPy and OpenCV. Model weights are downloaded on first use to
 `~/.cache/wholebodypose` (override with `WHOLEBODYPOSE_HOME`), from our
