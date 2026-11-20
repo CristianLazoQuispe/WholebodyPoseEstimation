@@ -1,36 +1,6 @@
-/* WholeBodyPose project page: teaser play/pause, copy buttons, click-to-load demo. No dependencies. */
+/* WholeBodyPose project page: copy buttons, click-to-load demo. No dependencies. */
 (function () {
   'use strict';
-
-  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  /* ---------- teaser video ---------- */
-  var video = document.getElementById('teaserVideo');
-  var toggle = document.getElementById('teaserToggle');
-  if (video && toggle) {
-    var label = toggle.querySelector('span');
-    var icon = toggle.querySelector('use');
-    var sync = function () {
-      var paused = video.paused;
-      label.textContent = paused ? 'Play' : 'Pause';
-      icon.setAttribute('href', paused ? '#i-play' : '#i-pause');
-      toggle.setAttribute('aria-pressed', paused ? 'true' : 'false');
-    };
-    if (reduceMotion) {
-      video.removeAttribute('autoplay');
-      video.pause();
-    } else {
-      var p = video.play();
-      if (p && p.catch) { p.catch(function () { sync(); }); }
-    }
-    toggle.hidden = false;
-    toggle.addEventListener('click', function () {
-      if (video.paused) { video.play(); } else { video.pause(); }
-    });
-    video.addEventListener('play', sync);
-    video.addEventListener('pause', sync);
-    sync();
-  }
 
   /* ---------- copy buttons ---------- */
   var copyText = function (text) {
