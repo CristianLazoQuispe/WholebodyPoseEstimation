@@ -5,7 +5,9 @@ language: [en, es]
 multilinguality: [multilingual]
 task_categories: [video-classification, keypoint-detection, other]
 task_ids: [pose-estimation, multi-class-classification]
-license: cc-by-4.0
+license: other
+license_name: research-only
+license_link: LICENSE.md
 pretty_name: Pose-Based Action Recognition (135 keypoints)
 size_categories: [100K<n<1M]
 tags:
@@ -158,6 +160,17 @@ snapshot_download(
 )
 ```
 
+## License: research use only
+
+These pose files are released **for non-commercial academic research only**. They were produced for an
+academic paper (WholeBodyPose, ICMV 2025) from sign language video datasets whose own terms forbid
+commercial use (e.g. WLASL's C-UDA and LSA64's CC BY-NC-SA 4.0). By downloading them you agree to:
+
+1. use them only for non-commercial research and teaching;
+2. cite WholeBodyPose and the original source dataset of every subset you use;
+3. follow the terms of each source dataset (below), which take precedence for its subset;
+4. not redistribute the files commercially or try to re-identify the signers.
+
 ## Source datasets and their terms
 
 These files are **derived data**: keypoints computed from the videos of the datasets below. The videos are
@@ -189,13 +202,14 @@ If you use this dataset structure:
 If you use the pose extraction pipeline:
 
 ```bibtex
-@inproceedings{lazo2025wholebodypose,
-  title     = {WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data},
-  author    = {Lazo-Quispe, Cristian and Castro-Cruz, Renato and Salazar-Espinosa, Mauricio and Bejarano, Gissella},
-  booktitle = {Eighteenth International Conference on Machine Vision (ICMV 2025)},
-  series    = {Proceedings of SPIE},
-  publisher = {SPIE},
-  year      = {2025}
+@inproceedings{lazo2026wholebodypose,
+  title        = {WholeBodyPose: a unified end-to-end framework for sign language recognition and pose-based training data},
+  author       = {Lazo-Quispe, Cristian and Castro-Cruz, Renato and Bejarano, Gissella and Salazar-Espinosa, Mauricio},
+  booktitle    = {Eighteenth International Conference on Machine Vision (ICMV 2025)},
+  volume       = {14114},
+  pages        = {69--79},
+  year         = {2026},
+  organization = {SPIE}
 }
 ```
 

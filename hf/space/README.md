@@ -71,12 +71,13 @@ pip install -e ".[demo,vitpose]" && python hf/space/app.py
 ## Citation
 
 ```bibtex
-@inproceedings{lazo2025wholebodypose,
-  title     = {WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data},
-  author    = {Lazo-Quispe, Cristian and Castro-Cruz, Renato and Salazar-Espinosa, Mauricio and Bejarano, Gissella},
-  booktitle = {Eighteenth International Conference on Machine Vision (ICMV 2025)},
-  series    = {Proceedings of SPIE},
-  publisher = {SPIE},
-  year      = {2025}
+@inproceedings{lazo2026wholebodypose,
+  title        = {WholeBodyPose: a unified end-to-end framework for sign language recognition and pose-based training data},
+  author       = {Lazo-Quispe, Cristian and Castro-Cruz, Renato and Bejarano, Gissella and Salazar-Espinosa, Mauricio},
+  booktitle    = {Eighteenth International Conference on Machine Vision (ICMV 2025)},
+  volume       = {14114},
+  pages        = {69--79},
+  year         = {2026},
+  organization = {SPIE}
 }
 ```

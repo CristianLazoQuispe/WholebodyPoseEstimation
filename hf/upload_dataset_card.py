@@ -116,14 +116,12 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     hub = _hub()
     api = hub.HfApi(token=_token(args.env_file))
-    api.upload_file(
-        path_or_fileobj=str(card),
-        path_in_repo="README.md",
-        repo_id=args.repo_id,
-        repo_type="dataset",
-        commit_message=args.message,
-    )
-    print(f"uploaded {card} -> {args.repo_id}/README.md")
+    ops = [hub.CommitOperationAdd(path_in_repo="README.md", path_or_fileobj=str(card))]
+    license_file = card.parent / "LICENSE.md"
+    if "license_link: LICENSE.md" in text and license_file.exists():
+        ops.append(hub.CommitOperationAdd(path_in_repo="LICENSE.md", path_or_fileobj=str(license_file)))
+    api.create_commit(repo_id=args.repo_id, repo_type="dataset", operations=ops, commit_message=args.message)
+    print(f"uploaded {', '.join(o.path_in_repo for o in ops)} -> {args.repo_id}")
     return 0
 
 

@@ -131,7 +131,7 @@ def og_card() -> None:
     for line in ["RTMPose · ViTPose+ · MediaPipe", "→ 133 COCO-WholeBody keypoints"]:
         d.text((x, y), line, font=small, fill=ACCENT)
         y += 30
-    authors = "Lazo-Quispe, Castro-Cruz, Salazar-Espinosa, Bejarano"
+    authors = "Lazo-Quispe, Castro-Cruz, Bejarano, Salazar-Espinosa"
     d.text((x, H - 92), authors, font=sans(18), fill=MUTED)
     d.text((x, H - 64), "cristianlazoquispe.github.io/WholebodyPoseEstimation", font=sans(18), fill=MUTED)
     img.save(SITE / "images" / "og.png", optimize=True)

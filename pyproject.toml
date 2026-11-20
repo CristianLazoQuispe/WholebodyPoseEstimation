@@ -13,8 +13,8 @@ license-files = ["LICENSE"]
 authors = [
     { name = "Cristian Lazo-Quispe" },
     { name = "Renato Castro-Cruz" },
-    { name = "Mauricio Salazar-Espinosa" },
     { name = "Gissella Bejarano" },
+    { name = "Mauricio Salazar-Espinosa" },
 ]
 keywords = ["pose estimation", "whole-body", "coco-wholebody", "sign language", "rtmpose", "vitpose", "mediapipe"]
 classifiers = [
@@ -87,6 +87,7 @@ ignore = ["E741"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/wholebodypose/utils/coco133.py" = ["E501"]
+"hf/space/ui.py" = ["E501"]  # markdown/BibTeX text
 
 [tool.coverage.run]
 source = ["wholebodypose"]

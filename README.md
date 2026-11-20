@@ -4,7 +4,7 @@
 
 ### A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data
 
-**Cristian Lazo-Quispe**<sup>1</sup>, **Renato Castro-Cruz**<sup>1</sup>, **Mauricio Salazar-Espinosa**<sup>2</sup>, **Gissella Bejarano**<sup>3</sup>
+**Cristian Lazo-Quispe**<sup>1</sup>, **Renato Castro-Cruz**<sup>1</sup>, **Gissella Bejarano**<sup>3</sup>, **Mauricio Salazar-Espinosa**<sup>2</sup>
 
 <sup>1</sup>Universidad Nacional de Ingeniería, Lima, Peru · <sup>2</sup>Pontificia Universidad Católica del Perú · <sup>3</sup>Marist University, New York, USA
 
@@ -167,13 +167,14 @@ docker/                CPU/GPU images
 If you use WholeBodyPose, please cite:
 
 ```bibtex
-@inproceedings{lazo2025wholebodypose,
-  title     = {WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data},
-  author    = {Lazo-Quispe, Cristian and Castro-Cruz, Renato and Salazar-Espinosa, Mauricio and Bejarano, Gissella},
-  booktitle = {Eighteenth International Conference on Machine Vision (ICMV 2025)},
-  series    = {Proceedings of SPIE},
-  publisher = {SPIE},
-  year      = {2025}
+@inproceedings{lazo2026wholebodypose,
+  title        = {WholeBodyPose: a unified end-to-end framework for sign language recognition and pose-based training data},
+  author       = {Lazo-Quispe, Cristian and Castro-Cruz, Renato and Bejarano, Gissella and Salazar-Espinosa, Mauricio},
+  booktitle    = {Eighteenth International Conference on Machine Vision (ICMV 2025)},
+  volume       = {14114},
+  pages        = {69--79},
+  year         = {2026},
+  organization = {SPIE}
 }
 ```
 
