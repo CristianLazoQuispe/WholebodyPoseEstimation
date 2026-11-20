@@ -48,11 +48,12 @@ the 133 COCO-WholeBody keypoints plus a neck and a pelvis point. No video or ima
 | ASLCitizen2731 | `ISLR/ASLCITIZEN/ASLCitizen2731/` | 40,154 | 10,304 | 32,941 | 83,399 | 2,731 | 3 / 75 / 680 | 15.13 GB |
 | LSA64 | `ISLR/LSA64/` | 2,560 | 320 | 320 | 3,200 | 64 | 14 / 78 / 201 | 0.58 GB |
 | DGI_PUCP30 | `ISLR/DGI_PUCP30/` | 500 | 108 | 107 | 715 | 30 | 1 / 13 / 69 | 0.03 GB |
+| DGI_PUCP38 | `ISLR/DGI_PUCP38/` | 651 | 140 | 140 | 931 | 38 | 1 / 13 / 76 | 0.03 GB |
 
 Counts are read from the HDF5 files themselves (one HDF5 group per clip). In WLASL2000 the test split
 contains 1,999 of the 2,000 glosses. Languages: American Sign Language (WLASL, MS-ASL, ASL Citizen),
-Argentinian Sign Language (LSA64), Peruvian Sign Language (PUCP-DGI30); labels are English glosses, except
-the Spanish glosses of PUCP-DGI30.
+Argentinian Sign Language (LSA64), Peruvian Sign Language (PUCP-DGI30/38); labels are English glosses, except
+the Spanish glosses of PUCP-DGI30/38.
 
 ## File layout
 
@@ -74,9 +75,12 @@ pose-action-recognition/
     ├── LSA64/
     │   ├── LSA64_135-{Train,Val,Test}.hdf5
     │   └── lsa64_64_maplabels.json
-    └── DGI_PUCP30/
-        ├── DGI_PUCP30_135-{Train,Val,Test}.hdf5
-        └── dgi_pucp_30_maplabels.json
+    ├── DGI_PUCP30/
+    │   ├── DGI_PUCP30_135-{Train,Val,Test}.hdf5
+    │   └── dgi_pucp_30_maplabels.json
+    └── DGI_PUCP38/
+        ├── DGI_PUCP38_135-{Train,Val,Test}.hdf5
+        └── dgi_pucp_38_maplabels.json
 ```
 
 Every subset folder holds `<Subset>_135-Train.hdf5`, `<Subset>_135-Val.hdf5`, `<Subset>_135-Test.hdf5` and a
@@ -126,7 +130,7 @@ respect to their content: `"id_to_label"` maps gloss → integer id (`{"accident
 `"label_to_id"` maps the id as a string → gloss (`{"0": "accident", ...}`). Use the gloss stored in each
 clip's `label` with the `"id_to_label"` dictionary to get its class index.
 
-**Source frame sizes.** WLASL clips come from 256×256 videos; LSA64 and PUCP-DGI30 from 1920×1080 videos;
+**Source frame sizes.** WLASL clips come from 256×256 videos; LSA64 and PUCP-DGI30/38 from 1920×1080 videos;
 ASL Citizen mostly from 640×480 (some 960×540 or 480×640); MS-ASL from per-clip crops of varying size
 (`width`/`height` differ per clip).
 
@@ -143,6 +147,13 @@ benchmark. How the class subsets are chosen:
 * **ASLCitizen1000** and **MSASL500** were built by copying the exact HDF5 groups of `ASLCitizen2731` and
   `MSASL1000` (verified sample by sample against the original pose files). LSA64 uses a signer-independent split and PUCP-DGI30 a stratified random split (as described in
 the WholeBodyPose README).
+* **DGI_PUCP38**: all 931 videos of PUCP-DGI305 with their 38 classes (DGI_PUCP30 keeps 30 of them) and
+  the 651/140/140 split used in SignERT experiments. It was extracted on 2026-11-20 with
+  `wholebodypose-build-islr --dataset pucp_dgi --subset 38 --preset icmv2025`, in the sample order of the
+  original 96-keypoint files. Against those files, its `SIGNERT_96` columns agree with a median difference
+  of 8.5e-9 (95th percentile 2.8e-8, max 0.11) in normalized coordinates, with identical labels, video names
+  and frame counts for all 931 clips. It is a separate extraction, so it is not bit-identical to DGI_PUCP30
+  on the shared videos.
 
 ## Loading
 

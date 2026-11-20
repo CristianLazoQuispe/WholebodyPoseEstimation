@@ -5,6 +5,9 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Data
+- Published DGI_PUCP38 (all 931 PUCP-DGI305 videos, 38 classes, 651/140/140) on the Hugging Face dataset, re-extracted with `wholebodypose-build-islr --preset icmv2025`.
+
 ### Fixed
 - Model naming: the RTMPose `performance`/`balanced` model (`rtmw-dw-x-l`) is RTMW-l and the `lightweight` one (`rtmw-dw-l-m`) is RTMW-m, per the MMPose RTMW table. Docs, page and demo said RTMW-x / RTMW-l. Weights and outputs are unchanged.
 

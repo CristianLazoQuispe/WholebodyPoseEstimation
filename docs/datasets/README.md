@@ -25,10 +25,12 @@ Per-dataset provenance: [WLASL](wlasl.md). <!-- TODO (author): msasl.md, asl_cit
 | `ASLCITIZEN/ASLCitizen2731` | ASL | 2731 | 40,154 | 10,304 | 32,941 | official | same (4 portrait 480x640) |
 | `LSA64` | Argentinian SL | 64 | 2,560 | 320 | 320 | signer-independent (signer 9 val, 10 test) | 1920x1080 |
 | `DGI_PUCP30` | Peruvian SL | 30 | 500 | 108 | 107 | stratified random (PUCP-DGI305 split) | 1920x1080 |
+| `DGI_PUCP38` | Peruvian SL | 38 | 651 | 140 | 140 | all 931 PUCP-DGI305 videos (SignERT split, `/data/DGI305AEC_SignERT/split`) | 1920x1080 |
 
 Subsets: WLASL-N = the first N glosses of `WLASL_v0.3.json`; MSASL-N = official MS-ASL labels `< N`;
 ASLCitizen-N = the N most frequent glosses (ties by name); DGI_PUCP30 = 30 of the 38
-DGI305AEC_SignERT glosses (`wholebodypose.datasets.sources.PUCP_DGI_30`).
+DGI305AEC_SignERT glosses (`wholebodypose.datasets.sources.PUCP_DGI_30`); DGI_PUCP38 = all 38 (extracted 2026-11-20
+with `--preset icmv2025`; its SIGNERT_96 columns match the original 96-point files with median difference 8.5e-9).
 
 ## HDF5 schema
 
