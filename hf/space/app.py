@@ -3,7 +3,7 @@
 Whole-body (COCO-WholeBody, 133 keypoints) pose estimation on videos and images with RTMPose,
 MediaPipe and ViTPose+, built on the public ``wholebodypose`` API. Run locally with::
 
-    pip install -e ".[demo,vitpose]" && python hf/space/app.py
+    pip install -e ".[demo,mediapipe,video]" && python hf/space/app.py
 """
 
 from __future__ import annotations
@@ -56,12 +56,12 @@ BACKENDS: dict[str, tuple[str, str, dict, bool]] = {
     "vitpose": (
         f"ViTPose+ {VITPOSE_SIZE}",
         "vitpose",
-        {"model_name": f"ViTPose+_{VITPOSE_SIZE}_coco_wholebody"},
+        {"model_name": f"ViTPose+_{VITPOSE_SIZE}_coco_wholebody", "engine": "auto"},  # ONNX if the weight is reachable
         False,
     ),
 }
-# On 2 CPU cores the paper model ran at 0.5-0.9 frames/s in our tests, so videos default to the lighter
-# RTMW-m (about 2-3x faster on 2 CPU cores in our tests). A single image is cheap: use the paper model.
+# On 2 CPU cores the paper model ran at 0.5-0.9 frames/s, so videos default to the lighter
+# RTMW-m (about 2-3x faster on 2 CPU cores). A single image is cheap: use the paper model.
 DEFAULT_VIDEO_BACKEND = "rtmpose" if GPU else "rtmpose_lite"
 DEFAULT_IMAGE_BACKEND = "rtmpose"
 DEFAULT_FPS = 10

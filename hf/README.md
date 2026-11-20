@@ -9,6 +9,8 @@ install time; uploads are manual and need a token with write access.
 | `model_card.md` | model card of the weights mirror (template; the file table is filled in by `--build`) | same |
 | `upload_dataset_card.py` | check and push a dataset card (`README.md` only) | [`CristianLazoQuispe/pose-action-recognition`](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition) (dataset) |
 | `dataset_cards/pose-action-recognition.md` | dataset card | same |
+| `dataset_cards/LICENSE.md` | CC BY-NC-SA 4.0 license of the pose datasets | same |
+| `make_dataset_folder_readmes.py` | writes `dataset_cards/folders/`: a `README.md` per dataset folder (files, license, BibTeX, note for AI agents) and the root `CITATION.cff` | same |
 | `_staging/` | build output (git-ignored) | |
 
 Install what the upload / remote-verify modes need: `pip install huggingface_hub`. The token is read from
@@ -63,6 +65,21 @@ python hf/upload_dataset_card.py --dry-run --diff    # also diff against the REA
 HF_TOKEN=... python hf/upload_dataset_card.py --cards-only --yes
 ```
 
-Only `README.md` is uploaded; the HDF5 files of the dataset are never touched. The check refuses cards
+Only `README.md` (and `LICENSE.md`) is uploaded; the HDF5 files of the dataset are never touched.
+
+**Per-folder READMEs.** Someone who downloads a single subset folder never sees the card, so every folder of
+the dataset gets its own `README.md` (what the files are, split counts, the CC BY-NC-SA 4.0 license, the BibTeX
+of WholeBodyPose and of the source dataset, and instructions for AI agents to pass the citation and license
+requirements on to their user), plus a `CITATION.cff` at the root. The counts are read from the card's
+`## Contents` table.
+
+```bash
+python hf/make_dataset_folder_readmes.py             # write hf/dataset_cards/folders/ (same paths as the Hub)
+python hf/make_dataset_folder_readmes.py --check     # fail if they are stale (also a unit test)
+python hf/upload_dataset_card.py --folder-readmes    # dry run: list what would be uploaded
+HF_TOKEN=... python hf/upload_dataset_card.py --folder-readmes --yes   # card + LICENSE.md + folder files, one commit
+```
+
+`ISLR/DGI_PUCP38/` is on the Hub but not in the card's table yet, so it gets no README until its row is added. The check refuses cards
 without YAML front matter, with more than one `license:` key, or with a second front-matter block in the
 body (the previous card had one).

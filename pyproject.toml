@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wholebodypose"
-version = "1.0.0"
+version = "1.1.0.dev0"
 description = "Unified whole-body (COCO-WholeBody, 133 keypoints) pose estimation with RTMPose, ViTPose and MediaPipe — ICMV 2025."
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
-license = "MIT"
-license-files = ["LICENSE"]
+license = "Apache-2.0 AND MIT"  # MIT: code contributed up to v1.0.0 (LICENSES/MIT.txt)
+license-files = ["LICENSE", "NOTICE", "LICENSES/*", "THIRD_PARTY.md"]
 authors = [
     { name = "Cristian Lazo-Quispe" },
     { name = "Renato Castro-Cruz" },
@@ -18,7 +18,7 @@ authors = [
 ]
 keywords = ["pose estimation", "whole-body", "coco-wholebody", "sign language", "rtmpose", "vitpose", "mediapipe"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
@@ -30,28 +30,33 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Scientific/Engineering :: Image Recognition",
 ]
-# Core only needs NumPy + OpenCV; each backend is an extra.
+# Core = NumPy + OpenCV + ONNX Runtime: enough for RTMPose (YOLOX + RTMW) and ViTPose (ONNX engine).
 dependencies = [
     "numpy>=1.23",
     "opencv-python-headless>=4.8",
+    "onnxruntime>=1.17",
 ]
 
+# No direct-URL (git) dependencies here: PyPI rejects them. onepose (ViTPose engine="torch") is a
+# documented manual install, see docs/guide/installation.md.
 [project.optional-dependencies]
-rtmpose = ["rtmlib>=0.0.13", "onnxruntime>=1.17"]
+# CUDA build of ONNX Runtime. It ships the same `onnxruntime` module as the core CPU wheel: after
+# installing, remove the CPU wheel (docs/guide/installation.md#gpu).
 gpu = ["onnxruntime-gpu>=1.17"]
-# ViTPose on ONNX Runtime only (no PyTorch, no onepose): VITPoseModel(engine="onnx")
-vitpose-onnx = ["onnxruntime>=1.17"]
-vitpose = [
-    "torch>=2.0",
-    "onepose @ git+https://github.com/developer0hye/onepose.git@dcb645fb52d2f3055dff893965d484e20b917c0f",
-]
+# PyTorch for the ViTPose reference engine (engine="torch"); also needs onepose from GitHub.
+vitpose-torch = ["torch>=2.0"]
+torch = ["torch>=2.0"]
 mediapipe = ["mediapipe>=0.10.14"]
 filters = ["padasip>=1.2,<2"]
 video = ["imageio-ffmpeg>=0.5"]
-demo = ["gradio>=6", "gradio_client>=1", "wholebodypose[rtmpose,mediapipe,vitpose,video]"]
+# Backward-compatible names (<= 1.0): RTMPose and ViTPose-ONNX now only need the core install.
+rtmpose = ["onnxruntime>=1.17"]
+vitpose-onnx = ["onnxruntime>=1.17"]
+vitpose = ["onnxruntime>=1.17"]
+demo = ["gradio>=6", "gradio_client>=1", "wholebodypose[mediapipe,video]"]
 hf = ["huggingface_hub>=0.25"]
 datasets = ["h5py>=3.8", "pandas>=1.5"]
-all = ["wholebodypose[rtmpose,vitpose,vitpose-onnx,mediapipe,filters,video]"]
+all = ["wholebodypose[mediapipe,filters,video]"]
 dev = ["pytest>=8", "pytest-cov>=5", "ruff==0.17.6", "pre-commit>=3", "build>=1.2", "wholebodypose[hf,datasets]"]
 
 [project.scripts]
@@ -92,6 +97,7 @@ ignore = ["E741"]
 [tool.ruff.lint.per-file-ignores]
 "src/wholebodypose/utils/coco133.py" = ["E501"]
 "hf/space/ui.py" = ["E501"]  # markdown/BibTeX text
+"hf/make_dataset_folder_readmes.py" = ["E501"]  # BibTeX / CFF text
 
 [tool.coverage.run]
 source = ["wholebodypose"]

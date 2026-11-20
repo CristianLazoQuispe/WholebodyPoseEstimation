@@ -13,13 +13,22 @@ def fake_backend(monkeypatch):
 def test_version(capsys):
     with pytest.raises(SystemExit):
         cli.main(["--version"])
-    assert "wholebodypose" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "wholebodypose" in out
+    assert "10.1117/12.3096312" in out
+
+
+def test_help_asks_to_cite(capsys):
+    with pytest.raises(SystemExit):
+        cli.main(["--help"])
+    out = capsys.readouterr().out
+    assert "Please cite" in out and "10.1117/12.3096312" in out
 
 
 def test_backends(capsys):
     assert cli.main(["backends"]) == 0
     out = capsys.readouterr().out
-    assert "rtmpose" in out and "wholebodypose[mediapipe]" in out
+    assert "rtmpose" in out and "wholebodypose[mediapipe]" in out and "onnxruntime" in out
 
 
 def test_video_command(fake_backend, synthetic_video, tmp_path, capsys):

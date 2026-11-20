@@ -1,12 +1,88 @@
-# ViTPose on ONNX Runtime
+# ONNX Runtime engines
 
-`VITPoseModel(engine="onnx")` runs ViTPose+ without PyTorch or onepose: the network is an ONNX graph
-and the pre- and post-processing are NumPy/OpenCV ports of onepose's. The install is
-`pip install "wholebodypose[vitpose-onnx]"` (only `onnxruntime` on top of NumPy and OpenCV; add
-`[rtmpose]` for the multi-person detector). `engine="auto"` (default) uses it whenever the `.onnx` file
-can be found; see [backends.md](backends.md#vitpose-vitpose).
+Since 1.1 the core install (NumPy, OpenCV, ONNX Runtime) runs both ONNX backends without rtmlib, PyTorch or
+onepose:
 
-## What the graph contains
+- **RTMPose** (`RTMPoseModel(engine="onnx")`, default): YOLOX + RTMW `.onnx` files from OpenMMLab with the
+  pre- and post-processing of rtmlib vendored in `wholebodypose.models.rtmpose._onnx` (Apache-2.0, see
+  [THIRD_PARTY.md](../../THIRD_PARTY.md)). Outputs are bit-identical to rtmlib ([below](#rtmpose-vendored-code-vs-rtmlib)).
+- **ViTPose** (`VITPoseModel(engine="onnx")`, default): an ONNX export of the onepose checkpoints with
+  NumPy/OpenCV ports of onepose's pre- and post-processing. Keypoints identical to PyTorch, scores
+  within float32 rounding ([below](#vitpose-agreement-with-pytorch)).
+
+Both share one session helper (`wholebodypose.models.onnx_session`): execution providers (CUDA when the
+installed `onnxruntime` build has it, see [installation.md](installation.md#gpu)), `intra_op_num_threads`
+and the reported device. See [backends.md](backends.md) for the arguments.
+
+## RTMPose: vendored code vs rtmlib
+
+`RTMPoseModel` no longer imports rtmlib. The code it used from rtmlib 0.0.16 is vendored in
+`wholebodypose.models.rtmpose._onnx`, with the arithmetic and dtypes kept as they were:
+
+| Step | rtmlib source | Vendored in |
+|:--|:--|:--|
+| YOLOX letterbox (gray 114 padding), grid decoding, NumPy NMS | `object_detection/yolox.py`, `post_processings.py` | `_onnx/yolox.py` |
+| RTMW box -> center/scale (padding 1.25), aspect-ratio expansion, affine crop, float64 normalization | `pose_estimation/rtmpose.py`, `pre_processings.py` | `_onnx/rtmw.py` |
+| SimCC argmax (score = mean of the x/y maxima), inverse transform | `pose_estimation/post_processings.py` | `_onnx/rtmw.py` |
+| `Wholebody` (detect, then one RTMW pass per box; whole image when nobody is detected) and its mode table | `solution/wholebody.py` | `_onnx/wholebody.py` |
+
+What changed is the plumbing only: sessions come from the shared helper (ONNX Runtime only; rtmlib's
+OpenCV/OpenVINO backends need `engine="rtmlib"`), weights come from `wholebodypose.weights`, and unused
+code (RTMO, 3D, DARK/UDP, `format_result`) is not copied. `legacy_rgb_input` (the `icmv2025` dataset
+preset) works the same with both engines: it only decides which colour order is passed in.
+
+### Agreement
+
+`python scripts/validate_onnx_stack.py compare --frames 10 --threads 8`: both implementations on the same
+`.onnx` files and CPU, on the 12 images of `data/images/` and `hf/space/examples/*.jpg` plus the first 10
+frames of each of the 5 videos (`data/videos/videoTest.mp4`, `hf/space/examples/*.mp4`), i.e. 62 frames
+with 106 detected people in total (32 frames with two or more people). Each frame is run with BGR input
+(library default) and with RGB input (`legacy_rgb_input=True`), and once more end to end through
+`RTMPoseModel(engine="onnx")` vs `RTMPoseModel(engine="rtmlib")` with the paper settings
+(`use_thresholding=True`, `filter_noise=True`) for both values of `legacy_rgb_input`.
+
+| Mode | Raw `Wholebody` outputs (BGR + RGB) | `RTMPoseModel` outputs | Max abs difference |
+|:--|--:|--:|--:|
+| `performance` | 124 / 124 identical | 124 / 124 identical | 0 |
+| `balanced` | 124 / 124 identical | 124 / 124 identical | 0 |
+| `lightweight` | 124 / 124 identical | 124 / 124 identical | 0 |
+
+"Identical" means `np.array_equal` on the YOLOX boxes, the keypoints (float64 before the cast in
+`RTMPoseModel`) and the scores. The ViTPose multi-person path was checked the same way, with the vendored
+YOLOX and with rtmlib's YOLOX as detector in front of ViTPose+ small: boxes, keypoints and scores
+identical on all 62 frames for both `yolox_m` and `yolox_tiny`. A second run with onnxruntime's default
+thread count (`--threads 0`, `lightweight`) was identical as well. Software: onnxruntime 1.32.0,
+rtmlib 0.0.16, NumPy 2.4.6, OpenCV 5.1.0. None of these frames had zero detections, so the "whole
+image when nobody is detected" branch is covered only by the code being the same, not by this run.
+
+`tests/test_rtmpose_onnx.py` repeats a smaller version (two frames, every mode, both inputs) as `slow`
+tests when rtmlib is installed, and compares the NumPy steps alone on random inputs in the fast suite.
+
+**Dataset builder.** `wholebodypose-build-islr --dataset pucp_dgi --subset 30 --splits test --limit 5
+--preset icmv2025 --save-scores --order-like <published> --verify <published>` was run once with the
+vendored engine and once with `engine="rtmlib"` (CPU): the two HDF5 files are byte-identical (`cmp`), and
+both give the same `--verify` result against the published `DGI_PUCP30_135-Test.hdf5` (5 samples, T match
+100 %, median abs diff 5.76e-06, detection agreement 1.0000).
+
+### CPU latency
+
+`taskset -c 0-7 python scripts/validate_onnx_stack.py latency --threads 8 --repeats 10`: one
+`Wholebody` call per frame (`data/images/image.jpg` and the first 3 frames of
+each of the 5 videos, 16 frames), the two implementations run back to back on each frame, in alternating
+order, 10 rounds, 160 calls each,
+on the shared machine described below (load average about 240-270 during the run).
+
+| Mode | Vendored, median (ms) | rtmlib, median (ms) | Per-call ratio vendored / rtmlib, median (IQR) |
+|:--|--:|--:|--:|
+| `performance` | 620 | 570 | 1.03 (0.89-1.22) |
+| `balanced` | 545 | 559 | 1.00 (0.81-1.20) |
+| `lightweight` | 265 | 261 | 1.01 (0.87-1.16) |
+
+The same graphs run with the same session options, so equal speed is expected; the per-call ratios are
+centred on 1 and their spread is the machine load.
+
+
+## ViTPose: what the graph contains
 
 | | |
 |:--|:--|
@@ -43,7 +119,7 @@ Processing outside the graph (`wholebodypose.models.vitpose.onnx_runtime`), same
 onepose does not run flip test, so neither engine does. In multi-person mode the ONNX engine runs all
 person crops of a frame as one batch; the PyTorch engine runs them one by one.
 
-## Agreement with PyTorch
+## ViTPose: agreement with PyTorch
 
 `python scripts/vitpose_onnx_study.py compare`: both engines on CPU, on the 12 images of `data/images/` and
 `hf/space/examples/*.jpg` plus 10 evenly spaced frames of each of 5 videos (`data/videos/videoTest.mp4`
@@ -65,7 +141,7 @@ The keypoints are identical on every input and every model; scores differ by flo
 both engines found the same number of people on every frame. With `use_thresholding=True` (paper
 setting) the outputs are therefore the same up to a score that sits within ~5e-6 of `kpt_thr`.
 
-## CPU latency
+## ViTPose: CPU latency
 
 `taskset -c 120-127 python scripts/vitpose_onnx_study.py bench --threads 8 --repeats 20`: time of
 `model.predict(image)` on `data/images/image.jpg` (960×640), full frame (one ViTPose pass), 8 threads
@@ -132,7 +208,5 @@ Recommendations (CPU, ONNX Runtime):
   slower than float32.
 - **RTMW-l fp16: not by default.** It halves the file (218.7 → 109.4 MiB) with near-identical keypoints
   (visible: 1.3 % move by more than 0.5 px, max 7.3 px; 2 of 14098 visibility decisions change), but it
-  is not faster on CPU and the paper numbers were produced with the float32 file. It could be offered as
-  an opt-in download-size option, or evaluated on GPU (not measured here).
+  is not faster on CPU and the paper numbers were produced with the float32 file.
 
-Static (calibrated) int8 quantization was not tried.

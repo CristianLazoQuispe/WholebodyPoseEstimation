@@ -5,6 +5,8 @@ PAGE_URL = "https://cristianlazoquispe.github.io/WholebodyPoseEstimation/"
 PAPER_URL = f"{PAGE_URL}static/paper/WholeBodyPose_ICMV2025.pdf"
 DATASETS_URL = "https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition"
 DATASET_DOCS_URL = f"{REPO_URL}/tree/main/docs/datasets"
+LICENSE_DOCS_URL = f"{REPO_URL}/blob/main/docs/LICENSING.md"
+DOI_URL = "https://doi.org/10.1117/12.3096312"
 
 CSS = """
 .gradio-container { max-width: 1280px !important; margin: auto !important; }
@@ -89,6 +91,11 @@ def _results_rows() -> str:
 
 
 ABOUT_MD = f"""
+> **Please cite.** WholeBodyPose is for research and other non-commercial use ([license]({LICENSE_DOCS_URL})).
+> If you use it, the demo outputs or the pose datasets in your work, cite the paper
+> ([doi:10.1117/12.3096312]({DOI_URL}); BibTeX at the end of this tab), the backend you used and, for the pose
+> datasets, the source dataset of every subset.
+
 ## What this demo does
 
 Video frames are resized to 640 px wide (paper setting) and sampled at the chosen processing FPS; images are
@@ -98,7 +105,7 @@ used as they are. All backends return the same **133 COCO-WholeBody keypoints** 
 | Backend | Model | People | Notes |
 |:--|:--|:-:|:--|
 | RTMPose | YOLOX-m + RTMW-l 384×288 | multi | Paper setting |
-| RTMPose-lite | YOLOX-tiny + RTMW-m 256×192 | multi | About 2–3× faster than RTMW-l 384 on 2 CPU cores in our tests; default for videos on CPU |
+| RTMPose-lite | YOLOX-tiny + RTMW-m 256×192 | multi | About 2–3× faster than RTMW-l 384 on 2 CPU cores; default for videos on CPU |
 | MediaPipe | BlazePose heavy + Hands + Face Mesh | single | Fastest on CPU |
 | ViTPose+ | ViTPose+ whole-body (base on CPU, huge on GPU) | single | Full-frame transformer |
 
@@ -162,6 +169,14 @@ save_poses("sign.npz", res["total_keypoints"], res["total_scores"], fps=res["pro
 ```
 
 Please also cite the backend you use (RTMW, ViTPose++ or MediaPipe); see [docs/guide/backends.md]({REPO_URL}/blob/main/docs/guide/backends.md#citing-the-backends).
+If you use the pose datasets, cite the source dataset of every subset too (WLASL, MS-ASL, ASL Citizen, LSA64,
+PUCP-DGI); the BibTeX is in the [dataset card]({DATASETS_URL}) and in the `README.md` of each subset folder.
+
+## License
+
+Code and demo: Apache-2.0. Pose models: their own licenses (Apache-2.0; the whole-body models were trained on
+non-commercial data). Pose datasets: CC BY-NC-SA 4.0, citation required.
+Details: [docs/LICENSING.md]({LICENSE_DOCS_URL}).
 
 **Authors**: Cristian Lazo-Quispe, Renato Castro-Cruz (Universidad Nacional de Ingeniería, Peru),
 Gissella Bejarano (Marist University, USA), Mauricio Salazar-Espinosa (Pontificia Universidad Católica del Perú).
@@ -170,7 +185,7 @@ Gissella Bejarano (Marist University, USA), Mauricio Salazar-Espinosa (Pontifici
 FOOTER_MD = f"""
 <div align="center" style="opacity:.7; font-size:.875rem">
 
-WholeBodyPose · [Report an issue]({REPO_URL}/issues)
+WholeBodyPose · research and non-commercial use · please cite [doi:10.1117/12.3096312]({DOI_URL}) · [Report an issue]({REPO_URL}/issues)
 
 </div>
 """

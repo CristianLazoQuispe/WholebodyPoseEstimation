@@ -1,7 +1,8 @@
 # Hugging Face Space dependencies (CPU hardware). gradio must match `sdk_version` in README.md.
+# PyTorch + onepose: ViTPose reference engine, used while the ONNX ViTPose weights are not public.
 --extra-index-url https://download.pytorch.org/whl/cpu
 gradio==6.32.0
 torch
 torchvision
-onnxruntime
-wholebodypose[rtmpose,mediapipe,video,vitpose] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git@v1.0.0
+onepose @ git+https://github.com/developer0hye/onepose.git@dcb645fb52d2f3055dff893965d484e20b917c0f
+wholebodypose[mediapipe,video] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git@main

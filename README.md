@@ -10,20 +10,27 @@ keypoints, plus the video pipeline that turns sign language videos into training
 [![Demo](https://img.shields.io/badge/%F0%9F%A4%97%20Demo-Space-yellow?style=flat-square)](https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo)
 [![Datasets](https://img.shields.io/badge/%F0%9F%A4%97%20Datasets-pose--action--recognition-orange?style=flat-square)](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition)
 [![CI](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/actions/workflows/ci.yml/badge.svg)](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-green?style=flat-square)](LICENSE)
+
+> **Please cite.** If WholeBodyPose helps your work, cite the [paper](#citation)
+> (doi:[10.1117/12.3096312](https://doi.org/10.1117/12.3096312)), the backend you used and, for the pose
+> datasets, the source dataset of every subset.
 
 <img src="docs/assets/pipeline.svg" width="100%" alt="WholeBodyPose pipeline: input frames, pose backend (RTMPose, ViTPose+, MediaPipe), unified COCO-WholeBody output with 133 keypoints, optional temporal clean-up, training-ready pose sequences">
 
 ## Installation
 
 ```bash
-pip install "wholebodypose[all] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"
+pip install "wholebodypose @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"
 ```
+
+The core install (NumPy, OpenCV, ONNX Runtime) runs RTMPose and ViTPose; no PyTorch needed.
 
 | Extra | For |
 |:--|:--|
-| `[rtmpose]`, `[vitpose]`, `[mediapipe]` | one backend only (`[gpu]` adds ONNX Runtime CUDA for RTMPose) |
-| `[all]` | the three backends, NLMS filtering and bundled ffmpeg |
+| `[mediapipe]` | the MediaPipe backend |
+| `[gpu]` | ONNX Runtime CUDA for RTMPose and ViTPose |
+| `[all]` | MediaPipe, NLMS filtering and bundled ffmpeg |
 
 Weights download on first use. GPU, from source, Docker: [docs/guide/installation.md](docs/guide/installation.md).
 
@@ -64,6 +71,8 @@ wholebodypose video data/videos/videoTest.mp4 -b rtmpose --fps 15   # -> outputs
 
 ## Citation
 
+If you use WholeBodyPose, the pose datasets or the demo in your work, please cite:
+
 ```bibtex
 @inproceedings{lazo2026wholebodypose,
   title        = {WholeBodyPose: a unified end-to-end framework for sign language recognition and pose-based training data},
@@ -77,8 +86,15 @@ wholebodypose video data/videos/videoTest.mp4 -b rtmpose --fps 15   # -> outputs
 }
 ```
 
-Please also cite the backend you use: [docs/guide/backends.md#citing-the-backends](docs/guide/backends.md#citing-the-backends).
+Please also cite the backend you use ([docs/guide/backends.md](docs/guide/backends.md#citing-the-backends)) and,
+for the pose datasets, the source dataset of every subset you use (WLASL, MS-ASL, ASL Citizen, LSA64, PUCP-DGI;
+BibTeX in the [dataset card](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition)).
 
 ## License
 
-Code: [MIT](LICENSE); model weights keep their original licenses (Apache-2.0, see [THIRD_PARTY.md](THIRD_PARTY.md)).
+- **Code**: [Apache-2.0](LICENSE).
+- **Pose datasets**: [CC BY-NC-SA 4.0](hf/dataset_cards/LICENSE.md), citation required.
+- **Model weights** keep their own licenses. The whole-body models (RTMW, YOLOX, ViTPose+) were trained on
+  non-commercial data; check their terms before commercial use ([THIRD_PARTY.md](THIRD_PARTY.md)).
+
+Details, and what to cite: [docs/LICENSING.md](docs/LICENSING.md).

@@ -1,4 +1,9 @@
-"""RTMPose / RTMW whole-body backend (OpenMMLab models through ``rtmlib``)."""
+"""RTMPose / RTMW whole-body backend (OpenMMLab YOLOX + RTMW ONNX models).
+
+Inference runs on ONNX Runtime with a vendored copy of rtmlib's pre/post-processing
+(:mod:`wholebodypose.models.rtmpose._onnx`), so ``rtmlib`` is not needed. ``engine='rtmlib'`` keeps the
+original rtmlib path (needs ``pip install rtmlib``) as a reference; both give identical outputs.
+"""
 
 from __future__ import annotations
 
@@ -10,18 +15,22 @@ import cv2
 import numpy as np
 
 from wholebodypose.models.base import BasePoseModel
+from wholebodypose.models.onnx_session import ort_has_cuda
+from wholebodypose.models.rtmpose._onnx.wholebody import MODE as _MODE_TABLE
 from wholebodypose.weights import get_weight
 
 # RTMW SimCC confidences are not calibrated: the 384x288 model scores ~5-8 on visible joints while
 # the 256x192 models score ~1. Default thresholds keep roughly the same operating point.
 DEFAULT_KPT_THR = {"performance": 2.5, "balanced": 0.35, "lightweight": 0.35}
 
-# (detector weight, pose weight, detector input size, pose input size) per rtmlib mode
+# (detector weight, pose weight, detector input size, pose input size) per rtmlib mode.
+# performance = YOLOX-m + RTMW-l 384x288, balanced = YOLOX-m + RTMW-l 256x192,
+# lightweight = YOLOX-tiny + RTMW-m 256x192.
 MODES = {
-    "performance": ("yolox_m", "rtmw_x_384", (640, 640), (288, 384)),
-    "balanced": ("yolox_m", "rtmw_x_256", (640, 640), (192, 256)),
-    "lightweight": ("yolox_tiny", "rtmw_l_256", (416, 416), (192, 256)),
+    name: (m["det_key"], m["pose_key"], m["det_input_size"], m["pose_input_size"]) for name, m in _MODE_TABLE.items()
 }
+
+ENGINES = ("auto", "onnx", "rtmlib")
 
 FOOT_LEFT_IDS = [11, 13, 15]
 FOOT_RIGHT_IDS = [12, 14, 16]
@@ -29,21 +38,13 @@ HAND_RIGHT_IDS = [6, 8, 10, 112]
 HAND_LEFT_IDS = [5, 7, 9, 91]
 
 
-def _ort_has_cuda() -> bool:
-    try:
-        import onnxruntime as ort
-
-        return "CUDAExecutionProvider" in ort.get_available_providers()
-    except ImportError:
-        return False
-
-
 class RTMPoseModel(BasePoseModel):
     """Multi-person whole-body pose with YOLOX + RTMW (COCO-WholeBody, 133 keypoints).
 
     Args:
         device: ``'auto'``, ``'cuda'`` or ``'cpu'``. Falls back to CPU when onnxruntime has no CUDA.
-        backend: rtmlib inference backend (``'onnxruntime'``, ``'opencv'``, ``'openvino'``).
+        backend: Inference backend. ``'onnxruntime'`` (default) works with both engines; rtmlib's
+            ``'opencv'`` and ``'openvino'`` need ``engine='rtmlib'`` (selected by ``'auto'``).
         mode: ``'performance'`` (paper setting), ``'balanced'`` or ``'lightweight'``.
         to_openpose: Return rtmlib's OpenPose-style ordering instead of COCO-WholeBody.
         use_thresholding: Binarize scores with ``kpt_thr`` (see :class:`BasePoseModel`).
@@ -54,6 +55,11 @@ class RTMPoseModel(BasePoseModel):
         legacy_rgb_input: Reproduce the pre-1.0 behaviour that fed the RGB image to rtmlib, which
             expects BGR (red and blue swapped). Off by default; only needed to regenerate the
             ICMV 2025 ISLR keypoints bit-for-bit (see ``docs/datasets``).
+        engine: ``'onnx'`` (vendored pre/post-processing on ONNX Runtime, no rtmlib), ``'rtmlib'``
+            (reference path through ``rtmlib.Wholebody``) or ``'auto'`` (``'onnx'`` unless ``backend``
+            is not ``'onnxruntime'``).
+        intra_op_num_threads: ONNX Runtime CPU threads per session (``0`` = onnxruntime's default).
+            Only used by ``engine='onnx'``.
     """
 
     name = "rtmpose"
@@ -69,19 +75,23 @@ class RTMPoseModel(BasePoseModel):
         filter_noise: bool = False,
         verbose: bool = True,
         legacy_rgb_input: bool = False,
+        engine: str = "auto",
+        intra_op_num_threads: int = 0,
     ) -> None:
         if mode not in MODES:
             raise ValueError(f"mode must be one of {list(MODES)}, got {mode!r}")
+        if engine not in ENGINES:
+            raise ValueError(f"engine must be one of {list(ENGINES)}, got {engine!r}")
+        if engine == "auto":
+            engine = "onnx" if backend == "onnxruntime" else "rtmlib"
+        if engine == "onnx" and backend != "onnxruntime":
+            raise ValueError(f"backend={backend!r} needs engine='rtmlib'; engine='onnx' runs on onnxruntime")
         kpt_thr = DEFAULT_KPT_THR[mode] if kpt_thr is None else kpt_thr
         super().__init__(use_thresholding=use_thresholding, kpt_thr=kpt_thr)
-        try:
-            from rtmlib import Wholebody
-        except ImportError as e:  # pragma: no cover - depends on extras
-            raise ImportError("RTMPose backend needs: pip install 'wholebodypose[rtmpose]'") from e
 
         if device in ("auto", "cuda"):
-            device = "cuda" if _ort_has_cuda() else "cpu"
-        self.device, self.backend, self.mode = device, backend, mode
+            device = "cuda" if ort_has_cuda() else "cpu"
+        self.device, self.backend, self.mode, self.engine = device, backend, mode, engine
         self.to_openpose = to_openpose
         self.filter_noise = filter_noise
         self.verbose = verbose
@@ -98,6 +108,23 @@ class RTMPoseModel(BasePoseModel):
         det_path = str(get_weight(det_key, verbose=verbose))
         pose_path = str(get_weight(pose_key, verbose=verbose))
 
+        if engine == "onnx":
+            from wholebodypose.models.rtmpose._onnx import Wholebody
+
+            self.model = Wholebody(
+                det=det_path,
+                pose=pose_path,
+                det_input_size=det_size,
+                pose_input_size=pose_size,
+                to_openpose=to_openpose,
+                device=device,
+                intra_op_num_threads=intra_op_num_threads,
+            )
+            return
+        try:
+            from rtmlib import Wholebody
+        except ImportError as e:  # pragma: no cover - optional reference engine
+            raise ImportError("RTMPose engine='rtmlib' needs: pip install rtmlib") from e
         sink = contextlib.nullcontext() if verbose else contextlib.redirect_stdout(io.StringIO())
         with sink:
             self.model = Wholebody(
@@ -111,7 +138,7 @@ class RTMPoseModel(BasePoseModel):
             )
 
     def _predict(self, image_rgb: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        # rtmlib (like OpenMMLab) expects BGR input; legacy_rgb_input replays the old RGB bug.
+        # RTMW and YOLOX (like OpenMMLab) expect BGR input; legacy_rgb_input replays the old RGB bug.
         image = image_rgb if self.legacy_rgb_input else cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
         keypoints, scores = self.model(image)
         keypoints = np.asarray(keypoints, dtype=np.float32)

@@ -1,3 +1,6 @@
+# COCO-WholeBody 133-keypoint metainfo (names, colors, skeleton), taken from the MMPose dataset config
+# configs/_base_/datasets/coco_wholebody.py (Copyright (c) OpenMMLab). That content stays under the
+# Apache License 2.0 (LICENSES/Apache-2.0.txt), not the WholeBodyPose license; see THIRD_PARTY.md.
 coco133 = dict(
     name="coco133",
     keypoint_info={

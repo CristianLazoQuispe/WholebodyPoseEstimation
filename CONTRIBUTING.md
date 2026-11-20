@@ -102,11 +102,16 @@ pytest                   # everything
 - One topic per pull request, with tests for bug fixes and new features.
 - `pre-commit run --all-files` and `pytest -m "not slow"` pass locally.
 - Describe how you tested it (backend, device, inputs) in the PR template.
+- Contributions are accepted under the project license (Apache-2.0, see
+  [docs/LICENSING.md](docs/LICENSING.md)). Code taken from another project keeps its license: say so in the file
+  header and in [THIRD_PARTY.md](THIRD_PARTY.md).
 
 ## Releases (maintainers)
 
 1. Move the *Unreleased* entries of `CHANGELOG.md` to `## [X.Y.Z] - YYYY-MM-DD` and set
-   `version = "X.Y.Z"` in `pyproject.toml`.
+   `version = "X.Y.Z"` in `pyproject.toml`, and `version` / `date-released` in `CITATION.cff`.
 2. `git tag -a vX.Y.Z -m "WholeBodyPose X.Y.Z" && git push origin vX.Y.Z`.
 3. [`release.yml`](.github/workflows/release.yml) checks that the tag matches the version, builds the
    sdist and wheel and publishes a GitHub Release with that CHANGELOG section.
+4. PyPI (TestPyPI first) is a separate, manual run of the same workflow; see
+   [docs/release.md](docs/release.md) for the one-time Trusted Publishing setup and the steps.

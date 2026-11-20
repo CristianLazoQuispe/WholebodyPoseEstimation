@@ -5,8 +5,11 @@ from the **repository root** (the build context must contain `pyproject.toml` an
 
 | File | Base | Backends |
 |:--|:--|:--|
-| [`Dockerfile.cpu`](Dockerfile.cpu) | `python:3.12-slim` | RTMPose (ONNX Runtime CPU), ViTPose (PyTorch CPU), MediaPipe |
-| [`Dockerfile.gpu`](Dockerfile.gpu) | `nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04` | RTMPose (`onnxruntime-gpu`), ViTPose (PyTorch cu126), MediaPipe (CPU) |
+| [`Dockerfile.cpu`](Dockerfile.cpu) | `python:3.12-slim` | RTMPose and ViTPose (ONNX Runtime CPU), MediaPipe |
+| [`Dockerfile.gpu`](Dockerfile.gpu) | `nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04` | RTMPose and ViTPose (`onnxruntime-gpu`), MediaPipe (CPU) |
+
+PyTorch is not installed by default: since 1.1 both RTMPose and ViTPose run on ONNX Runtime.
+`--build-arg WITH_TORCH=true` adds PyTorch and onepose for the ViTPose reference engine (`engine="torch"`).
 
 Both run as an unprivileged user, use `/workspace` as working directory, cache weights in
 `$WHOLEBODYPOSE_HOME` (`~/.cache/wholebodypose` of that user) and default to `wholebodypose --help`.
@@ -30,10 +33,11 @@ Build arguments:
 
 | Arg | Default | Image |
 |:--|:--|:--|
-| `EXTRAS` | `all` | both; e.g. `--build-arg EXTRAS=rtmpose,video` for a smaller image |
+| `EXTRAS` | `all` | both; e.g. `--build-arg EXTRAS=video` for a smaller image without MediaPipe |
+| `WITH_TORCH` | `false` | both; `true` adds PyTorch + onepose (ViTPose `engine="torch"`) |
 | `INSTALL_JUPYTER` | `false` | both; `true` adds JupyterLab |
 | `PYTHON_VERSION` | `3.12` | CPU |
-| `CUDA_IMAGE`, `TORCH_INDEX` | CUDA 12.6 / `cu126` | GPU; change both together to match your driver |
+| `CUDA_IMAGE`, `TORCH_INDEX` | CUDA 12.6 / `cu126` | GPU; change both together to match your driver (`TORCH_INDEX` only with `WITH_TORCH=true`) |
 
 ## Compose
 

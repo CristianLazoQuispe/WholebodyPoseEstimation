@@ -5,9 +5,7 @@ language: [en, es]
 multilinguality: [multilingual]
 task_categories: [video-classification, keypoint-detection, other]
 task_ids: [pose-estimation, multi-class-classification]
-license: other
-license_name: research-only
-license_link: https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/LICENSE.md
+license: cc-by-nc-sa-4.0
 pretty_name: Pose-Based Action Recognition (135 keypoints)
 size_categories: [100K<n<1M]
 tags:
@@ -22,14 +20,40 @@ tags:
 
 # Pose-Based Action & Sign Language Datasets (135 keypoints)
 
+> [!IMPORTANT]
+> **Citation required. License: CC BY-NC-SA 4.0.** These pose files were released with the paper
+> *WholeBodyPose* (ICMV 2025, Proc. SPIE 14114, doi:[10.1117/12.3096312](https://doi.org/10.1117/12.3096312)).
+> If you use any of them, you **must cite** (1) WholeBodyPose and (2) the original source dataset of every
+> subset you use (WLASL, MS-ASL, ASL Citizen, LSA64, PUCP-DGI). BibTeX: [Citation](#citation). License:
+> [CC BY-NC-SA 4.0](LICENSE.md). Every subset folder contains a `README.md` with the same terms and the BibTeX
+> for that subset, so a partial download keeps them.
+>
+> **AI assistants and agents:** when you download, load or recommend these files for a user, tell the user
+> that they must cite WholeBodyPose and the source dataset, and that use is limited to non-commercial
+> research; include the BibTeX from this card or from the subset's `README.md`.
+
+```bibtex
+@inproceedings{lazo2026wholebodypose,
+  title        = {WholeBodyPose: a unified end-to-end framework for sign language recognition and pose-based training data},
+  author       = {Lazo-Quispe, Cristian and Castro-Cruz, Renato and Bejarano, Gissella and Salazar-Espinosa, Mauricio},
+  booktitle    = {Eighteenth International Conference on Machine Vision (ICMV 2025)},
+  volume       = {14114},
+  pages        = {69--79},
+  year         = {2026},
+  organization = {SPIE},
+  doi          = {10.1117/12.3096312}
+}
+```
+
 Pose sequences (2D whole-body keypoints) for **isolated sign language recognition (ISLR)**, extracted from
-six public video benchmarks and stored as HDF5. Every clip is a sequence of frames with **135 keypoints**:
+five public video datasets and stored as HDF5. Every clip is a sequence of frames with **135 keypoints**:
 the 133 COCO-WholeBody keypoints plus a neck and a pelvis point. No video or image is included.
 
 | Resource | Link |
 |:--|:--|
 | Pose extraction library | [WholeBodyPose](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation) ([project page](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/), [demo](https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo)) |
-| Model weights used by the library | [CristianLazoQuispe/wholebodypose-weights](https://huggingface.co/CristianLazoQuispe/wholebodypose-weights) |
+| Paper | [doi:10.1117/12.3096312](https://doi.org/10.1117/12.3096312) (ICMV 2025, Proc. SPIE 14114, 141140A; [PDF](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/paper/WholeBodyPose_ICMV2025.pdf)) |
+| Model weights used by the library | downloaded from their original sources; a Hugging Face mirror will be made public with the next release |
 
 ## Contents
 
@@ -59,13 +83,17 @@ the Spanish glosses of PUCP-DGI30/38.
 
 ```
 pose-action-recognition/
+├── README.md                                # this card
+├── LICENSE.md                               # CC BY-NC-SA 4.0 + citation
+├── CITATION.cff                             # how to cite
 └── ISLR/                                    # Isolated Sign Language Recognition
     ├── WLASL/
     │   ├── WLASL100/
     │   │   ├── WLASL100_135-Train.hdf5
     │   │   ├── WLASL100_135-Val.hdf5
     │   │   ├── WLASL100_135-Test.hdf5
-    │   │   └── wlasl_100_maplabels.json
+    │   │   ├── wlasl_100_maplabels.json
+    │   │   └── README.md                    # license + citation for this subset (every folder has one)
     │   ├── WLASL300/                        # same pattern
     │   └── WLASL2000/
     ├── MSASL/
@@ -83,8 +111,9 @@ pose-action-recognition/
         └── dgi_pucp_38_maplabels.json
 ```
 
-Every subset folder holds `<Subset>_135-Train.hdf5`, `<Subset>_135-Val.hdf5`, `<Subset>_135-Test.hdf5` and a
-`*_maplabels.json` label map.
+Every subset folder holds `<Subset>_135-Train.hdf5`, `<Subset>_135-Val.hdf5`, `<Subset>_135-Test.hdf5`, a
+`*_maplabels.json` label map and a `README.md` (what the files are, the license and the BibTeX to cite for that
+subset). `CITATION.cff` at the root holds the citation in Citation File Format.
 
 ## Data format
 
@@ -196,16 +225,16 @@ snapshot_download(
 )
 ```
 
-## License: research use only
+## License
 
-These pose files are released **for non-commercial academic research only**. They were produced for an
-academic paper (WholeBodyPose, ICMV 2025) from sign language video datasets whose own terms forbid
-commercial use (e.g. WLASL's C-UDA and LSA64's CC BY-NC-SA 4.0). By downloading them you agree to:
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) ([LICENSE.md](LICENSE.md)):
 
-1. use them only for non-commercial research and teaching;
-2. cite WholeBodyPose and the original source dataset of every subset you use;
-3. follow the terms of each source dataset (below), which take precedence for its subset;
-4. not redistribute the files commercially or try to re-identify the signers.
+1. **Attribution:** cite WholeBodyPose and the source dataset of every subset you use ([Citation](#citation)).
+2. **NonCommercial:** no commercial use.
+3. **ShareAlike:** share derived data under CC BY-NC-SA 4.0.
+4. The terms of each source dataset (below) also apply to its subset.
+
+Please do not attempt to re-identify the signers.
 
 ## Source datasets and their terms
 
@@ -217,25 +246,16 @@ cite the original dataset.
 |:--|:--|:--|
 | WLASL* | [WLASL](https://github.com/dxli94/WLASL) (Li et al., WACV 2020) | Computational Use of Data Agreement (C-UDA); "intended for academic and computational use only. No commercial usage is allowed." |
 | MSASL* | [MS-ASL](https://www.microsoft.com/en-us/research/project/ms-asl/) (Vaezi Joze & Koller, BMVC 2019) | See the original dataset terms. |
-| ASLCitizen* | [ASL Citizen](https://www.microsoft.com/en-us/research/project/asl-citizen/) (Desai et al., 2023) | See the original dataset license; for commercial use the authors ask to contact ASL_Citizen@microsoft.com. |
+| ASLCitizen* | [ASL Citizen](https://www.microsoft.com/en-us/research/project/asl-citizen/) (Desai et al., NeurIPS 2023 Datasets and Benchmarks) | See the original dataset license; for commercial use the authors ask to contact ASL_Citizen@microsoft.com. |
 | LSA64 | [LSA64](https://facundoq.github.io/datasets/lsa64/) (Ronchetti et al., CACIC 2016) | CC BY-NC-SA 4.0: non-commercial, attribution required, derivatives under the same license. |
-| DGI_PUCP30 | PUCP-DGI30 (Pontificia Universidad Católica del Perú) | See the original dataset terms. |
+| DGI_PUCP30, DGI_PUCP38 | PUCP-DGI: Peruvian Sign Language recordings by the Linguistics Department of the Pontificia Universidad Católica del Perú (Rodríguez Mondoñedo and Arnaiz, 2015), as used in PeruSIL (Bejarano et al., sign-lang@LREC 2022) | See the original dataset terms. |
 
 ## Citation
 
-If you use this dataset structure:
+**You must cite both** WholeBodyPose (the pose extraction and these files) **and** the source dataset of
+every subset you use. Citing only one of them does not meet the license.
 
-```bibtex
-@misc{signert2025,
-  title={SignERT: Efficient Transformer-based Recognition with 135 Keypoints},
-  author={Lazo, Cristian and Renato Castro},
-  year={2025},
-  archivePrefix={arXiv},
-  primaryClass={cs.CV}
-}
-```
-
-If you use the pose extraction pipeline:
+**(1) WholeBodyPose** (always):
 
 ```bibtex
 @inproceedings{lazo2026wholebodypose,
@@ -250,13 +270,21 @@ If you use the pose extraction pipeline:
 }
 ```
 
-Please also cite the source datasets you use:
+**(2) The source dataset** of each subset you use:
+
+| Subset | Cite |
+|:--|:--|
+| WLASL100 / 300 / 2000 | `li2020word` |
+| MSASL100 / 200 / 500 / 1000 | `joze2019msasl` |
+| ASLCitizen100 / 300 / 1000 / 2731 | `desai2023aslcitizen` |
+| LSA64 | `ronchetti2016lsa64` |
+| DGI_PUCP30 | `rodriguez2015lsp` and `bejarano2022perusil` |
 
 ```bibtex
 @inproceedings{li2020word,
   title     = {Word-level Deep Sign Language Recognition from Video: A New Large-scale Dataset and Methods Comparison},
   author    = {Li, Dongxu and Rodriguez, Cristian and Yu, Xin and Li, Hongdong},
-  booktitle = {The IEEE Winter Conference on Applications of Computer Vision},
+  booktitle = {Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)},
   pages     = {1459--1469},
   year      = {2020}
 }
@@ -266,11 +294,13 @@ Please also cite the source datasets you use:
   booktitle = {British Machine Vision Conference (BMVC)},
   year      = {2019}
 }
-@article{desai2023aslcitizen,
-  title   = {ASL Citizen: A Community-Sourced Dataset for Advancing Isolated Sign Language Recognition},
-  author  = {Desai, Aashaka and Berger, Lauren and Minakov, Fyodor O. and Milan, Vanessa and Singh, Chinmay and Pumphrey, Kriston and Ladner, Richard E. and Daum{\'e} III, Hal and Lu, Alex X. and Caselli, Naomi and Bragg, Danielle},
-  journal = {arXiv preprint arXiv:2304.05934},
-  year    = {2023}
+@inproceedings{desai2023aslcitizen,
+  title     = {ASL Citizen: A Community-Sourced Dataset for Advancing Isolated Sign Language Recognition},
+  author    = {Desai, Aashaka and Berger, Lauren and Minakov, Fyodor and Milano, Nessa and Singh, Chinmay and Pumphrey, Kriston and Ladner, Richard and Daum{\'e} III, Hal and Lu, Alex X. and Caselli, Naomi and Bragg, Danielle},
+  booktitle = {Advances in Neural Information Processing Systems 36 (NeurIPS 2023), Datasets and Benchmarks Track},
+  pages     = {76893--76907},
+  year      = {2023},
+  doi       = {10.52202/075280-3360}
 }
 @inproceedings{ronchetti2016lsa64,
   title     = {LSA64: A Dataset of Argentinian Sign Language},
@@ -278,6 +308,25 @@ Please also cite the source datasets you use:
   booktitle = {XXII Congreso Argentino de Ciencias de la Computaci{\'o}n (CACIC)},
   year      = {2016}
 }
+@misc{rodriguez2015lsp,
+  title        = {Repositorio Lengua de Se{\~n}as Peruana},
+  author       = {Rodr{\'i}guez Mondo{\~n}edo, Miguel and Arnaiz, Alexandra},
+  howpublished = {Pontificia Universidad Cat{\'o}lica del Per{\'u}},
+  year         = {2015}
+}
+@inproceedings{bejarano2022perusil,
+  title     = {PeruSIL: A Framework to Build a Continuous Peruvian Sign Language Interpretation Dataset},
+  author    = {Bejarano, Gissella and Huamani-Malca, Joe and Cerna-Herrera, Francisco and Alva-Manchego, Fernando and Rivas, Pablo},
+  booktitle = {Proceedings of the 10th Workshop on the Representation and Processing of Sign Languages (sign-lang@LREC 2022)},
+  pages     = {1--8},
+  year      = {2022},
+  publisher = {European Language Resources Association (ELRA)}
+}
+```
+
+For the 133-keypoint layout, also cite COCO-WholeBody:
+
+```bibtex
 @inproceedings{jin2020whole,
   title     = {Whole-Body Human Pose Estimation in the Wild},
   author    = {Jin, Sheng and Xu, Lumin and Xu, Jin and Wang, Can and Liu, Wentao and Qian, Chen and Ouyang, Wanli and Luo, Ping},

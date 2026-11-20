@@ -1,0 +1,59 @@
+{
+  "title": "WholeBodyPose: unified whole-body (COCO-WholeBody, 133 keypoints) pose estimation for sign language recognition",
+  "upload_type": "software",
+  "description": "<p>WholeBodyPose puts RTMPose (RTMW), ViTPose+ and MediaPipe behind one interface that always returns the 133 COCO-WholeBody keypoints, with the video pipeline, NLMS temporal filtering and visualization that turn sign language videos into training-ready pose sequences. Software of the paper <em>WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data</em> (ICMV 2025, Proc. SPIE 14114, doi:10.1117/12.3096312).</p><p>Apache-2.0. Please cite the paper.</p>",
+  "creators": [
+    {
+      "name": "Lazo-Quispe, Cristian",
+      "affiliation": "Universidad Nacional de Ingeniería"
+    },
+    {
+      "name": "Castro-Cruz, Renato",
+      "affiliation": "Universidad Nacional de Ingeniería"
+    },
+    {
+      "name": "Bejarano, Gissella",
+      "affiliation": "Marist University"
+    },
+    {
+      "name": "Salazar-Espinosa, Mauricio",
+      "affiliation": "Pontificia Universidad Católica del Perú"
+    }
+  ],
+  "license": "Apache-2.0",
+  "access_right": "open",
+  "keywords": [
+    "pose estimation",
+    "whole-body pose estimation",
+    "COCO-WholeBody",
+    "sign language recognition",
+    "RTMPose",
+    "ViTPose",
+    "MediaPipe"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.1117/12.3096312",
+      "relation": "isSupplementTo",
+      "scheme": "doi",
+      "resource_type": "publication-conferencepaper"
+    },
+    {
+      "identifier": "https://github.com/CristianLazoQuispe/WholebodyPoseEstimation",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://cristianlazoquispe.github.io/WholebodyPoseEstimation/",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition",
+      "relation": "isSupplementedBy",
+      "scheme": "url",
+      "resource_type": "dataset"
+    }
+  ],
+  "notes": "If you use this software, please cite: C. Lazo-Quispe, R. Castro-Cruz, G. Bejarano, M. Salazar-Espinosa, WholeBodyPose: a unified end-to-end framework for sign language recognition and pose-based training data, Proc. SPIE 14114, Eighteenth International Conference on Machine Vision (ICMV 2025), 141140A (2026), doi:10.1117/12.3096312."
+}

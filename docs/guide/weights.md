@@ -5,6 +5,11 @@ disappear, so every file the library uses is mirrored on the Hugging Face Hub in
 [`CristianLazoQuispe/wholebodypose-weights`](https://huggingface.co/CristianLazoQuispe/wholebodypose-weights).
 The logic is in `wholebodypose.weights`.
 
+> **Mirror status:** the mirror repository is private for now and will be made public before the next
+> release. Until then the RTMPose (YOLOX, RTMW) and MediaPipe files come from their upstream URLs (step 3
+> below) and the ViTPose files have to be placed in `$WHOLEBODYPOSE_HOME` by hand; the ViTPose `.onnx`
+> files, which have no upstream, are only available that way.
+
 ## Resolution order
 
 `get_weight(key)` returns a local path, trying in order:
@@ -32,19 +37,20 @@ cache. When a SHA-256 is pinned for a file, a mismatch deletes it and the next s
 
 | Key | File (in the cache and the mirror) | Used by | Upstream |
 |:--|:--|:--|:--|
-| `yolox_m` | `rtmpose/yolox_m_8xb8-300e_humanart-c2c7a14a.onnx` | RTMPose `performance`, `balanced` | OpenMMLab |
-| `yolox_tiny` | `rtmpose/yolox_tiny_8xb8-300e_humanart-6f3252f9.onnx` | RTMPose `lightweight` | OpenMMLab |
+| `yolox_m` | `rtmpose/yolox_m_8xb8-300e_humanart-c2c7a14a.onnx` | RTMPose `performance`, `balanced`; ViTPose `detector="yolox_m"` | OpenMMLab |
+| `yolox_tiny` | `rtmpose/yolox_tiny_8xb8-300e_humanart-6f3252f9.onnx` | RTMPose `lightweight`; ViTPose `detector="yolox_tiny"` | OpenMMLab |
 | `rtmw_x_384` | `rtmpose/rtmw-dw-x-l_simcc-cocktail14_270e-384x288_20231122.onnx` | RTMPose `performance` | OpenMMLab |
 | `rtmw_x_256` | `rtmpose/rtmw-dw-x-l_simcc-cocktail14_270e-256x192_20231122.onnx` | RTMPose `balanced` | OpenMMLab |
 | `rtmw_l_256` | `rtmpose/rtmw-dw-l-m_simcc-cocktail14_270e-256x192_20231122.onnx` | RTMPose `lightweight` | OpenMMLab |
 | `vitpose_{small,base,large,huge}` | `vitpose/splitted_vitpose+_<size>_coco_wholebody_half.pth` | ViTPose, `engine="torch"` | onepose releases |
-| `vitpose_{small,base,large,huge}_onnx` | `vitpose/vitpose+_<size>_coco_wholebody.onnx` | ViTPose, `engine="onnx"` | none: exported by WholeBodyPose, mirror only |
+| `vitpose_{small,base,large,huge}_onnx` | `vitpose/vitpose+_<size>_coco_wholebody.onnx` | ViTPose, `engine="onnx"` (default) | none: exported by WholeBodyPose, mirror only |
 | `mp_pose_heavy` | `mediapipe/pose_landmarker_heavy.task` | MediaPipe Tasks, `model_complexity=2` | Google |
 | `mp_pose_full` | `mediapipe/pose_landmarker_full.task` | MediaPipe Tasks, `model_complexity<2` | Google |
 | `mp_hand` | `mediapipe/hand_landmarker.task` | MediaPipe Tasks | Google |
 | `mp_face` | `mediapipe/face_landmarker.task` | MediaPipe Tasks | Google |
 
-All of them are Apache-2.0 (see [THIRD_PARTY.md](../../THIRD_PARTY.md)). The MediaPipe `solutions`
+All of them are Apache-2.0 (see [THIRD_PARTY.md](../../THIRD_PARTY.md)). The RTMPose files are the ones
+rtmlib downloads, read by the same (vendored) code, so outputs do not depend on whether rtmlib is installed. The MediaPipe `solutions`
 engine ships its models inside the `mediapipe` wheel and downloads nothing.
 
 The ViTPose `.onnx` files are written by

@@ -19,6 +19,12 @@ undetected keypoints are `(0, 0)` with score `0`. Default settings reproduce the
 
 ![WholeBodyPose pipeline](assets/pipeline.svg)
 
+> **Please cite.** If you use WholeBodyPose, cite the paper: Lazo-Quispe, Castro-Cruz, Bejarano, Salazar-Espinosa, *WholeBodyPose: a
+> unified end-to-end framework for sign language recognition and pose-based training data*, Proc. SPIE
+> 14114 (ICMV 2025), doi:[10.1117/12.3096312](https://doi.org/10.1117/12.3096312)
+> ([BibTeX](../README.md#citation)), plus the backend you used and, for the pose datasets, the source
+> dataset of every subset ([how to cite](LICENSING.md#how-to-cite)).
+
 ## Map
 
 ```text
@@ -30,11 +36,14 @@ docs/
 │   │                       speed, backend citations
 │   ├── keypoints.md        COCO-WholeBody 133 layout and the 135-point variant
 │   ├── video-pipeline.md   Video2Pose options and outputs, save/load formats, filtering
-│   ├── onnx.md             ViTPose on ONNX Runtime: agreement with PyTorch, CPU latency, quantization
+│   ├── onnx.md             ONNX Runtime engines: RTMPose vendored code vs rtmlib, ViTPose vs PyTorch,
+│   │                       CPU latency, quantization
 │   └── weights.md          Hugging Face mirror, cache, offline use
+├── release.md              maintainers: GitHub Release, PyPI Trusted Publishing setup
 ├── datasets/
 │   ├── README.md           ISLR pose datasets: HDF5 schema, loading, rebuilding from videos
 │   └── wlasl.md            WLASL provenance and processing
+├── LICENSING.md            licenses of the code, datasets and model weights, and how to cite
 └── assets/                 figures used by the README, the guides and the project page
                             (pipeline.svg: the pipeline figure of the project page)
 ```
@@ -55,7 +64,8 @@ docs/
 | rebuild the pose datasets from the raw videos | [datasets/README.md#rebuilding-from-videos](datasets/README.md#rebuilding-from-videos) |
 | run the demo app locally | [guide/installation.md#demo-app](guide/installation.md#demo-app) |
 | add a backend or send a fix | [CONTRIBUTING.md](../CONTRIBUTING.md) |
-| cite the backend I used | [guide/backends.md#citing-the-backends](guide/backends.md#citing-the-backends) |
+| know what each license allows | [LICENSING.md](LICENSING.md) |
+| cite the paper, the backend or a source dataset | [LICENSING.md#how-to-cite](LICENSING.md#how-to-cite), [guide/backends.md#citing-the-backends](guide/backends.md#citing-the-backends) |
 | read the paper | the [project page](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/) |
 
 ## Repository layout

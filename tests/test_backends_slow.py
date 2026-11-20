@@ -7,17 +7,27 @@ from wholebodypose import PoseEstimator
 
 pytestmark = pytest.mark.slow
 
+# RTMPose and ViTPose (ONNX engine) only need the core install (onnxruntime).
 CASES = [
-    ("rtmpose", {"mode": "lightweight"}, "rtmlib"),
+    ("rtmpose", {"mode": "lightweight"}, "onnxruntime"),
     ("mediapipe", {}, "mediapipe"),
-    ("vitpose", {"model_name": "ViTPose+_small_coco_wholebody"}, "onepose"),
+    ("vitpose", {"model_name": "ViTPose+_small_coco_wholebody", "engine": "onnx"}, "onnxruntime"),
+    ("vitpose", {"model_name": "ViTPose+_small_coco_wholebody", "engine": "torch"}, "onepose"),
 ]
+IDS = ["rtmpose", "mediapipe", "vitpose-onnx", "vitpose-torch"]
 
 
-@pytest.mark.parametrize("backend,kwargs,module", CASES, ids=[c[0] for c in CASES])
+def _make(backend, **kwargs):
+    try:
+        return PoseEstimator(backend, **kwargs)
+    except RuntimeError as e:  # the ViTPose .onnx files are mirror-only
+        pytest.skip(f"weight unavailable: {e}")
+
+
+@pytest.mark.parametrize("backend,kwargs,module", CASES, ids=IDS)
 def test_backend_on_image(backend, kwargs, module, sample_image_path):
     pytest.importorskip(module)
-    est = PoseEstimator(backend, device="cpu", verbose=False, **kwargs)
+    est = _make(backend, device="cpu", verbose=False, **kwargs)
     k, s = est.predict_image(sample_image_path)
     assert k.shape[1:] == (133, 2) and s.shape[1:] == (133,) and len(k) >= 1
     body = s[0, :17] > 0
@@ -28,7 +38,6 @@ def test_backend_on_image(backend, kwargs, module, sample_image_path):
 
 
 def test_backends_agree(sample_image_path):
-    pytest.importorskip("rtmlib")
     pytest.importorskip("mediapipe")
     a, sa = PoseEstimator("rtmpose", device="cpu", verbose=False, mode="lightweight").predict_image(sample_image_path)
     b, sb = PoseEstimator("mediapipe", verbose=False).predict_image(sample_image_path)
@@ -37,20 +46,12 @@ def test_backends_agree(sample_image_path):
     assert err < 30, f"median body disagreement {err:.1f}px"
 
 
-MULTI = [
-    ("rtmpose", {"mode": "lightweight"}, "rtmlib"),
-    ("mediapipe", {}, "mediapipe"),
-    ("vitpose", {"model_name": "ViTPose+_small_coco_wholebody"}, "onepose"),
-]
-
-
-@pytest.mark.parametrize("backend,kwargs,module", MULTI, ids=[c[0] for c in MULTI])
+@pytest.mark.parametrize("backend,kwargs,module", CASES, ids=IDS)
 def test_multiperson_two_dancers(backend, kwargs, module):
     """Frame 30 of data/videos/videoTest.mp4 shows two people side by side."""
     import cv2
 
     pytest.importorskip(module)
-    pytest.importorskip("rtmlib")  # ViTPose uses the YOLOX detector
     from tests.conftest import ROOT
 
     cap = cv2.VideoCapture(str(ROOT / "data" / "videos" / "videoTest.mp4"))
@@ -58,7 +59,7 @@ def test_multiperson_two_dancers(backend, kwargs, module):
     ok, bgr = cap.read()
     cap.release()
     assert ok
-    est = PoseEstimator(backend, device="cpu", verbose=False, multiperson=True, **kwargs)
+    est = _make(backend, device="cpu", verbose=False, multiperson=True, **kwargs)
     k, s = est.predict(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
     assert len(k) == 2
     centers = sorted(float(k[i, :17][s[i, :17] > 0, 0].mean()) for i in range(2))

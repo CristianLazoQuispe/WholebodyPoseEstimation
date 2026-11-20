@@ -42,6 +42,25 @@ jobs:
           if missing:
               sys.exit("missing files: " + ", ".join(missing))
           EOF
+      - name: Check structured data, sitemap and llms.txt
+        run: |
+          python3 - <<'EOF'
+          import json, pathlib, re, sys, xml.dom.minidom
+          html = pathlib.Path("website/index.html").read_text(encoding="utf-8")
+          blocks = re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)
+          types = [g["@type"] for b in blocks for g in json.loads(b)["@graph"]]
+          print("JSON-LD:", types)
+          if sorted(types) != ["Dataset", "ScholarlyArticle", "SoftwareSourceCode"]:
+              sys.exit("expected ScholarlyArticle, SoftwareSourceCode and Dataset in the JSON-LD")
+          for tag in ("citation_title", "citation_author", "citation_publication_date", "citation_doi", "citation_pdf_url"):
+              if f'name="{tag}"' not in html:
+                  sys.exit(f"missing <meta name={tag}>")
+          xml.dom.minidom.parse("website/sitemap.xml")
+          for f in ("robots.txt", "llms.txt"):
+              if not (pathlib.Path("website") / f).is_file():
+                  sys.exit(f"missing website/{f}")
+          print("structured data OK")
+          EOF
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload website/

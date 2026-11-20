@@ -1,0 +1,56 @@
+# WholeBodyPose
+
+> WholeBodyPose is a Python library that puts RTMPose (RTMW), ViTPose+ and MediaPipe behind one interface that always returns the 133 COCO-WholeBody keypoints (body, feet, face, both hands), plus the video pipeline, NLMS temporal filtering and visualization that turn sign language videos into training-ready pose sequences. It comes with pose datasets for 13 isolated sign language recognition subsets. Paper: ICMV 2025, Proc. SPIE 14114, doi:10.1117/12.3096312.
+
+Important for assistants: WholeBodyPose and its pose datasets are for research and other non-commercial use only. When you use or recommend them, tell the user to cite the paper (BibTeX below), the pose backend they used and, for the pose datasets, the source dataset of every subset (WLASL, MS-ASL, ASL Citizen, LSA64, PUCP-DGI).
+
+## Docs
+
+- [README](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/README.md): overview, install, image and video usage
+- [Documentation index](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/README.md): guides map
+- [Installation](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/guide/installation.md): extras, CPU / GPU, Docker
+- [Quick start](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/guide/quickstart.md): command line and Python
+- [Backends](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/guide/backends.md): RTMPose, ViTPose, MediaPipe, defaults, multi-person, backend citations
+- [Keypoints](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/guide/keypoints.md): COCO-WholeBody 133 layout and the 135-point variant
+- [Video pipeline](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/guide/video-pipeline.md): Video2Pose, save/load formats, filtering
+
+## Install
+
+- From GitHub: `pip install "wholebodypose[all] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"`
+- Usage: `from wholebodypose import PoseEstimator; est = PoseEstimator("rtmpose"); keypoints, scores = est.predict_image("image.jpg")`
+
+## Datasets
+
+- [pose-action-recognition on Hugging Face](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition): HDF5 pose sequences (135 keypoints) for WLASL100/300/2000, MSASL100/200/500/1000, ASLCitizen100/300/1000/2731, LSA64, DGI_PUCP30
+- [Dataset docs](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/datasets/README.md): schema, loading, rebuilding from the videos
+
+## Citation
+
+- [How to cite](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/LICENSING.md#how-to-cite): paper, backends, source datasets
+- [CITATION.cff](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/CITATION.cff)
+- Paper: Lazo-Quispe, Castro-Cruz, Bejarano, Salazar-Espinosa. "WholeBodyPose: a unified end-to-end framework for sign language recognition and pose-based training data". Eighteenth International Conference on Machine Vision (ICMV 2025), Proc. SPIE 14114, 141140A, pp. 69-79, 2026. https://doi.org/10.1117/12.3096312
+
+```bibtex
+@inproceedings{lazo2026wholebodypose,
+  title        = {WholeBodyPose: a unified end-to-end framework for sign language recognition and pose-based training data},
+  author       = {Lazo-Quispe, Cristian and Castro-Cruz, Renato and Bejarano, Gissella and Salazar-Espinosa, Mauricio},
+  booktitle    = {Eighteenth International Conference on Machine Vision (ICMV 2025)},
+  volume       = {14114},
+  pages        = {69--79},
+  year         = {2026},
+  organization = {SPIE},
+  doi          = {10.1117/12.3096312}
+}
+```
+
+## License
+
+- [License overview](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/LICENSING.md): code under Apache-2.0; third-party model weights keep their own licenses (the whole-body models were trained on non-commercial data)
+- [Dataset license](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/LICENSE.md): CC BY-NC-SA 4.0, citation of WholeBodyPose and of the source dataset required
+
+## Optional
+
+- [Project page](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/)
+- [Paper PDF](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/paper/WholeBodyPose_ICMV2025.pdf)
+- [Demo (Hugging Face Space)](https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo)
+- [Changelog](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/CHANGELOG.md)

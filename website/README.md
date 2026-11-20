@@ -20,7 +20,9 @@ python -m http.server 8000 -d website
 
 `.github/workflows/pages.yml` uploads this folder as the Pages artifact and deploys it on every push to
 `main` that touches `website/**` or the workflow (and on manual `workflow_dispatch`). Before uploading, it
-checks that every local `src`/`href`/`poster` in `index.html` exists. One-time repository setting:
+checks that every local `src`/`href`/`poster` in `index.html` exists, that the schema.org JSON-LD parses
+and holds the paper, software and dataset entities, that the Google Scholar `citation_*` tags are present, and
+that `sitemap.xml`, `robots.txt` and `llms.txt` exist. One-time repository setting:
 **Settings → Pages → Source: GitHub Actions**.
 
 ## Layout
@@ -35,6 +37,11 @@ checks that every local `src`/`href`/`poster` in `index.html` exists. One-time r
 | `static/images/kpts_*.jpg`, `paper_thumb.jpg` | Figure 1 (a) and (b) extracted from the paper PDF, and its first page |
 | `static/paper/WholeBodyPose_ICMV2025.pdf` | the paper |
 | `.nojekyll` | serve the folder as-is (no Jekyll processing) |
+| `llms.txt` | short Markdown map of the project for LLM tools (docs, datasets, citation, license, install) |
+| `sitemap.xml`, `robots.txt` | sitemap for search engines; `robots.txt` allows everything but only works at the host root |
+
+`<head>` also carries the Google Scholar `citation_*` tags and a schema.org JSON-LD block
+(`ScholarlyArticle`, `SoftwareSourceCode`, `Dataset`); keep them in sync with the BibTeX and the dataset card.
 
 The text in `index.html` mirrors the repository README (TL;DR, backends, BibTeX), the paper (abstract,
 contributions, Table 3), the dataset card `hf/dataset_cards/pose-action-recognition.md` (subset counts, sizes,
@@ -52,10 +59,3 @@ python scripts/make_website_assets.py --paper    # + paper thumbnail and Figure 
 ```
 
 It needs Pillow (`--paper` also needs poppler: `pdftoppm`, `pdfimages`).
-
-## Old project page
-
-The previous page lived in the `CristianLazoQuispe/wholebodypose.github.io` repository.
-`docs/legacy-site-redirect/index.html` is a redirect (meta refresh + canonical + JS) to this page, meant to be
-pushed to that repository (as `index.html`, and optionally `404.html`). It is kept outside `website/` so it is
-not deployed here.

@@ -5,7 +5,8 @@
     taskset -c 0-7 python scripts/vitpose_onnx_study.py quant --threads 8 --work DIR --out quant.json
     taskset -c 0-7 python scripts/vitpose_onnx_study.py quant-latency --threads 8 --work DIR --out qlat.json
 
-``compare`` needs the ``[vitpose]`` and ``[vitpose-onnx]`` extras plus ``rtmlib`` (multi-person cases);
+``compare`` needs PyTorch and onepose (``[vitpose-torch]`` + manual onepose install, see
+docs/guide/installation.md); the ``rtmw`` quantization cases need ``rtmlib``;
 ``quant`` also needs ``onnx``. Weights come from ``get_weight`` (set ``WHOLEBODYPOSE_HOME``).
 """
 

@@ -1,4 +1,4 @@
-# Only pyproject.toml, README.md, LICENSE and src/ are copied into the images.
+# Only pyproject.toml, README.md, LICENSE, LICENSES/, THIRD_PARTY.md and src/ are copied into the images.
 .git
 .github
 .venv

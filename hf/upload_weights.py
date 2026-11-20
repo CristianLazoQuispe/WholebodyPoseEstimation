@@ -208,8 +208,9 @@ def build(args) -> int:
         print(f"{MODEL_CARD} has no {FILES_MARKER} marker", file=sys.stderr)
         return 1
     (staging / "README.md").write_text(card.replace(FILES_MARKER, files_table(rows)))
+    shutil.copyfile(HERE / "WEIGHTS_LICENSE.md", staging / "WEIGHTS_LICENSE.md")
     total = sum(int(r["size"]) for r in rows)
-    print(f"staged {len(rows)} files ({human(total)}) + MANIFEST.csv + README.md in {staging}")
+    print(f"staged {len(rows)} files ({human(total)}) + MANIFEST.csv + README.md + WEIGHTS_LICENSE.md in {staging}")
     return 0
 
 

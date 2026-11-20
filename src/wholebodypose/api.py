@@ -17,7 +17,7 @@ class Backend:
 
     name: str
     target: str  # "module:Class"
-    extra: str  # pip extra that installs its dependencies
+    extra: str  # pip extra that installs its dependencies ("" = core install)
     description: str
     defaults: dict = field(default_factory=dict)  # paper settings
     multiperson: bool = False  # can return several people (some need an option, see description)
@@ -29,16 +29,16 @@ BACKENDS: dict[str, Backend] = {
         Backend(
             "rtmpose",
             "wholebodypose.models.rtmpose.model:RTMPoseModel",
-            "rtmpose",
-            "YOLOX + RTMW-l (OpenMMLab), multi-person, ONNX Runtime",
+            "",
+            "YOLOX + RTMW (OpenMMLab), multi-person, ONNX Runtime",
             {"mode": "performance", "use_thresholding": True, "filter_noise": True},
             multiperson=True,
         ),
         Backend(
             "vitpose",
             "wholebodypose.models.vitpose.model:VITPoseModel",
-            "vitpose",
-            "ViTPose+ top-down, ONNX Runtime or PyTorch; multi-person with detector='yolox_m'",
+            "",
+            "ViTPose+ top-down, ONNX Runtime (PyTorch optional); multi-person with detector='yolox_m'",
             {"model_name": "ViTPose+_huge_coco_wholebody", "use_thresholding": True, "kpt_thr": 0.5},
             multiperson=True,
         ),
@@ -60,6 +60,11 @@ MULTIPERSON_DEFAULTS: dict[str, dict] = {
     "vitpose": {"detector": "yolox_m"},
     "mediapipe": {"engine": "tasks", "max_people": 4},
 }
+
+
+def install_command(extra: str) -> str:
+    """``pip install`` command for a backend extra (``""`` = the core package)."""
+    return f"pip install 'wholebodypose[{extra}]'" if extra else "pip install wholebodypose"
 
 
 def available_backends() -> list[str]:
@@ -93,7 +98,7 @@ def create_model(
     try:
         cls = getattr(importlib.import_module(module_name), cls_name)
     except ImportError as e:
-        raise ImportError(f"Backend '{key}' needs: pip install 'wholebodypose[{spec.extra}]' ({e})") from e
+        raise ImportError(f"Backend '{key}' needs: {install_command(spec.extra)} ({e})") from e
     params = {**spec.defaults, **(MULTIPERSON_DEFAULTS[key] if multiperson else {}), **kwargs}
     if max_people is not None and key in ("vitpose", "mediapipe"):
         params["max_people"] = max_people

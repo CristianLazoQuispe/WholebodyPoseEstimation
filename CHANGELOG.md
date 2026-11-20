@@ -5,26 +5,39 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-### Data
-- Published DGI_PUCP38 (all 931 PUCP-DGI305 videos, 38 classes, 651/140/140) on the Hugging Face dataset, re-extracted with `wholebodypose-build-islr --preset icmv2025`.
-
-### Fixed
-- Model naming: the RTMPose `performance`/`balanced` model (`rtmw-dw-x-l`) is RTMW-l and the `lightweight` one (`rtmw-dw-l-m`) is RTMW-m, per the MMPose RTMW table. Docs, page and demo said RTMW-x / RTMW-l. Weights and outputs are unchanged.
-
-### Added
-- ViTPose on ONNX Runtime: `VITPoseModel(engine="auto" | "onnx" | "torch")` and the `[vitpose-onnx]` extra
-  (only `onnxruntime`, no PyTorch or onepose). Pre- and post-processing are NumPy/OpenCV ports of onepose's;
-  multi-person crops run as one batch. `auto` picks ONNX when the `.onnx` file can be found, else PyTorch.
-- `scripts/export_vitpose_onnx.py` (opset 17, dynamic batch) and the weight keys
-  `vitpose_{small,base,large,huge}_onnx` with pinned SHA-256 (mirror only, no upstream URL).
-- `scripts/vitpose_onnx_study.py` and `docs/guide/onnx.md`: torch-vs-ONNX agreement, CPU latency and an
-  int8/fp16 quantization study for ViTPose-base and RTMW-l.
+### License
+- Code licensed under Apache-2.0 (was MIT); code contributed up to 1.0.0 remains available under MIT
+  (`LICENSES/MIT.txt`). New `NOTICE` and [docs/LICENSING.md](docs/LICENSING.md).
+- Pose datasets: CC BY-NC-SA 4.0, citation of WholeBodyPose and the source dataset required.
+- Weights mirror: `WEIGHTS_LICENSE.md` (upstream Apache-2.0; whole-body models trained on non-commercial data).
 
 ### Changed
-- Project page: the pipeline diagram is now the hero figure; the teaser video (and its generator code) is
-  removed. New sections: datasets (one row per published subset with links to every split file and label
-  map), data processing (annotation checks, subset rules, reproducibility), and ISLR models (paper Table 3
-  with links to each model's original code). The weights button is marked "soon" while the mirror is private.
+- Core install is NumPy + OpenCV + ONNX Runtime; RTMPose and ViTPose run without rtmlib, PyTorch or onepose.
+- RTMPose: the rtmlib 0.0.16 inference code is vendored in `wholebodypose.models.rtmpose._onnx` (Apache-2.0);
+  outputs are bit-identical to rtmlib. `RTMPoseModel(engine="rtmlib")` keeps the rtmlib path.
+- ViTPose: default engine `"onnx"`; the multi-person YOLOX detector uses the vendored code.
+- Shared ONNX Runtime session helper; `RTMPoseModel` and `VITPoseModel` take `intra_op_num_threads`.
+- Extras: `[gpu]` = onnxruntime-gpu, `[vitpose-torch]` (alias `[torch]`) = PyTorch; `[rtmpose]`, `[vitpose]`,
+  `[vitpose-onnx]` kept as aliases; no direct-URL dependencies (onepose is a manual install).
+- `wholebodypose backends` prints the install command, ONNX Runtime version and providers.
+- Docker images install PyTorch only with `--build-arg WITH_TORCH=true`.
+- CI: core-only backend job; release workflow with manual TestPyPI / PyPI Trusted Publishing.
+- Project page: pipeline figure first; dataset, data-processing and ISLR-model sections; JSON-LD, Scholar
+  tags, `llms.txt` and sitemap.
+- Demo: RTMPose-lite backend (default for videos on CPU) and an About tab.
+
+### Added
+- ViTPose on ONNX Runtime (`VITPoseModel(engine=...)`), `scripts/export_vitpose_onnx.py` and the weight keys
+  `vitpose_{small,base,large,huge}_onnx`.
+- [docs/guide/onnx.md](docs/guide/onnx.md): ONNX agreement, CPU latency and quantization results.
+- Dataset: a `README.md` with license and BibTeX in every subset folder, and a root `CITATION.cff`.
+- Dataset: DGI_PUCP38 (931 clips, 38 classes, 651/140/140).
+- Citation notes in the README, docs, demo and `wholebodypose --help`; DOI in every BibTeX.
+
+### Fixed
+- Model naming: `rtmw-dw-x-l` is RTMW-l and `rtmw-dw-l-m` is RTMW-m (weights and outputs unchanged).
+- ViTPose `engine="auto"` keeps PyTorch when only PyTorch can use the GPU.
+- Dataset card: five source datasets, ASL Citizen and PUCP-DGI references.
 
 ## [1.0.0] - 2026-11-19
 

@@ -8,7 +8,7 @@ sdk_version: 6.32.0
 python_version: "3.11"
 app_file: app.py
 pinned: false
-license: mit
+license: apache-2.0
 short_description: Whole-body 133-keypoint pose with RTMPose/ViTPose/MediaPipe
 models:
   - CristianLazoQuispe/wholebodypose-weights
@@ -38,8 +38,8 @@ Interactive demo of **[WholeBodyPose](https://github.com/CristianLazoQuispe/Whol
 | MediaPipe (`mediapipe`) | BlazePose heavy + Hands + Face Mesh | single |
 | ViTPose+ (`vitpose`) | ViTPose+ whole-body (base on CPU, huge on GPU) | single |
 
-On 2 CPU cores RTMW-l processed 0.5-0.9 frames/s in our tests, so on CPU hardware the Video tab defaults to
-RTMPose-lite (about 2-3x faster on 2 CPU cores in our tests); the Image tab uses the paper model.
+On 2 CPU cores RTMW-l processed 0.5-0.9 frames/s, so on CPU hardware the Video tab defaults to
+RTMPose-lite (about 2-3x faster on 2 CPU cores); the Image tab uses the paper model.
 
 Upload a video (or record one with the webcam) or an image, choose the backend, the skeleton style
 (COCO-WholeBody 133 or OpenPose-style 135), the drawing options and the processing FPS, and get
@@ -75,6 +75,10 @@ pip install -e ".[demo,vitpose]" && python hf/space/app.py
 
 ## Citation
 
+WholeBodyPose is for research and other non-commercial use. If you use it, the demo outputs or the pose
+datasets in your work, please cite the paper (doi:[10.1117/12.3096312](https://doi.org/10.1117/12.3096312)),
+the backend you used and, for the pose datasets, the source dataset of every subset.
+
 ```bibtex
 @inproceedings{lazo2026wholebodypose,
   title        = {WholeBodyPose: a unified end-to-end framework for sign language recognition and pose-based training data},
@@ -87,3 +91,10 @@ pip install -e ".[demo,vitpose]" && python hf/space/app.py
   doi          = {10.1117/12.3096312}
 }
 ```
+
+## License
+
+The demo and the WholeBodyPose code are licensed under Apache-2.0. The pose models keep their own licenses
+(Apache-2.0; the whole-body models were trained on non-commercial data) and the pose datasets are under
+CC BY-NC-SA 4.0, with citation required; see
+[docs/LICENSING.md](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/LICENSING.md).

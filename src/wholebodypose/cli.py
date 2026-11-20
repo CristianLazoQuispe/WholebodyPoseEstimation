@@ -6,6 +6,8 @@ import argparse
 import sys
 from pathlib import Path
 
+CITE_LINE = "Please cite: Lazo-Quispe et al., WholeBodyPose, ICMV 2025, Proc. SPIE 14114, doi:10.1117/12.3096312"
+
 
 def _add_common(p: argparse.ArgumentParser) -> None:
     p.add_argument("--backend", "-b", default="rtmpose", help="rtmpose | vitpose | mediapipe")
@@ -68,10 +70,22 @@ def cmd_video(args) -> int:
 
 
 def cmd_backends(args) -> int:
-    from wholebodypose.api import BACKENDS
+    import importlib.util
+
+    from wholebodypose.api import BACKENDS, install_command
 
     for b in BACKENDS.values():
-        print(f"{b.name:10s} pip install 'wholebodypose[{b.extra}]'   {b.description}")
+        print(f"{b.name:10s} {install_command(b.extra):40s} {b.description}")
+    try:
+        import onnxruntime as ort
+
+        print(f"onnxruntime {ort.__version__}: {', '.join(ort.get_available_providers())}")
+    except ImportError:
+        print("onnxruntime: not installed (pip install onnxruntime or onnxruntime-gpu)")
+    optional = {"mediapipe": "mediapipe", "torch": "torch (ViTPose engine='torch')", "onepose": "onepose"}
+    optional["rtmlib"] = "rtmlib (RTMPose engine='rtmlib')"
+    found = [label for mod, label in optional.items() if importlib.util.find_spec(mod) is not None]
+    print("optional: " + (", ".join(found) if found else "none installed"))
     return 0
 
 
@@ -87,8 +101,13 @@ def cmd_download(args) -> int:
 def build_parser() -> argparse.ArgumentParser:
     from wholebodypose import __version__
 
-    parser = argparse.ArgumentParser(prog="wholebodypose", description="Whole-body (COCO-133) pose estimation.")
-    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser = argparse.ArgumentParser(
+        prog="wholebodypose",
+        description="Whole-body (COCO-133) pose estimation.",
+        epilog=CITE_LINE,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}\n{CITE_LINE}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p = sub.add_parser("image", help="estimate poses on an image")

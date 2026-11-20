@@ -155,8 +155,7 @@ def test_torch_and_onnx_agree(size, sample_image_path):
 
 @pytest.mark.slow
 def test_onnx_multiperson_two_dancers():
-    """Frame 30 of data/videos/videoTest.mp4 shows two people side by side."""
-    pytest.importorskip("rtmlib")
+    """Frame 30 of data/videos/videoTest.mp4 shows two people side by side (core install only)."""
     import cv2
 
     from tests.conftest import ROOT

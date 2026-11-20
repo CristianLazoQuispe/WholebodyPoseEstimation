@@ -1,42 +1,49 @@
 # syntax=docker/dockerfile:1
-# WholeBodyPose, CPU image: every backend (RTMPose, ViTPose, MediaPipe) + NLMS filters + ffmpeg.
+# WholeBodyPose, CPU image: RTMPose and ViTPose on ONNX Runtime (core), MediaPipe, NLMS filters, ffmpeg.
 #
 #   docker build -f docker/Dockerfile.cpu -t wholebodypose:cpu .
 #   docker run --rm -v "$PWD:/workspace" wholebodypose:cpu \
-#       wholebodypose image data/images/image.jpg -b mediapipe
+#       wholebodypose image data/images/image.jpg -b rtmpose
 #
 # Build args:
 #   PYTHON_VERSION   Python of the base image (3.10-3.13)
-#   EXTRAS           pip extras to install (default: all)
+#   EXTRAS           pip extras to install (default: all = mediapipe, filters, video)
+#   WITH_TORCH       "true" adds CPU PyTorch + onepose (ViTPose engine="torch", reference only)
 #   INSTALL_JUPYTER  "true" adds JupyterLab (run: jupyter lab --ip=0.0.0.0 --no-browser)
 ARG PYTHON_VERSION=3.12
 FROM python:${PYTHON_VERSION}-slim
 
 ARG EXTRAS=all
+ARG WITH_TORCH=false
 ARG INSTALL_JUPYTER=false
+ARG ONEPOSE_REF=dcb645fb52d2f3055dff893965d484e20b917c0f
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# git: the vitpose extra installs onepose from GitHub.
-# libgl1, libglib2.0-0: MediaPipe depends on the non-headless OpenCV build.
+# libgl1, libglib2.0-0: MediaPipe depends on the non-headless OpenCV build. git: onepose (WITH_TORCH).
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git libgl1 libegl1 libgles2 libglib2.0-0 \
+    && apt-get install -y --no-install-recommends libgl1 libegl1 libgles2 libglib2.0-0 \
+    && if [ "$WITH_TORCH" = "true" ]; then apt-get install -y --no-install-recommends git; fi \
     && rm -rf /var/lib/apt/lists/*
 
-# CPU-only PyTorch first, so the vitpose extra does not pull the CUDA wheels.
-RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# Optional reference engine: CPU-only PyTorch (no CUDA wheels) and onepose, which is not on PyPI.
+RUN if [ "$WITH_TORCH" = "true" ]; then \
+        pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu \
+        && pip install "onepose @ git+https://github.com/developer0hye/onepose.git@${ONEPOSE_REF}"; \
+    fi
 
 WORKDIR /opt/wholebodypose
-COPY pyproject.toml README.md LICENSE ./
+COPY pyproject.toml README.md LICENSE THIRD_PARTY.md ./
+COPY LICENSES ./LICENSES
 COPY src ./src
 RUN pip install ".[${EXTRAS}]" \
     && if [ "$INSTALL_JUPYTER" = "true" ]; then pip install jupyterlab; fi
 
-# Unprivileged user. onepose keeps ViTPose checkpoints inside its package folder, so that folder
-# must be writable too.
+# Unprivileged user. onepose (if installed) keeps ViTPose checkpoints inside its package folder, so
+# that folder must be writable too.
 RUN useradd --create-home --uid 1000 wbp \
     && mkdir -p /workspace /home/wbp/.cache/wholebodypose \
     && chown -R wbp:wbp /workspace /home/wbp/.cache \

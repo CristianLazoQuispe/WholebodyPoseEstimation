@@ -1,15 +1,20 @@
-# Pose-Based Action Recognition: research-only license
+# License
 
-The pose files in this repository are derived data released for **non-commercial academic research
-only**.
+The pose files in this repository are licensed under the
+[Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode).
 
-You may use, copy and modify them for non-commercial research and teaching, provided that you:
+**Attribution.** The required attribution is a citation of:
 
-1. cite WholeBodyPose (Lazo-Quispe et al., ICMV 2025, Proc. SPIE 14114) and the original source dataset
-   of every subset you use;
-2. follow the terms of each source dataset (WLASL: C-UDA; MS-ASL; ASL Citizen; LSA64: CC BY-NC-SA 4.0;
-   PUCP-DGI30), which take precedence for its subset;
-3. do not use the files, or models trained mainly on them, for commercial purposes;
-4. do not attempt to re-identify the people who appear in the source videos.
+1. WholeBodyPose: C. Lazo-Quispe, R. Castro-Cruz, G. Bejarano, M. Salazar-Espinosa, "WholeBodyPose: a unified
+   end-to-end framework for sign language recognition and pose-based training data", Proc. SPIE 14114,
+   ICMV 2025, 141140A, pp. 69-79, doi:10.1117/12.3096312; and
+2. the source dataset of every subset you use (WLASL, MS-ASL, ASL Citizen, LSA64, PUCP-DGI).
 
-THE DATA IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+BibTeX is in `README.md` and in the `README.md` of every subset folder.
+
+**Source datasets.** The pose files are derived from the videos of these datasets. The terms of each source
+dataset (WLASL: C-UDA; MS-ASL; ASL Citizen; LSA64: CC BY-NC-SA 4.0; PUCP-DGI) also apply to its subset.
+
+**Request.** Please do not attempt to re-identify the people who appear in the source videos.
+
+The data is provided as is, without warranty of any kind (CC BY-NC-SA 4.0, Section 5).

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# WholeBodyPose, GPU image: RTMPose on ONNX Runtime CUDA, ViTPose on CUDA PyTorch, MediaPipe on CPU.
+# WholeBodyPose, GPU image: RTMPose and ViTPose on ONNX Runtime CUDA, MediaPipe on CPU.
 # Needs an NVIDIA driver for CUDA 12 and the NVIDIA Container Toolkit on the host.
 #
 #   docker build -f docker/Dockerfile.gpu -t wholebodypose:gpu .
@@ -8,15 +8,18 @@
 #
 # Build args:
 #   CUDA_IMAGE       CUDA 12 + cuDNN 9 runtime base (what onnxruntime-gpu and torch cu12x expect)
-#   TORCH_INDEX      PyTorch wheel index matching that CUDA version
-#   EXTRAS           pip extras to install (default: all)
+#   EXTRAS           pip extras to install (default: all = mediapipe, filters, video)
+#   WITH_TORCH       "true" adds CUDA PyTorch + onepose (ViTPose engine="torch", reference only)
+#   TORCH_INDEX      PyTorch wheel index matching that CUDA version (WITH_TORCH only)
 #   INSTALL_JUPYTER  "true" adds JupyterLab (run: jupyter lab --ip=0.0.0.0 --no-browser)
 ARG CUDA_IMAGE=nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
 FROM ${CUDA_IMAGE}
 
-ARG TORCH_INDEX=https://download.pytorch.org/whl/cu126
 ARG EXTRAS=all
+ARG WITH_TORCH=false
+ARG TORCH_INDEX=https://download.pytorch.org/whl/cu126
 ARG INSTALL_JUPYTER=false
+ARG ONEPOSE_REF=dcb645fb52d2f3055dff893965d484e20b917c0f
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -26,21 +29,28 @@ ENV DEBIAN_FRONTEND=noninteractive \
     VIRTUAL_ENV=/opt/venv \
     PATH=/opt/venv/bin:$PATH
 
-# Ubuntu 24.04 ships Python 3.12. git: onepose (vitpose extra); libgl1, libglib2.0-0: MediaPipe's OpenCV.
+# Ubuntu 24.04 ships Python 3.12. libgl1, libglib2.0-0: MediaPipe's OpenCV. git: onepose (WITH_TORCH).
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 python3-venv git libgl1 libegl1 libgles2 libglib2.0-0 \
+    && apt-get install -y --no-install-recommends python3 python3-venv libgl1 libegl1 libgles2 libglib2.0-0 \
+    && if [ "$WITH_TORCH" = "true" ]; then apt-get install -y --no-install-recommends git; fi \
     && rm -rf /var/lib/apt/lists/* \
     && python3 -m venv /opt/venv
 
-RUN pip install torch torchvision --index-url "${TORCH_INDEX}"
+RUN if [ "$WITH_TORCH" = "true" ]; then \
+        pip install torch torchvision --index-url "${TORCH_INDEX}" \
+        && pip install "onepose @ git+https://github.com/developer0hye/onepose.git@${ONEPOSE_REF}"; \
+    fi
 
 WORKDIR /opt/wholebodypose
-COPY pyproject.toml README.md LICENSE ./
+COPY pyproject.toml README.md LICENSE THIRD_PARTY.md ./
+COPY LICENSES ./LICENSES
 COPY src ./src
-# onnxruntime (CPU) and onnxruntime-gpu provide the same module: keep only the GPU build.
+# The core install pulls the CPU `onnxruntime` wheel; onnxruntime-gpu provides the same module, so
+# remove both and keep only the GPU build.
 RUN pip install ".[${EXTRAS}]" \
-    && pip uninstall -y onnxruntime \
+    && pip uninstall -y onnxruntime onnxruntime-gpu \
     && pip install "onnxruntime-gpu>=1.19" \
+    && python -c "import onnxruntime as o; assert 'CUDAExecutionProvider' in o.get_available_providers()" \
     && if [ "$INSTALL_JUPYTER" = "true" ]; then pip install jupyterlab; fi
 
 # The Ubuntu 24.04 CUDA images already have an "ubuntu" user with uid 1000.

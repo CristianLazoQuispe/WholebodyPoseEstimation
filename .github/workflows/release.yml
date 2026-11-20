@@ -2,11 +2,23 @@
 # the package version, and publish a GitHub Release whose notes are the matching CHANGELOG section.
 #
 #   git tag -a v1.0.0 -m "WholeBodyPose 1.0.0" && git push origin v1.0.0
+#
+# PyPI is NOT published on tag pushes. Publishing is a manual run of this workflow ("Run workflow",
+# pick the tag, choose `testpypi` or `pypi`) and only works once a maintainer has done the one-time setup
+# in docs/release.md and set the repository variable PYPI_PUBLISHING_ENABLED=true. Both jobs use
+# Trusted Publishing (OIDC): no API token is stored in the repository.
 name: Release
 
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish the built distributions to (pypi = TestPyPI first, then PyPI)"
+        type: choice
+        options: [none, testpypi, pypi]
+        default: none
 
 permissions:
   contents: read
@@ -21,6 +33,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Tag must match the version in pyproject.toml
+        if: startsWith(github.ref, 'refs/tags/v')
         run: |
           version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
           if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
@@ -30,11 +43,16 @@ jobs:
       - run: pip install build twine
       - run: python -m build
       - run: twine check --strict dist/*
+      - name: No direct-URL dependencies in the metadata (PyPI rejects them)
+        run: |
+          unzip -p dist/*.whl '*.dist-info/METADATA' > "$RUNNER_TEMP/METADATA"
+          if grep -E '^Requires-Dist: .*@ *(git\+|https?://|file:)' "$RUNNER_TEMP/METADATA"; then exit 1; fi
       - name: Smoke test the wheel
         run: |
           python -m venv "$RUNNER_TEMP/venv"
           "$RUNNER_TEMP/venv/bin/pip" install dist/*.whl
           "$RUNNER_TEMP/venv/bin/wholebodypose" --version
+          "$RUNNER_TEMP/venv/bin/wholebodypose" backends
       - uses: actions/upload-artifact@v4
         with:
           name: dist
@@ -43,6 +61,7 @@ jobs:
   github-release:
     name: GitHub Release
     needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -73,14 +92,37 @@ jobs:
           files: dist/*
           prerelease: ${{ steps.pre.outputs.flag == 'true' }}
 
-  # Disabled: PyPI rejects packages whose metadata has direct URL dependencies, and the `vitpose`
-  # extra depends on `onepose @ git+https://...`. Enable once onepose is on PyPI (or the extra is
-  # dropped). Uses Trusted Publishing: on pypi.org add a publisher for this repository, workflow
-  # `release.yml` and environment `pypi`; no token is needed.
+  # Manual only (workflow_dispatch input), and only after the one-time setup in docs/release.md.
+  # The metadata has no direct-URL dependencies any more (onepose is a documented manual install), so
+  # PyPI accepts it. TestPyPI always runs first; `pypi` additionally needs a release tag.
+  testpypi:
+    name: Publish to TestPyPI
+    needs: build
+    if: >-
+      github.event_name == 'workflow_dispatch' && vars.PYPI_PUBLISHING_ENABLED == 'true' &&
+      (inputs.publish == 'testpypi' || inputs.publish == 'pypi')
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/wholebodypose
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
   pypi:
     name: Publish to PyPI
-    if: false
-    needs: build
+    needs: [build, testpypi]
+    if: >-
+      github.event_name == 'workflow_dispatch' && vars.PYPI_PUBLISHING_ENABLED == 'true' &&
+      inputs.publish == 'pypi' && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     environment:
       name: pypi

@@ -16,7 +16,11 @@ def test_version_and_lazy_exports():
 def test_registry_lists_paper_backends():
     assert api.available_backends() == ["rtmpose", "vitpose", "mediapipe"]
     for b in api.BACKENDS.values():
-        assert ":" in b.target and b.extra
+        assert ":" in b.target
+    # RTMPose and ViTPose (ONNX) run on the core install; MediaPipe is an extra
+    assert api.BACKENDS["rtmpose"].extra == "" and api.BACKENDS["vitpose"].extra == ""
+    assert api.BACKENDS["mediapipe"].extra == "mediapipe"
+    assert api.install_command("") == "pip install wholebodypose"
 
 
 def test_unknown_backend():

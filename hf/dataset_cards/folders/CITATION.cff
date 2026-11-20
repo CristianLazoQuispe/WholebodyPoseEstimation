@@ -1,0 +1,115 @@
+cff-version: 1.2.0
+message: >-
+  If you use these pose files, you must cite the WholeBodyPose paper below AND the original source dataset
+  of every subset you use (WLASL, MS-ASL, ASL Citizen, LSA64, PUCP-DGI; BibTeX in README.md and in the
+  README.md of each subset folder). License: CC BY-NC-SA 4.0 (LICENSE.md).
+type: dataset
+title: "Pose-Based Action Recognition (135 keypoints): pose datasets of WholeBodyPose"
+abstract: >-
+  2D whole-body pose sequences (COCO-WholeBody 133 keypoints plus neck and pelvis) for isolated sign
+  language recognition, extracted with WholeBodyPose from five public video datasets (WLASL, MS-ASL,
+  ASL Citizen, LSA64, PUCP-DGI) and stored as HDF5, one file per split.
+url: "https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition"
+repository-code: "https://github.com/CristianLazoQuispe/WholebodyPoseEstimation"
+license: CC-BY-NC-SA-4.0
+license-url: "https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/LICENSE.md"
+keywords: [sign language recognition, pose estimation, COCO-WholeBody, keypoints, WLASL, MS-ASL, ASL Citizen, LSA64]
+authors:
+  - family-names: Lazo-Quispe
+    given-names: Cristian
+  - family-names: Castro-Cruz
+    given-names: Renato
+  - family-names: Bejarano
+    given-names: Gissella
+  - family-names: Salazar-Espinosa
+    given-names: Mauricio
+preferred-citation:
+  type: conference-paper
+  title: "WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data"
+  authors:
+    - family-names: Lazo-Quispe
+      given-names: Cristian
+    - family-names: Castro-Cruz
+      given-names: Renato
+    - family-names: Bejarano
+      given-names: Gissella
+    - family-names: Salazar-Espinosa
+      given-names: Mauricio
+  collection-title: "Eighteenth International Conference on Machine Vision (ICMV 2025)"
+  publisher:
+    name: SPIE
+  volume: 14114
+  issue: "141140A"
+  doi: 10.1117/12.3096312
+  date-published: 2026-02-25
+  start: 69
+  end: 79
+  year: 2026
+references:
+  - type: conference-paper
+    title: "Word-level Deep Sign Language Recognition from Video: A New Large-scale Dataset and Methods Comparison"
+    authors:
+      - {family-names: Li, given-names: Dongxu}
+      - {family-names: Rodriguez, given-names: Cristian}
+      - {family-names: Yu, given-names: Xin}
+      - {family-names: Li, given-names: Hongdong}
+    collection-title: "IEEE/CVF Winter Conference on Applications of Computer Vision (WACV)"
+    start: 1459
+    end: 1469
+    year: 2020
+  - type: conference-paper
+    title: "MS-ASL: A Large-Scale Data Set and Benchmark for Understanding American Sign Language"
+    authors:
+      - {family-names: Vaezi Joze, given-names: Hamid Reza}
+      - {family-names: Koller, given-names: Oscar}
+    collection-title: "British Machine Vision Conference (BMVC)"
+    year: 2019
+  - type: conference-paper
+    title: "ASL Citizen: A Community-Sourced Dataset for Advancing Isolated Sign Language Recognition"
+    authors:
+      - {family-names: Desai, given-names: Aashaka}
+      - {family-names: Berger, given-names: Lauren}
+      - {family-names: Minakov, given-names: Fyodor}
+      - {family-names: Milano, given-names: Nessa}
+      - {family-names: Singh, given-names: Chinmay}
+      - {family-names: Pumphrey, given-names: Kriston}
+      - {family-names: Ladner, given-names: Richard}
+      - {family-names: Daumé, given-names: Hal, name-suffix: III}
+      - {family-names: Lu, given-names: Alex X.}
+      - {family-names: Caselli, given-names: Naomi}
+      - {family-names: Bragg, given-names: Danielle}
+    collection-title: "Advances in Neural Information Processing Systems 36 (NeurIPS 2023), Datasets and Benchmarks Track"
+    doi: 10.52202/075280-3360
+    start: 76893
+    end: 76907
+    year: 2023
+  - type: conference-paper
+    title: "LSA64: A Dataset of Argentinian Sign Language"
+    authors:
+      - {family-names: Ronchetti, given-names: Franco}
+      - {family-names: Quiroga, given-names: Facundo}
+      - {family-names: Estrebou, given-names: César}
+      - {family-names: Lanzarini, given-names: Laura}
+      - {family-names: Rosete, given-names: Alejandro}
+    collection-title: "XXII Congreso Argentino de Ciencias de la Computación (CACIC)"
+    year: 2016
+  - type: data
+    title: "Repositorio Lengua de Señas Peruana"
+    authors:
+      - {family-names: Rodríguez Mondoñedo, given-names: Miguel}
+      - {family-names: Arnaiz, given-names: Alexandra}
+    publisher:
+      name: "Pontificia Universidad Católica del Perú"
+    year: 2015
+  - type: conference-paper
+    title: "PeruSIL: A Framework to Build a Continuous Peruvian Sign Language Interpretation Dataset"
+    authors:
+      - {family-names: Bejarano, given-names: Gissella}
+      - {family-names: Huamani-Malca, given-names: Joe}
+      - {family-names: Cerna-Herrera, given-names: Francisco}
+      - {family-names: Alva-Manchego, given-names: Fernando}
+      - {family-names: Rivas, given-names: Pablo}
+    collection-title: "Proceedings of the 10th Workshop on the Representation and Processing of Sign Languages (sign-lang@LREC 2022)"
+    start: 1
+    end: 8
+    year: 2022

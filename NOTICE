@@ -1,0 +1,10 @@
+WholeBodyPose
+Copyright 2024-2026 Cristian Lazo Quispe and contributors
+
+Licensed under the Apache License, Version 2.0 (LICENSE).
+Code contributed up to version 1.0.0 is also available under the MIT License (LICENSES/MIT.txt).
+
+This product includes code adapted from rtmlib (https://github.com/Tau-J/rtmlib, Copyright 2018-2020
+Open-MMLab), onepose (https://github.com/developer0hye/onepose) and MMPose
+(https://github.com/open-mmlab/mmpose, Copyright OpenMMLab), all under the Apache License 2.0.
+See THIRD_PARTY.md.

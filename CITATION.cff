@@ -1,11 +1,13 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite the paper below."
+message: >-
+  If you use this software, the pose datasets or the demo, please cite the paper below (DOI 10.1117/12.3096312),
+  plus the pose backend you used and the source dataset of every pose subset you use.
 title: "WholeBodyPose"
 abstract: >-
   Unified whole-body (COCO-WholeBody, 133 keypoints) pose estimation with RTMPose, ViTPose and MediaPipe,
   with video processing, temporal filtering and visualization for sign language recognition.
 type: software
-license: MIT
+license: Apache-2.0
 version: 1.0.0
 repository-code: "https://github.com/CristianLazoQuispe/WholebodyPoseEstimation"
 url: "https://cristianlazoquispe.github.io/WholebodyPoseEstimation/"

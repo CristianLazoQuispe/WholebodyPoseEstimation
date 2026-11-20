@@ -1,7 +1,7 @@
 # ISLR pose datasets
 
-Pose sequences of six isolated sign language recognition (ISLR) benchmarks, extracted with
-WholeBodyPose for the ICMV 2025 paper, are published on the Hugging Face Hub:
+Pose sequences of five public isolated sign language recognition (ISLR) datasets (14 subsets, 42 split
+files), extracted with WholeBodyPose for the ICMV 2025 paper, are published on the Hugging Face Hub:
 [`CristianLazoQuispe/pose-action-recognition`](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition)
 (folder `ISLR/`). This page describes the files, how to load them, and how to rebuild them from the
 raw videos with `wholebodypose-build-islr`.
@@ -145,7 +145,8 @@ Any preset field can be overridden: `--no-legacy-rgb-input`, `--resize-width 640
 ## Sample lists
 
 The adapters in `wholebodypose.datasets.sources` rebuild the published sample lists from the
-original metadata. Checked against **every** published file (33 files): per split the sample
+original metadata. Checked against every file of the 11 subsets of the paper's Table 2 (33 files; MSASL500 and
+ASLCitizen1000, added later, were not part of this check): per split the sample
 counts, the set of `video_name`, every `label` and the `*_maplabels.json` content are identical;
 the group order is identical too, except WLASL (see above). Dataset-specific rules that the
 adapters encode:
@@ -234,7 +235,7 @@ Conclusions:
   detections (ASL Citizen: 99.0 % agreement); resizing to width 640 (the pre-1.0 `Video2Pose`
   default) was not used for these files. (The sampled ASL Citizen videos are 640 wide, so the
   resize is a no-op there.)
-- Thresholds 2.0 or 3.0 instead of 2.5 drop the detection agreement to 96.6-99.6 %: 2.5 is the
+- Thresholds 2.0 or 3.0 instead of 2.5 drop the detection agreement to 96.64-99.98 %: 2.5 is the
   published threshold.
 - First vs largest person: identical on these single-signer clips.
 - `T`, width and height match for every checked video.

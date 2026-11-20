@@ -9,12 +9,19 @@ This reproduces onepose's ``Model.forward`` for the COCO-WholeBody configs:
   ``use_udp=False``). onepose does not run flip test, so neither does this module.
 
 The graph itself (``scripts/export_vitpose_onnx.py``) maps ``(N, 3, 256, 192)`` to ``(N, 133, 64, 48)``.
+
+The pre- and post-processing are ports of onepose (https://github.com/developer0hye/onepose, itself
+based on ViTPose/MMPose), Apache License 2.0 (LICENSES/Apache-2.0.txt); see THIRD_PARTY.md.
 """
 
 from __future__ import annotations
 
 import cv2
 import numpy as np
+
+from wholebodypose.models.onnx_session import create_session, ort_providers, session_device
+
+__all__ = ["ViTPoseOnnx", "decode_heatmaps", "ort_providers", "preprocess"]
 
 INPUT_W, INPUT_H = 192, 256
 MEAN = np.array([0.485, 0.456, 0.406], np.float32)
@@ -80,15 +87,6 @@ def decode_heatmaps(heatmaps: np.ndarray, centers: np.ndarray, scales: np.ndarra
     return keypoints.astype(np.float32), maxvals.astype(np.float32)
 
 
-def ort_providers(device: str) -> list[str]:
-    """ONNX Runtime providers for ``device`` (``'auto'``/``'cuda'`` use CUDA when it is available)."""
-    import onnxruntime as ort
-
-    if device in ("auto", "cuda") and "CUDAExecutionProvider" in ort.get_available_providers():
-        return ["CUDAExecutionProvider", "CPUExecutionProvider"]
-    return ["CPUExecutionProvider"]
-
-
 class ViTPoseOnnx:
     """A ViTPose+ ONNX graph plus its NumPy pre/post-processing.
 
@@ -99,14 +97,9 @@ class ViTPoseOnnx:
     """
 
     def __init__(self, model_path: str, device: str = "auto", intra_op_num_threads: int = 0) -> None:
-        import onnxruntime as ort
-
-        opts = ort.SessionOptions()
-        opts.intra_op_num_threads = intra_op_num_threads
-        opts.log_severity_level = 3
-        self.session = ort.InferenceSession(str(model_path), sess_options=opts, providers=ort_providers(device))
+        self.session = create_session(model_path, device, intra_op_num_threads)
         self.input_name = self.session.get_inputs()[0].name
-        self.device = "cuda" if self.session.get_providers()[0] == "CUDAExecutionProvider" else "cpu"
+        self.device = session_device(self.session)
 
     def __call__(self, images_rgb: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
         """Pose of the person filling each image -> keypoints ``(N, 133, 2)``, scores ``(N, 133)``."""

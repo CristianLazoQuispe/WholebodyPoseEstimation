@@ -1,0 +1,8 @@
+# Crawlers only read robots.txt at the root of a host. This project page is served under
+# /WholebodyPoseEstimation/, so this copy is for reference; to take effect it has to be served at
+# https://cristianlazoquispe.github.io/robots.txt (the CristianLazoQuispe.github.io repository).
+# Everything may be crawled.
+User-agent: *
+Allow: /
+
+Sitemap: https://cristianlazoquispe.github.io/WholebodyPoseEstimation/sitemap.xml

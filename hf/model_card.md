@@ -1,5 +1,7 @@
 ---
-license: apache-2.0
+license: other
+license_name: apache-2.0-with-dataset-restrictions
+license_link: WEIGHTS_LICENSE.md
 library_name: wholebodypose
 pipeline_tag: keypoint-detection
 tags:
@@ -18,8 +20,9 @@ tags:
 This repository is a **byte-identical mirror** of the third-party model files that the
 [WholeBodyPose](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation) library downloads at run time.
 It exists only so that the results of the WholeBodyPose paper (ICMV 2025) stay reproducible if an upstream
-link moves or disappears. **We did not train, fine-tune, convert or modify any of these models.** All credit
-goes to their original authors, listed below; their licenses and terms apply.
+link moves or disappears. **We did not train, fine-tune or modify any of these models.** The only files we
+produced are the ViTPose+ ONNX exports (`vitpose/*.onnx`), converted from the upstream checkpoints without
+retraining. All credit goes to the original authors, listed below; their licenses and terms apply.
 
 | Resource | Link |
 |:--|:--|
@@ -35,6 +38,7 @@ goes to their original authors, listed below; their licenses and terms apply.
 | `rtmpose/rtmw-*.onnx` | RTMW (RTMPose for whole-body), ONNX export | Tao Jiang, Xinchen Xie, Yining Li (OpenMMLab) | [RTMW, arXiv:2407.08634](https://arxiv.org/abs/2407.08634); [RTMPose, arXiv:2303.07399](https://arxiv.org/abs/2303.07399) | [open-mmlab/mmpose](https://github.com/open-mmlab/mmpose/tree/main/projects/rtmpose) (download.openmmlab.com), as used by [rtmlib](https://github.com/Tau-J/rtmlib) | Apache-2.0 |
 | `rtmpose/yolox_*_humanart-*.onnx` | YOLOX-m / YOLOX-tiny person detectors trained on Human-Art, ONNX export | OpenMMLab (MMPose RTMPose project); YOLOX by Zheng Ge, Songtao Liu, Feng Wang, Zeming Li, Jian Sun | [YOLOX, arXiv:2107.08430](https://arxiv.org/abs/2107.08430); [Human-Art, CVPR 2023](https://arxiv.org/abs/2303.02760) | [open-mmlab/mmpose](https://github.com/open-mmlab/mmpose/tree/main/projects/rtmpose) (download.openmmlab.com) | Apache-2.0 |
 | `vitpose/splitted_vitpose+_*_coco_wholebody_half.pth` | ViTPose+ (S/B/L/H) COCO-WholeBody heads, fp16 checkpoints split per dataset head | Yufei Xu, Jing Zhang, Qiming Zhang, Dacheng Tao (ViTAE-Transformer); fp16 split by [developer0hye/onepose](https://github.com/developer0hye/onepose) | [ViTPose++, IEEE TPAMI 2024](https://arxiv.org/abs/2212.04246); [ViTPose, NeurIPS 2022](https://arxiv.org/abs/2204.12484) | [onepose release 1.0.0](https://github.com/developer0hye/onepose/releases/tag/1.0.0), from [ViTAE-Transformer/ViTPose](https://github.com/ViTAE-Transformer/ViTPose) | Apache-2.0 |
+| `vitpose/vitpose+_*_coco_wholebody.onnx` | The ViTPose+ (S/B/L/H) COCO-WholeBody models above, exported to ONNX (opset 17, dynamic batch) by WholeBodyPose's [`scripts/export_vitpose_onnx.py`](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/scripts/export_vitpose_onnx.py) | Same as ViTPose+ (export by the WholeBodyPose authors) | Same as ViTPose+ | This mirror only (no upstream file) | Apache-2.0 (as the source checkpoints) |
 | `mediapipe/*.task` | MediaPipe Tasks Pose (BlazePose GHUM heavy/full), Hand and Face landmarkers, float16 | Google (MediaPipe team) | [MediaPipe, arXiv:1906.08172](https://arxiv.org/abs/1906.08172); [BlazePose, arXiv:2006.10204](https://arxiv.org/abs/2006.10204); [MediaPipe Hands, arXiv:2006.10214](https://arxiv.org/abs/2006.10214); [Face mesh, arXiv:1907.06724](https://arxiv.org/abs/1907.06724) | [google-ai-edge/mediapipe](https://github.com/google-ai-edge/mediapipe), `storage.googleapis.com/mediapipe-models/.../float16/latest/` | Apache-2.0 (see the [MediaPipe model cards](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker#models)) |
 
 The models were trained by their authors on third-party datasets (e.g. COCO, COCO-WholeBody, Human-Art and
@@ -93,8 +97,8 @@ path = hf_hub_download(
 
 ## Citation
 
-If these files help your work, please cite the original papers of the model you use, and WholeBodyPose if
-you use the library:
+If these files help your work, please cite the original papers of the model you use, and WholeBodyPose
+(doi:[10.1117/12.3096312](https://doi.org/10.1117/12.3096312)) if you use the library:
 
 ```bibtex
 @inproceedings{lazo2026wholebodypose,
@@ -169,5 +173,14 @@ you use the library:
 
 ## License
 
-Each file keeps the license of its original release (Apache-2.0 for all files here, see the table above).
-This mirror adds no restrictions and claims no authorship. The WholeBodyPose code is MIT-licensed.
+Every file keeps the Apache-2.0 license of its original release ([WEIGHTS_LICENSE.md](WEIGHTS_LICENSE.md)).
+The ViTPose ONNX files are modified versions (converted to ONNX, no retraining) of the Apache-2.0 checkpoints.
+This mirror claims no authorship of the models.
+
+**Training data.** RTMW, the Human-Art YOLOX detectors and ViTPose+ were trained on datasets whose terms
+restrict commercial use (COCO-WholeBody: CC BY-NC 4.0; MPII: no commercial use; Human-Art: non-commercial).
+Commercial use of these weights is not guaranteed; check those terms first. The MediaPipe models have no such
+restriction.
+
+The WholeBodyPose library is licensed under Apache-2.0
+([docs/LICENSING.md](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/LICENSING.md)).

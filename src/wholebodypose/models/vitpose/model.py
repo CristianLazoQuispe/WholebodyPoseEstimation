@@ -52,16 +52,17 @@ class VITPoseModel(BasePoseModel):
     """Top-down ViTPose+ (COCO-WholeBody, 133 keypoints).
 
     By default (paper setting) the whole frame is treated as one person box. With
-    ``detector='yolox_m'`` (or ``'yolox_tiny'``) people are first detected with YOLOX (needs the
-    ``[rtmpose]`` extra) and ViTPose runs on each person crop, giving multi-person output.
+    ``detector='yolox_m'`` (or ``'yolox_tiny'``) people are first detected with YOLOX (ONNX Runtime,
+    core install) and ViTPose runs on each person crop, giving multi-person output.
 
     Two inference engines give the same keypoints up to float32 noise (see ``docs/guide/onnx.md``):
 
-    * ``'onnx'``: ONNX Runtime on the exported graph, NumPy/OpenCV pre- and post-processing
-      (``[vitpose-onnx]`` extra, no PyTorch);
-    * ``'torch'``: PyTorch through ``onepose`` (``[vitpose]`` extra), as in the paper;
-    * ``'auto'`` (default): ``'onnx'`` when ``onnxruntime`` is installed and the ``.onnx`` weight can be
-      found or downloaded, ``'torch'`` otherwise.
+    * ``'onnx'`` (default): ONNX Runtime on the exported graph, NumPy/OpenCV pre- and post-processing
+      (core install, no PyTorch);
+    * ``'torch'``: PyTorch through ``onepose``, as in the paper (reference path: ``[vitpose-torch]``
+      extra plus a manual ``onepose`` install, see ``docs/guide/installation.md``);
+    * ``'auto'``: ``'onnx'`` when the ``.onnx`` weight can be found or downloaded, ``'torch'``
+      otherwise (and ``'torch'`` when only PyTorch can use the GPU).
 
     Args:
         device: ``'auto'``, ``'cuda'`` or ``'cpu'``.
@@ -73,7 +74,8 @@ class VITPoseModel(BasePoseModel):
         max_people: Keep at most this many detections (largest boxes first); ``None`` = all.
         det_score_thr: YOLOX score threshold.
         box_padding: Relative padding added around each detected box before cropping.
-        engine: ``'auto'``, ``'onnx'`` or ``'torch'``.
+        engine: ``'onnx'`` (default), ``'torch'`` or ``'auto'``.
+        intra_op_num_threads: ONNX Runtime CPU threads per session (``0`` = onnxruntime's default).
     """
 
     name = "vitpose"
@@ -89,7 +91,8 @@ class VITPoseModel(BasePoseModel):
         max_people: int | None = None,
         det_score_thr: float = 0.5,
         box_padding: float = 0.25,
-        engine: str = "auto",
+        engine: str = "onnx",
+        intra_op_num_threads: int = 0,
     ) -> None:
         super().__init__(use_thresholding=use_thresholding, kpt_thr=kpt_thr)
         if model_name not in MODEL_NAMES:
@@ -99,6 +102,7 @@ class VITPoseModel(BasePoseModel):
         self.model_name = model_name
         self.model = None
         self.onnx = None
+        self.intra_op_num_threads = intra_op_num_threads
 
         onnx_error: Exception | None = None
         if engine == "auto" and _torch_cuda_only(device):
@@ -119,15 +123,21 @@ class VITPoseModel(BasePoseModel):
         self.box_padding = box_padding
         self.detector = None
         if detector is not None:
-            self.detector = _load_yolox(detector, self.device, det_score_thr, verbose)
+            self.detector = _load_yolox(detector, self.device, det_score_thr, verbose, intra_op_num_threads)
 
     def _load_onnx(self, device: str, verbose: bool) -> None:
         if not _has_module("onnxruntime"):
-            raise ImportError("ViTPose engine='onnx' needs: pip install 'wholebodypose[vitpose-onnx]'")
+            raise ImportError("ViTPose engine='onnx' needs onnxruntime: pip install onnxruntime")
         from wholebodypose.models.vitpose.onnx_runtime import ViTPoseOnnx
 
-        path = get_weight(onnx_weight_key(self.model_name), verbose=verbose)
-        self.onnx = ViTPoseOnnx(str(path), device=device)
+        try:
+            path = get_weight(onnx_weight_key(self.model_name), verbose=verbose)
+        except (RuntimeError, FileNotFoundError) as e:
+            raise RuntimeError(
+                f"{e}\nThe ViTPose .onnx files come only from the WholeBodyPose weight mirror. Put the file in "
+                "$WHOLEBODYPOSE_HOME (docs/guide/weights.md) or use engine='auto' / 'torch' (PyTorch + onepose)."
+            ) from e
+        self.onnx = ViTPoseOnnx(str(path), device=device, intra_op_num_threads=self.intra_op_num_threads)
         self.device = self.onnx.device
 
     def _load_torch(self, device: str, verbose: bool, onnx_error: Exception | None) -> None:
@@ -136,7 +146,8 @@ class VITPoseModel(BasePoseModel):
         except ImportError as e:  # pragma: no cover - depends on extras
             hint = f" (ONNX engine unavailable: {onnx_error})" if onnx_error else ""
             raise ImportError(
-                "ViTPose backend needs: pip install 'wholebodypose[vitpose-onnx]' or 'wholebodypose[vitpose]'" + hint
+                "ViTPose engine='torch' needs PyTorch and onepose: pip install 'wholebodypose[vitpose-torch]' "
+                "plus onepose from GitHub (docs/guide/installation.md); engine='onnx' needs neither" + hint
             ) from e
         if verbose and onnx_error is not None:
             print(f"[wholebodypose] ViTPose: using PyTorch ({onnx_error})")
@@ -161,7 +172,7 @@ class VITPoseModel(BasePoseModel):
             return self._pose_on_crops([image_rgb])
 
         h, w = image_rgb.shape[:2]
-        # rtmlib's YOLOX expects BGR.
+        # YOLOX expects BGR.
         boxes = np.asarray(self.detector(cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)), np.float32).reshape(-1, 4)
         areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
         boxes = boxes[np.argsort(-areas)][: self.max_people]
@@ -184,23 +195,20 @@ class VITPoseModel(BasePoseModel):
 DETECTORS = {"yolox_m": ("yolox_m", (640, 640)), "yolox_tiny": ("yolox_tiny", (416, 416))}
 
 
-def _load_yolox(name: str, device: str, score_thr: float, verbose: bool):
-    """rtmlib YOLOX person detector with WholeBodyPose-managed weights."""
+def _load_yolox(name: str, device: str, score_thr: float, verbose: bool, intra_op_num_threads: int = 0):
+    """YOLOX person detector (vendored rtmlib code on ONNX Runtime) with WholeBodyPose-managed weights."""
     if name not in DETECTORS:
         raise ValueError(f"detector must be one of {list(DETECTORS)} or None, got {name!r}")
-    try:
-        from rtmlib import YOLOX
-    except ImportError as e:  # pragma: no cover - depends on extras
-        raise ImportError("The ViTPose person detector needs: pip install 'wholebodypose[rtmpose]'") from e
+    from wholebodypose.models.rtmpose._onnx import YOLOX
+
     key, size = DETECTORS[name]
-    det = YOLOX(
-        onnx_model=str(get_weight(key, verbose=verbose)),
+    return YOLOX(
+        str(get_weight(key, verbose=verbose)),
         model_input_size=size,
-        backend="onnxruntime",
+        score_thr=score_thr,
         device="cuda" if device == "cuda" else "cpu",
+        intra_op_num_threads=intra_op_num_threads,
     )
-    det.score_thr = score_thr
-    return det
 
 
 def _torch_cuda_only(device: str) -> bool:
