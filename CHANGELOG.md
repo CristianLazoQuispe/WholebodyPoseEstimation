@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-20
+
 ### License
 - Code licensed under Apache-2.0 (was MIT); code contributed up to 1.0.0 remains available under MIT
   (`LICENSES/MIT.txt`). New `NOTICE` and [docs/LICENSING.md](docs/LICENSING.md).

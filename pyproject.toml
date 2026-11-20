@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wholebodypose"
-version = "1.1.0.dev0"
+version = "1.1.0"
 description = "Unified whole-body (COCO-WholeBody, 133 keypoints) pose estimation with RTMPose, ViTPose and MediaPipe — ICMV 2025."
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
@@ -18,7 +18,7 @@ authors = [
 ]
 keywords = ["pose estimation", "whole-body", "coco-wholebody", "sign language", "rtmpose", "vitpose", "mediapipe"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",

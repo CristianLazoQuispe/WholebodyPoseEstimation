@@ -8,7 +8,8 @@ abstract: >-
   with video processing, temporal filtering and visualization for sign language recognition.
 type: software
 license: Apache-2.0
-version: 1.0.0
+version: 1.1.0
+date-released: 2026-11-20
 repository-code: "https://github.com/CristianLazoQuispe/WholebodyPoseEstimation"
 url: "https://cristianlazoquispe.github.io/WholebodyPoseEstimation/"
 keywords: [pose estimation, whole-body, sign language recognition, COCO-WholeBody]
