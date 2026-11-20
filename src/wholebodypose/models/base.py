@@ -66,8 +66,18 @@ def cuda_available() -> bool:
         return False
 
 
-def resolve_device(device: str = "auto") -> str:
-    """Map ``'auto'`` to ``'cuda'`` or ``'cpu'`` and fall back to CPU if CUDA is missing."""
-    if device in ("auto", "cuda") and cuda_available():
-        return "cuda"
-    return "cpu"
+def resolve_device(device: str = "auto", framework: str = "any") -> str:
+    """Map ``'auto'`` to ``'cuda'`` or ``'cpu'`` and fall back to CPU if CUDA is missing.
+
+    ``framework='torch'`` only accepts CUDA when PyTorch itself can use it.
+    """
+    if device not in ("auto", "cuda"):
+        return "cpu"
+    if framework == "torch":
+        try:
+            import torch
+
+            return "cuda" if torch.cuda.is_available() else "cpu"
+        except ImportError:
+            return "cpu"
+    return "cuda" if cuda_available() else "cpu"

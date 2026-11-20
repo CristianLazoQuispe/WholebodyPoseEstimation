@@ -20,6 +20,12 @@ First stable release, consolidating the library, project page and demo of the IC
 - MediaPipe Tasks engine (works with every current MediaPipe release; the legacy `mp.solutions` API was
   removed in MediaPipe 0.10.30). `engine="auto"` keeps the paper's `solutions` engine when available.
 - `Video2Pose`: `resize_width`, `max_frames`, `progress` callback, `web_compatible` H.264 output, model reuse.
+- `ensure_constant_fps`: variable-frame-rate inputs (webcam/browser WebM) are re-encoded before processing.
+- Documentation (`docs/`), runnable `examples/`, Docker images that install the package, pre-commit, CONTRIBUTING,
+  issue/PR templates, Dependabot, release workflow.
+- Hugging Face tooling (`hf/`): weight mirror with pinned SHA-256 for every file, model card, dataset card,
+  and the demo Space (`hf/space/`) rebuilt on the v1 API and deployed + smoke-tested by CI.
+- Project page (`website/`) deployed to GitHub Pages; the old `wholebodypose.github.io` page redirects to it.
 - Test suite (unit tests without downloads + `slow` real-backend tests), CI, GitHub Pages deployment,
   automatic Hugging Face Space deployment.
 

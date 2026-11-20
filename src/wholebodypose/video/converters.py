@@ -73,3 +73,54 @@ def convert_mp4_to_mov(input_path: str | Path, output_dir: str | Path, overwrite
     dst = out_dir / f"{src.stem}.mov"
     cmd = [exe, "-loglevel", "error", "-i", str(src), "-f", "mov"] + (["-y"] if overwrite else ["-n"]) + [str(dst)]
     return _run(cmd), str(dst)
+
+
+def ensure_constant_fps(
+    input_path: str | Path, output_dir: str | Path | None = None, target_fps: float = 30.0, max_fps: float = 120.0
+) -> tuple[str, bool]:
+    """Re-encode variable-frame-rate videos (e.g. browser/webcam WebM) to a constant frame rate.
+
+    OpenCV reports a bogus FPS (often 1000) for VFR WebM files, which breaks sub-sampling and
+    output timing. If the reported FPS is missing or above ``max_fps`` the video is converted to
+    ``target_fps`` with ffmpeg. Returns ``(path, converted)``; the input is returned unchanged
+    when it looks fine or ffmpeg is unavailable.
+    """
+    import cv2
+
+    src = Path(input_path)
+    cap = cv2.VideoCapture(str(src))
+    fps = cap.get(cv2.CAP_PROP_FPS) if cap.isOpened() else 0.0
+    cap.release()
+    if 0 < fps <= max_fps:
+        return str(src), False
+    exe = ffmpeg_exe()
+    if exe is None:
+        return str(src), False
+    out_dir = Path(output_dir) if output_dir else src.parent
+    out_dir.mkdir(parents=True, exist_ok=True)
+    dst = out_dir / f"{src.stem}_cfr.mp4"
+    ok = _run(
+        [
+            exe,
+            "-y",
+            "-loglevel",
+            "error",
+            "-i",
+            str(src),
+            "-fps_mode",
+            "cfr",
+            "-r",
+            str(target_fps),
+            "-an",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "veryfast",
+            "-crf",
+            "18",
+            "-pix_fmt",
+            "yuv420p",
+            str(dst),
+        ]
+    )
+    return (str(dst), True) if ok else (str(src), False)

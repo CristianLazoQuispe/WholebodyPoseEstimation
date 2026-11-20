@@ -36,9 +36,9 @@ videos into training-ready pose sequences.
 ```python
 from wholebodypose import PoseEstimator
 
-est = PoseEstimator("rtmpose")                         # or "vitpose", "mediapipe"
-keypoints, scores = est.predict_image("person.jpg")    # (N, 133, 2), (N, 133)
-res = est.process_video("sign.mp4", "outputs/")        # res["total_keypoints"]: (T, 133, 2)
+est = PoseEstimator("rtmpose")  # or "vitpose", "mediapipe"
+keypoints, scores = est.predict_image("person.jpg")  # (N, 133, 2), (N, 133)
+res = est.process_video("sign.mp4", "outputs/")  # res["total_keypoints"]: (T, 133, 2)
 ```
 
 ## Backends
@@ -53,7 +53,9 @@ Multi-person mode works with every backend and adds stable person IDs in videos:
 
 ```python
 est = PoseEstimator("vitpose", multiperson=True, max_people=4)
-res = est.process_video("dance.mp4", "outputs/")   # res["total_keypoints"][t]: (N_t, 133, 2), res["track_ids"][t]: (N_t,)
+res = est.process_video(
+    "dance.mp4", "outputs/"
+)  # res["total_keypoints"][t]: (N_t, 133, 2), res["track_ids"][t]: (N_t,)
 ```
 
 All backends take an **RGB** image and return `float32` pixel coordinates in COCO-WholeBody order;
@@ -145,7 +147,7 @@ Upload a video or an image, pick a backend and get the skeleton overlay plus the
 The Space is built from [`hf/space/`](hf/space) by CI; run it locally with
 
 ```bash
-pip install -e ".[demo]" && python hf/space/app.py
+pip install -e ".[demo]" && python hf/space/app.py   # [demo] includes all three backends
 ```
 
 ## Repository layout
@@ -185,11 +187,15 @@ If you use WholeBodyPose, please cite:
   journal = {arXiv preprint arXiv:2407.08634},
   year    = {2024}
 }
-@article{xu2023vitpose++,
+@article{xu2024vitpose++,
   title   = {ViTPose++: Vision Transformer for Generic Body Pose Estimation},
   author  = {Xu, Yufei and Zhang, Jing and Zhang, Qiming and Tao, Dacheng},
   journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
-  year    = {2023}
+  volume  = {46},
+  number  = {2},
+  pages   = {1212--1230},
+  year    = {2024},
+  doi     = {10.1109/TPAMI.2023.3330016}
 }
 @article{lugaresi2019mediapipe,
   title   = {MediaPipe: A Framework for Building Perception Pipelines},

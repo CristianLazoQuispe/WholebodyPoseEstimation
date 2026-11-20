@@ -33,3 +33,4 @@ outputs/
 *.h5
 *.hdf5
 hf/_staging/
+.claude/

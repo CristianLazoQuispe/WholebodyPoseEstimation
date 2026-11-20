@@ -46,9 +46,10 @@ vitpose = [
 mediapipe = ["mediapipe>=0.10.14"]
 filters = ["padasip>=1.2,<2"]
 video = ["imageio-ffmpeg>=0.5"]
-demo = ["gradio>=5", "wholebodypose[rtmpose,mediapipe,video]"]
+demo = ["gradio>=6", "gradio_client>=1", "wholebodypose[rtmpose,mediapipe,vitpose,video]"]
+hf = ["huggingface_hub>=0.25"]
 all = ["wholebodypose[rtmpose,vitpose,mediapipe,filters,video]"]
-dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.8", "pre-commit>=3", "build>=1.2"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff==0.17.6", "pre-commit>=3", "build>=1.2", "wholebodypose[hf]"]
 
 [project.scripts]
 wholebodypose = "wholebodypose.cli:main"

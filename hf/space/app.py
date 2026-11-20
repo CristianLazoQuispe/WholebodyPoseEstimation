@@ -23,6 +23,7 @@ import ui
 from wholebodypose import Video2Pose, __version__, create_model, save_poses
 from wholebodypose.models.base import BasePoseModel
 from wholebodypose.utils.vision import DrawerPose
+from wholebodypose.video.converters import ensure_constant_fps
 from wholebodypose.video.video2pose import BACKGROUND_COLORS, select_largest_person
 
 EXAMPLES = Path(__file__).parent / "examples"
@@ -106,6 +107,9 @@ def estimate_video(
         raise gr.Error("Upload a video, record one with the webcam or pick an example.")
     multiperson = _check_backend(backend, multiperson)
 
+    original_name = Path(video).stem.removeprefix("muted_")
+    # webcam recordings are VFR WebM files whose FPS OpenCV misreads; normalize them first
+    video, _ = ensure_constant_fps(video, tempfile.mkdtemp(prefix="wbp_in_"))
     cap = cv2.VideoCapture(video)
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     n_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -144,7 +148,7 @@ def estimate_video(
 
     people = [len(k) for k in res["total_keypoints"]] if multiperson else [1] * res["n_frames"]
     detected = [int((np.asarray(s) > 0).any()) for s in res["total_scores"]]
-    stem = f"{Path(video).stem}_{backend}"
+    stem = f"{original_name}_{backend}"
     files = _save_keypoints(
         out_dir,
         stem,
@@ -273,6 +277,7 @@ def build_demo() -> gr.Blocks:
                     [video_in, *video_controls],
                     [video_out, video_files, video_summary],
                     api_name="video",
+                    concurrency_id="inference",
                 )
 
             with gr.Tab("📷 Image"):
@@ -294,6 +299,7 @@ def build_demo() -> gr.Blocks:
                     estimate_image,
                     [image_in, *image_controls],
                     [image_out, image_files, image_summary],
+                    concurrency_id="inference",
                     api_name="image",
                 )
 

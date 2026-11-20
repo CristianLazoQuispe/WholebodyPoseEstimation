@@ -263,3 +263,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 15.5px; font-vari
   .paper-thumb { max-width: 150px; margin: 0 auto; }
   .paper-meta { text-align: center; }
 }
+
+@media (max-width: 480px) {
+  /* icon-only control so it does not cover the bottom-right panel */
+  .teaser-ctl { right: 6px; bottom: 6px; height: 26px; padding: 0 8px; gap: 0; font-size: 0; }
+}

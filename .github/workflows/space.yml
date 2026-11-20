@@ -10,6 +10,9 @@ on:
       - ".github/workflows/space.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: hf-space
   cancel-in-progress: false

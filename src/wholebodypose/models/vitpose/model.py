@@ -76,7 +76,7 @@ class VITPoseModel(BasePoseModel):
         if model_name not in MODEL_NAMES:
             raise ValueError(f"model_name must be one of {list(MODEL_NAMES)}, got {model_name!r}")
 
-        self.device = resolve_device(device)
+        self.device = resolve_device(device, framework="torch")
         self.model_name = model_name
         _prefetch_onepose_weights(model_name, verbose)
         self.model = onepose.create_model(model_name=model_name).to(self.device)

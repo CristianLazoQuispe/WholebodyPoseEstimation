@@ -110,7 +110,7 @@ WEIGHTS: dict[str, WeightFile] = {
         _wf(
             "mp_pose_heavy",
             "mediapipe/pose_landmarker_heavy.task",
-            f"{_MEDIAPIPE}/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task",
+            f"{_MEDIAPIPE}/pose_landmarker/pose_landmarker_heavy/float16/1/pose_landmarker_heavy.task",
             "64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b",
             "Google MediaPipe",
         ),
@@ -124,14 +124,14 @@ WEIGHTS: dict[str, WeightFile] = {
         _wf(
             "mp_hand",
             "mediapipe/hand_landmarker.task",
-            f"{_MEDIAPIPE}/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task",
+            f"{_MEDIAPIPE}/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
             "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
             "Google MediaPipe",
         ),
         _wf(
             "mp_face",
             "mediapipe/face_landmarker.task",
-            f"{_MEDIAPIPE}/face_landmarker/face_landmarker/float16/latest/face_landmarker.task",
+            f"{_MEDIAPIPE}/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
             "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff",
             "Google MediaPipe",
         ),
@@ -142,7 +142,7 @@ WEIGHTS: dict[str, WeightFile] = {
 def cache_dir() -> Path:
     """Local folder where weights are stored."""
     root = os.environ.get("WHOLEBODYPOSE_HOME") or Path.home() / ".cache" / "wholebodypose"
-    return Path(root)
+    return Path(root).expanduser()
 
 
 def sha256sum(path: str | Path, chunk: int = 1 << 20) -> str:

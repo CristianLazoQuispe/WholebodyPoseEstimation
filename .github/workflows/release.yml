@@ -62,12 +62,16 @@ jobs:
             echo "See [CHANGELOG.md](CHANGELOG.md)." > "$RUNNER_TEMP/notes.md"
           fi
           cat "$RUNNER_TEMP/notes.md"
+      - name: Pre-release? (PEP 440)
+        id: pre
+        run: |
+          if [[ "${GITHUB_REF_NAME#v}" =~ (a|b|rc|\.dev)[0-9]*$ ]]; then echo "flag=true" >> "$GITHUB_OUTPUT"; else echo "flag=false" >> "$GITHUB_OUTPUT"; fi
       - uses: softprops/action-gh-release@v2
         with:
           name: WholeBodyPose ${{ github.ref_name }}
           body_path: ${{ runner.temp }}/notes.md
           files: dist/*
-          prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'a') || contains(github.ref_name, 'b') }}
+          prerelease: ${{ steps.pre.outputs.flag == 'true' }}
 
   # Disabled: PyPI rejects packages whose metadata has direct URL dependencies, and the `vitpose`
   # extra depends on `onepose @ git+https://...`. Enable once onepose is on PyPI (or the extra is

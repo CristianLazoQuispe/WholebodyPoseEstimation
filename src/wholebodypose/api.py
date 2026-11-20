@@ -159,17 +159,21 @@ class PoseEstimator:
 
     def draw(
         self,
-        image_rgb: np.ndarray,
+        image: np.ndarray,
         keypoints: np.ndarray,
         scores: np.ndarray,
         kpt_thr: float = 0.5,
         radius: int = 2,
         line_width: int = 2,
     ) -> np.ndarray:
-        """Return a copy of ``image_rgb`` with the skeleton(s) drawn."""
+        """Return a copy of ``image`` with the skeleton(s) drawn.
+
+        Skeleton colors are defined in BGR (OpenCV convention), so pass a BGR image to get the
+        documented colors (as the CLI does before ``cv2.imwrite``); RGB works but swaps red/blue.
+        """
         from wholebodypose.utils.vision import DrawerPose
 
-        img = np.ascontiguousarray(image_rgb).copy()
+        img = np.ascontiguousarray(image).copy()
         if len(keypoints) == 0:
             return img
         return DrawerPose(mode_coco=self.mode_coco)(img, keypoints, scores, kpt_thr, radius, line_width)

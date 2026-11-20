@@ -46,7 +46,7 @@ cache. When a SHA-256 is pinned for a file, a mismatch deletes it and the next s
 All of them are Apache-2.0 (see [THIRD_PARTY.md](../../THIRD_PARTY.md)). The MediaPipe `solutions`
 engine ships its models inside the `mediapipe` wheel and downloads nothing.
 
-ViTPose: `onepose` loads checkpoints from its own package folder (`onepose/weights/`). WholeBodyPose
+ViTPose: `onepose` loads checkpoints from its own package folder (`onepose/models/weights/`). WholeBodyPose
 fetches the file through `get_weight` and copies it there before building the model; if that fails,
 onepose downloads it from its upstream URL itself.
 
@@ -71,7 +71,7 @@ export WHOLEBODYPOSE_HOME=/data/wbp
 export WHOLEBODYPOSE_OFFLINE=1
 ```
 
-For ViTPose offline, also run the model once online (or copy `onepose/weights/`), since onepose reads
+For ViTPose offline, also run the model once online (or copy `onepose/models/weights/`), since onepose reads
 from its own folder.
 
 In CI, cache `~/.cache/wholebodypose` between runs (the repository's

@@ -219,6 +219,14 @@ class Video2Pose:
         """
         if not os.path.exists(filepath):
             raise FileNotFoundError(filepath)
+        source_path = filepath
+        cfr_dir = None
+        from wholebodypose.video.converters import ensure_constant_fps
+
+        cfr_dir = tempfile.mkdtemp(prefix="wbp_cfr_")
+        filepath, converted = ensure_constant_fps(filepath, cfr_dir)
+        if converted:
+            self._log("variable frame rate input re-encoded to 30 fps")
         vid = cv2.VideoCapture(filepath)
         if not vid.isOpened():
             raise ValueError(f"Failed to open video file: {filepath}")
@@ -231,7 +239,7 @@ class Video2Pose:
         fps = vid.get(cv2.CAP_PROP_FPS) or 30.0
         total = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
         results: dict = {
-            "filepath": filepath,
+            "filepath": source_path,
             "width": int(vid.get(cv2.CAP_PROP_FRAME_WIDTH)),
             "height": int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT)),
             "fps": fps,
@@ -329,6 +337,8 @@ class Video2Pose:
             vid.release()
             if writer is not None:
                 writer.release()
+            if cfr_dir is not None and not converted:
+                shutil.rmtree(cfr_dir, ignore_errors=True)
             if show:
                 cv2.destroyAllWindows()
 
@@ -344,7 +354,7 @@ class Video2Pose:
             results["total_scores"] = np.array(sc_list, np.float32).reshape(-1, 133)
 
         if folder_results and tmp_path:
-            out_path = str(Path(folder_results) / f"{Path(filepath).stem}_{self.model_name}.mp4")
+            out_path = str(Path(folder_results) / f"{Path(source_path).stem}_{self.model_name}.mp4")
             if web_compatible:
                 from wholebodypose.video.converters import reencode_for_web
 
@@ -362,4 +372,6 @@ class Video2Pose:
                 ok, mov = convert_mp4_to_mov(out_path, folder_results)
                 if ok:
                     results["filepath_result_mov"] = mov
+        if cfr_dir is not None:
+            shutil.rmtree(cfr_dir, ignore_errors=True)
         return results
