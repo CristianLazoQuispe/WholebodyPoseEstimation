@@ -12,6 +12,9 @@ docs/
 │   ├── keypoints.md        COCO-WholeBody 133 layout and the 135-point variant
 │   ├── video-pipeline.md   Video2Pose options and outputs, save/load formats, filtering
 │   └── weights.md          Hugging Face mirror, cache, offline use
+├── datasets/
+│   ├── README.md           ISLR pose datasets: HDF5 schema, loading, rebuilding from videos
+│   └── wlasl.md            WLASL provenance and processing
 └── assets/                 figures used by the README, the guides and the project page
 ```
 
@@ -25,6 +28,7 @@ docs/
 | turn sign language videos into training sequences | [guide/video-pipeline.md](guide/video-pipeline.md) |
 | smooth keypoints (NLMS) or drop bad frames | [guide/video-pipeline.md#filtering](guide/video-pipeline.md#filtering) |
 | run on a machine without internet, or mirror the weights | [guide/weights.md](guide/weights.md) |
-| use the pose datasets of the paper | the [dataset card](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition) and [guide/keypoints.md](guide/keypoints.md#the-135-point-variant) |
+| use the pose datasets of the paper | [datasets/README.md](datasets/README.md), the [dataset card](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition) |
+| rebuild the pose datasets from the raw videos | [datasets/README.md#rebuilding-from-videos](datasets/README.md#rebuilding-from-videos) |
 | add a backend or send a fix | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | read the paper | the [project page](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/) |
