@@ -3,7 +3,7 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
-## [1.0.0] - unreleased
+## [1.0.0] - 2026-11-19
 
 First stable release, consolidating the library, project page and demo of the ICMV 2025 paper in one repository.
 
