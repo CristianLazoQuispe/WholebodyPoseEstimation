@@ -36,6 +36,9 @@ def test_falls_back_to_upstream_and_extracts_zip(home, monkeypatch):
         with zipfile.ZipFile(dst, "w") as zf:
             zf.writestr("pkg/rtmw-dw-l-m_simcc-cocktail14_270e-256x192_20231122.onnx", b"onnx")
 
+    w = weights.WEIGHTS["rtmw_l_256"]
+    fake = weights.WeightFile(w.key, w.filename, w.upstream, sha256=hashlib.sha256(b"onnx").hexdigest())
+    monkeypatch.setitem(weights.WEIGHTS, "rtmw_l_256", fake)
     monkeypatch.setattr(weights, "_download", fake_download)
     path = weights.get_weight("rtmw_l_256", verbose=False)
     assert path.read_bytes() == b"onnx" and len(calls) == 2

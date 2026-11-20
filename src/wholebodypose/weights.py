@@ -46,6 +46,16 @@ def _wf(key, filename, upstream, sha256=None, source=""):
     return WeightFile(key, filename, upstream, sha256, "Apache-2.0", source)
 
 
+# SHA-256 of the onepose fp16 ViTPose+ whole-body files. Measured on the upstream downloads,
+# whose MD5 also match the 'hash' values in ``onepose.models.factory.model_config``.
+_VITPOSE_SHA256 = {
+    "small": "827d10b1aef3759c5aaeb790a4bfce75b86f136f8446f105c49e7cf327a26a4c",
+    "base": "461a67e2c5b7f8c0a3a29df06d9036a82bae1e8e4298f4747e9c77c8f29864f5",
+    "large": "53b138636b34d3b1c926e42dc446f34e9135524b4cacd1f8b0bd09d14cfb8952",
+    "huge": "712a9ccb350f295e9036302adb38be9179502c264db01600aa39c483dd0f782a",
+}
+
+
 WEIGHTS: dict[str, WeightFile] = {
     w.key: w
     for w in [
@@ -54,35 +64,35 @@ WEIGHTS: dict[str, WeightFile] = {
             "yolox_m",
             "rtmpose/yolox_m_8xb8-300e_humanart-c2c7a14a.onnx",
             f"{_MMPOSE}/rtmposev1/onnx_sdk/yolox_m_8xb8-300e_humanart-c2c7a14a.zip",
-            None,
+            "3dea6513388889f0fff4b77bf7a26013600321b9eb9ceb0e9a400a82572f5f23",
             "OpenMMLab mmpose",
         ),
         _wf(
             "yolox_tiny",
             "rtmpose/yolox_tiny_8xb8-300e_humanart-6f3252f9.onnx",
             f"{_MMPOSE}/rtmposev1/onnx_sdk/yolox_tiny_8xb8-300e_humanart-6f3252f9.zip",
-            None,
+            "ceb11c07298f95c50d7c5abeb906d03340c85f23aa79e3e66966e7fb6c307250",
             "OpenMMLab mmpose",
         ),
         _wf(
             "rtmw_x_384",
             "rtmpose/rtmw-dw-x-l_simcc-cocktail14_270e-384x288_20231122.onnx",
             f"{_MMPOSE}/rtmw/onnx_sdk/rtmw-dw-x-l_simcc-cocktail14_270e-384x288_20231122.zip",
-            None,
+            "bd033156e5104c4f5d2edfe0453e02661e30a2f3da453ec93c8764d561b83054",
             "OpenMMLab mmpose",
         ),
         _wf(
             "rtmw_x_256",
             "rtmpose/rtmw-dw-x-l_simcc-cocktail14_270e-256x192_20231122.onnx",
             f"{_MMPOSE}/rtmw/onnx_sdk/rtmw-dw-x-l_simcc-cocktail14_270e-256x192_20231122.zip",
-            None,
+            "9a9bc17c13ff0a1e37507f45a037a21bc410cd08374b0e664c57d0080843aa58",
             "OpenMMLab mmpose",
         ),
         _wf(
             "rtmw_l_256",
             "rtmpose/rtmw-dw-l-m_simcc-cocktail14_270e-256x192_20231122.onnx",
             f"{_MMPOSE}/rtmw/onnx_sdk/rtmw-dw-l-m_simcc-cocktail14_270e-256x192_20231122.zip",
-            None,
+            "68db326c5c6f3273456f803eae0faf5440478369f2c3ee67258d2f36512e8d76",
             "OpenMMLab mmpose",
         ),
         # --- ViTPose+ whole-body (half precision, via onepose) ----------------------------
@@ -91,38 +101,38 @@ WEIGHTS: dict[str, WeightFile] = {
                 f"vitpose_{size}",
                 f"vitpose/splitted_vitpose+_{size}_coco_wholebody_half.pth",
                 f"{_ONEPOSE}/splitted_vitpose+_{size}_coco_wholebody_half.pth",
-                None,
+                sha,
                 "ViTPose / onepose",
             )
-            for size in ("small", "base", "large", "huge")
+            for size, sha in _VITPOSE_SHA256.items()
         ],
         # --- MediaPipe Tasks models --------------------------------------------------------
         _wf(
             "mp_pose_heavy",
             "mediapipe/pose_landmarker_heavy.task",
             f"{_MEDIAPIPE}/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task",
-            None,
+            "64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b",
             "Google MediaPipe",
         ),
         _wf(
             "mp_pose_full",
             "mediapipe/pose_landmarker_full.task",
             f"{_MEDIAPIPE}/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task",
-            None,
+            "4eaa5eb7a98365221087693fcc286334cf0858e2eb6e15b506aa4a7ecdcec4ad",
             "Google MediaPipe",
         ),
         _wf(
             "mp_hand",
             "mediapipe/hand_landmarker.task",
             f"{_MEDIAPIPE}/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task",
-            None,
+            "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1",
             "Google MediaPipe",
         ),
         _wf(
             "mp_face",
             "mediapipe/face_landmarker.task",
             f"{_MEDIAPIPE}/face_landmarker/face_landmarker/float16/latest/face_landmarker.task",
-            None,
+            "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff",
             "Google MediaPipe",
         ),
     ]
