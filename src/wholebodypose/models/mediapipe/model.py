@@ -1,170 +1,320 @@
-from .map_mp2coco import MP2COCO
-from typing import List,Dict
-import mediapipe as mp
+"""MediaPipe whole-body backend (pose + hands + face mesh mapped to COCO-WholeBody).
+
+Two engines are supported:
+
+* ``"solutions"`` - the legacy ``mp.solutions`` API used in the paper (``mediapipe<0.10.30``);
+* ``"tasks"`` - the MediaPipe Tasks API (``PoseLandmarker`` heavy, ``HandLandmarker``,
+  ``FaceLandmarker``), available in every current MediaPipe release.
+
+``engine="auto"`` picks ``solutions`` when it is installed and ``tasks`` otherwise.
+"""
+
+from __future__ import annotations
+
+import contextlib
 import copy
+import os
+import weakref
 
-# Default configurations
-default_face_config = {
-    'min_detection_confidence': 0.5,
-    'min_tracking_confidence': 0.5,
-    'max_num_faces': 1,
-    'refine_landmarks':False
-}
-default_hands_config = {
-    'min_detection_confidence': 0.3,
-    'min_tracking_confidence': 0.3,
-    'max_num_hands': 2,
-    'model_complexity': 1
-}
-default_pose_config = {
-    'min_detection_confidence': 0.3,
-    'min_tracking_confidence': 0.3,
-    'model_complexity': 2,
-    'smooth_landmarks':True,
-    'enable_segmentation':False,
-    'smooth_segmentation':True
-}
+import numpy as np
 
-default_draw_config = {
-    'circle_radius':1,
-    'thickness':1,
-    'color':(255,0,0)
-}
+from wholebodypose.models.base import BasePoseModel
+from wholebodypose.models.mediapipe.map_mp2coco import Hand, MPFrame, landmarks_from_list, to_coco133
+from wholebodypose.weights import get_weight
 
-class MediapipeModel:
-    def __init__(self, models: List[str] = ['hands', 'face', 'pose'], image_mode: bool = True, 
-                 face_config: Dict = None, hands_config: Dict = None, pose_config: Dict = None,
-                 mode_coco : bool = False,use_thresholding: bool=False,kpt_thr:float=0.5) -> None:
-        """
-        WholeBodyPoseEstimation using mediapipe
-        Args:
-            models (List[str]): Models to use. Defaults to ['hand', 'face', 'pose']
-            image_mode (bool): image_mode False takes frames as video stream with tracking to reduce latency
-            face_config (Dict): Configuration for the face model. Defaults to None
-            hands_config (Dict): Configuration for the hands model. Defaults to None
-            pose_config (Dict): Configuration for the pose model. Defaults to None
-            mode_coco (bool): Configuration of output format. mode_coco True returns 133 points in coco format
-            use_thresholding (bool): Configuration of thresholding.
-                ```
-                scores[scores>=self.kpt_thr]   = 1
-                scores[scores<self.kpt_thr]    = 0
-                keypoints[scores<self.kpt_thr] = 0
-                ```
-            kpt_thr (int): threshold to filtering
-        """
-        self.kpt_thr = kpt_thr
-        self.use_thresholding = use_thresholding
+DEFAULT_FACE_CONFIG = {
+    "min_detection_confidence": 0.5,
+    "min_tracking_confidence": 0.5,
+    "max_num_faces": 1,
+    "refine_landmarks": False,
+}
+DEFAULT_HANDS_CONFIG = {
+    "min_detection_confidence": 0.3,
+    "min_tracking_confidence": 0.3,
+    "max_num_hands": 2,
+    "model_complexity": 1,
+}
+DEFAULT_POSE_CONFIG = {
+    "min_detection_confidence": 0.3,
+    "min_tracking_confidence": 0.3,
+    "model_complexity": 2,
+    "smooth_landmarks": True,
+    "enable_segmentation": False,
+    "smooth_segmentation": True,
+}
+VALID_PARTS = ("hands", "face", "pose")
+
+
+def _merge(defaults: dict, override: dict | None) -> dict:
+    cfg = copy.deepcopy(defaults)
+    if override:
+        cfg.update({k: v for k, v in override.items() if k in defaults})
+    return cfg
+
+
+def _has_solutions() -> bool:
+    try:
+        import mediapipe as mp
+
+        return hasattr(mp, "solutions")
+    except ImportError:
+        return False
+
+
+class MediapipeModel(BasePoseModel):
+    """Single-person whole-body pose with MediaPipe, returned in COCO-WholeBody order.
+
+    Args:
+        models: Parts to run, any of ``'hands'``, ``'face'``, ``'pose'``.
+        image_mode: ``True`` treats every frame independently; ``False`` enables tracking (video).
+        face_config, hands_config, pose_config: Overrides of the ``DEFAULT_*_CONFIG`` dicts.
+        mode_coco: Return COCO-133 ``(keypoints, scores)``. ``False`` returns the raw
+            :class:`MPFrame` (kept for backwards compatibility).
+        use_thresholding, kpt_thr: See :class:`BasePoseModel`. MediaPipe scores are 0/1.
+        engine: ``'auto'``, ``'solutions'`` or ``'tasks'``.
+    """
+
+    name = "mediapipe"
+
+    def __init__(
+        self,
+        models: list[str] | tuple[str, ...] = VALID_PARTS,
+        image_mode: bool = True,
+        face_config: dict | None = None,
+        hands_config: dict | None = None,
+        pose_config: dict | None = None,
+        mode_coco: bool = True,
+        use_thresholding: bool = False,
+        kpt_thr: float = 0.5,
+        engine: str = "auto",
+        verbose: bool = True,
+    ) -> None:
+        super().__init__(use_thresholding=use_thresholding, kpt_thr=kpt_thr)
+        try:
+            import mediapipe  # noqa: F401
+        except ImportError as e:  # pragma: no cover - depends on extras
+            raise ImportError("MediaPipe backend needs: pip install 'wholebodypose[mediapipe]'") from e
+
+        if not 1 <= len(models) <= 3 or not all(m in VALID_PARTS for m in models):
+            raise ValueError("'models' must contain 1-3 items among 'hands', 'face' and 'pose'.")
+        self.models = [m for m in VALID_PARTS if m in models]
         self.image_mode = image_mode
-        # initialize drawing mediapipe
-        self.mp_drawing = mp.solutions.drawing_utils
-
-        # Check if models list is valid
-        valid_models = ['hands', 'face', 'pose']
-        if not 1 <= len(models) <= 3 or not all(model in valid_models for model in models):
-            raise ValueError("The 'models' list must have at least one element and a maximum of three elements from among 'hands', 'face', and 'pose'.")
-        
-        # choose models hand face pose
-        self.models = list(set(valid_models)&set(models))
-        
-        if face_config is not None:
-            default_face_config.update({k: v for k, v in face_config.items() if k in default_face_config})
-
-        if pose_config is not None:
-            default_pose_config.update({k: v for k, v in pose_config.items() if k in default_pose_config})
-
-        if hands_config is not None:
-            default_hands_config.update({k: v for k, v in hands_config.items() if k in default_hands_config})
-       
-        
-        # Load selected models
-        if 'face' in self.models:
-            self.face_model  = mp.solutions.face_mesh.FaceMesh(static_image_mode=self.image_mode,
-                                        min_detection_confidence=default_face_config['min_detection_confidence'], 
-                                        min_tracking_confidence=default_face_config['min_tracking_confidence'],
-                                        max_num_faces=default_face_config['max_num_faces'])
-        
-        if 'hands' in self.models:
-            self.hands_model = mp.solutions.hands.Hands(static_image_mode=self.image_mode,
-                                        min_detection_confidence=default_hands_config['min_detection_confidence'],    
-                                        min_tracking_confidence=default_hands_config['min_tracking_confidence'],
-                                        max_num_hands=default_hands_config['max_num_hands'],
-                                        model_complexity=default_hands_config['model_complexity'])
-        
-        if 'pose' in self.models:
-            self.pose_model  = mp.solutions.pose.Pose(static_image_mode=self.image_mode, 
-                                        min_detection_confidence=default_pose_config['min_detection_confidence'],
-                                        min_tracking_confidence=default_pose_config['min_tracking_confidence'],
-                                        model_complexity=default_pose_config['model_complexity'])
-        self.maper = MP2COCO()
         self.mode_coco = mode_coco
+        self.verbose = verbose
+        self.face_config = _merge(DEFAULT_FACE_CONFIG, face_config)
+        self.hands_config = _merge(DEFAULT_HANDS_CONFIG, hands_config)
+        self.pose_config = _merge(DEFAULT_POSE_CONFIG, pose_config)
 
-    def predict(self,frame_rgb):
-        results = {}
-        if 'face' in self.models:
-            results['face']= self.face_model.process(frame_rgb)
-        if 'hands' in self.models:
-            results['hands']= self.hands_model.process(frame_rgb)
-        if 'pose' in self.models:
-            results['pose']= self.pose_model.process(frame_rgb)
-    
-        if self.mode_coco:
-            keypoints, scores = self.maper.process(frame_rgb,results)
-            if self.use_thresholding:
-                keypoints, scores = self.thresholding(keypoints,scores)
-            return keypoints,scores
-        return results
-    
-    def thresholding(self,keypoints,scores):
-        keypoints[scores<self.kpt_thr] = 0
-        scores[scores<self.kpt_thr]    = 0
-        scores[scores>=self.kpt_thr]   = 1
-        return keypoints,scores
-        
-    def draw_mediapipe(self,frame_rgb,results: Dict,landmark_config:Dict=None,
-                       connection_config:Dict=None):
+        if engine == "auto":
+            engine = "solutions" if _has_solutions() else "tasks"
+        if engine == "solutions" and not _has_solutions():
+            raise ImportError("engine='solutions' needs mediapipe<0.10.30; use engine='tasks'.")
+        if engine not in ("solutions", "tasks"):
+            raise ValueError(f"engine must be 'auto', 'solutions' or 'tasks', got {engine!r}")
+        self.engine = engine
+        self._timestamp_ms = 0
+        if not verbose:
+            os.environ.setdefault("GLOG_minloglevel", "2")
+            os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "3")
+        if engine == "solutions":
+            self._init_solutions()
+        else:
+            self._init_tasks()
+        # Close graphs deterministically (MediaPipe's own __del__ fails at interpreter shutdown).
+        self._finalizer = weakref.finalize(self, _close_all, self._graphs())
 
-        default_ldk_config = copy.deepcopy(default_draw_config)
-        default_con_config = copy.deepcopy(default_draw_config)
+    # ------------------------------------------------------------------ solutions API
+    def _init_solutions(self) -> None:
+        import mediapipe as mp
 
-        if landmark_config is not None:
-            default_ldk_config.update({k: v for k, v in landmark_config.items() if k in default_ldk_config})
-        if connection_config is not None:
-            default_con_config.update({k: v for k, v in connection_config.items() if k in default_con_config})
-                              
-        frame_rgb = copy.deepcopy(frame_rgb)
+        s = mp.solutions
+        if "face" in self.models:
+            c = self.face_config
+            self.face_model = s.face_mesh.FaceMesh(
+                static_image_mode=self.image_mode,
+                min_detection_confidence=c["min_detection_confidence"],
+                min_tracking_confidence=c["min_tracking_confidence"],
+                max_num_faces=c["max_num_faces"],
+                refine_landmarks=c["refine_landmarks"],
+            )
+        if "hands" in self.models:
+            c = self.hands_config
+            self.hands_model = s.hands.Hands(
+                static_image_mode=self.image_mode,
+                min_detection_confidence=c["min_detection_confidence"],
+                min_tracking_confidence=c["min_tracking_confidence"],
+                max_num_hands=c["max_num_hands"],
+                model_complexity=c["model_complexity"],
+            )
+        if "pose" in self.models:
+            c = self.pose_config
+            self.pose_model = s.pose.Pose(
+                static_image_mode=self.image_mode,
+                min_detection_confidence=c["min_detection_confidence"],
+                min_tracking_confidence=c["min_tracking_confidence"],
+                model_complexity=c["model_complexity"],
+                smooth_landmarks=c["smooth_landmarks"],
+                enable_segmentation=c["enable_segmentation"],
+                smooth_segmentation=c["smooth_segmentation"],
+            )
 
-        ldk_config = self.mp_drawing.DrawingSpec(circle_radius=default_ldk_config['circle_radius'],
-                                                    thickness=default_ldk_config['thickness'],
-                                                    color=default_ldk_config['color'])
+    def _run_solutions(self, image_rgb: np.ndarray) -> MPFrame:
+        frame = MPFrame()
+        if "pose" in self.models:
+            r = self.pose_model.process(image_rgb)
+            if r.pose_landmarks is not None:
+                frame.pose = landmarks_from_list(r.pose_landmarks.landmark)
+        if "face" in self.models:
+            r = self.face_model.process(image_rgb)
+            if r.multi_face_landmarks:
+                lm = landmarks_from_list(r.multi_face_landmarks[0].landmark)
+                frame.face = lm
+        if "hands" in self.models:
+            r = self.hands_model.process(image_rgb)
+            for i, hand in enumerate(r.multi_hand_landmarks or []):
+                lm = landmarks_from_list(hand.landmark)
+                label = None
+                if r.multi_handedness and i < len(r.multi_handedness):
+                    label = r.multi_handedness[i].classification[0].label
+                frame.hands.append(Hand(lm.xy, lm.valid, label))
+        return frame
 
-        con_config = self.mp_drawing.DrawingSpec(circle_radius=default_con_config['circle_radius'],
-                                                    thickness=default_con_config['thickness'],
-                                                    color=default_con_config['color'])
-                
-        if 'face' in self.models:
-            if results['face'].multi_face_landmarks != None:
-                for faceLandmarks in results['face'].multi_face_landmarks:
-                    self.mp_drawing.draw_landmarks(frame_rgb, faceLandmarks,
-                    mp.solutions.face_mesh.FACEMESH_CONTOURS,
-                    landmark_drawing_spec= ldk_config,
-                    connection_drawing_spec = con_config
-                        )
-        if 'hands' in self.models:
-            if results['hands'].multi_hand_landmarks != None:
-                for handLandmarks in results['hands'].multi_hand_landmarks:
-                    self.mp_drawing.draw_landmarks(frame_rgb, handLandmarks,
-                                    mp.solutions.hands.HAND_CONNECTIONS,
-                    landmark_drawing_spec= ldk_config,
-                    connection_drawing_spec = con_config
-                                    )
-        if 'pose' in self.models:
-            if results['pose'].pose_landmarks != None:
-                self.mp_drawing.draw_landmarks(frame_rgb, results['pose'].pose_landmarks,
-                                    mp.solutions.pose.POSE_CONNECTIONS,
-                    landmark_drawing_spec= ldk_config,
-                    connection_drawing_spec = con_config
-                                               )
-        return frame_rgb
-    
-    
-        
+    # ------------------------------------------------------------------ tasks API
+    def _init_tasks(self) -> None:
+        from mediapipe.tasks.python import BaseOptions, vision
+
+        mode = vision.RunningMode.IMAGE if self.image_mode else vision.RunningMode.VIDEO
+
+        def opts(key):
+            return BaseOptions(model_asset_path=str(get_weight(key, verbose=self.verbose)))
+
+        if "pose" in self.models:
+            c = self.pose_config
+            self.pose_model = vision.PoseLandmarker.create_from_options(
+                vision.PoseLandmarkerOptions(
+                    base_options=opts("mp_pose_heavy" if c["model_complexity"] >= 2 else "mp_pose_full"),
+                    running_mode=mode,
+                    num_poses=1,
+                    min_pose_detection_confidence=c["min_detection_confidence"],
+                    min_tracking_confidence=c["min_tracking_confidence"],
+                )
+            )
+        if "hands" in self.models:
+            c = self.hands_config
+            self.hands_model = vision.HandLandmarker.create_from_options(
+                vision.HandLandmarkerOptions(
+                    base_options=opts("mp_hand"),
+                    running_mode=mode,
+                    num_hands=c["max_num_hands"],
+                    min_hand_detection_confidence=c["min_detection_confidence"],
+                    min_tracking_confidence=c["min_tracking_confidence"],
+                )
+            )
+        if "face" in self.models:
+            c = self.face_config
+            # IMAGE mode: the face is searched on a head crop that moves every frame.
+            self.face_model = vision.FaceLandmarker.create_from_options(
+                vision.FaceLandmarkerOptions(
+                    base_options=opts("mp_face"),
+                    running_mode=vision.RunningMode.IMAGE,
+                    num_faces=c["max_num_faces"],
+                    min_face_detection_confidence=c["min_detection_confidence"],
+                    min_tracking_confidence=c["min_tracking_confidence"],
+                )
+            )
+
+    def _run_tasks(self, image_rgb: np.ndarray) -> MPFrame:
+        import mediapipe as mp
+
+        image = mp.Image(image_format=mp.ImageFormat.SRGB, data=np.ascontiguousarray(image_rgb))
+        if self.image_mode:
+
+            def call(model):
+                return model.detect(image)
+        else:
+            self._timestamp_ms += 33
+            ts = self._timestamp_ms
+
+            def call(model):
+                return model.detect_for_video(image, ts)
+
+        frame = MPFrame()
+        if "pose" in self.models:
+            r = call(self.pose_model)
+            if r.pose_landmarks:
+                frame.pose = landmarks_from_list(r.pose_landmarks[0])
+        if "face" in self.models:
+            frame.face = self._detect_face_tasks(image_rgb, frame.pose)
+        if "hands" in self.models:
+            r = call(self.hands_model)
+            for i, hand in enumerate(r.hand_landmarks or []):
+                lm = landmarks_from_list(hand)
+                label = r.handedness[i][0].category_name if r.handedness and i < len(r.handedness) else None
+                frame.hands.append(Hand(lm.xy, lm.valid, label))
+        return frame
+
+    def _detect_face_tasks(self, image_rgb: np.ndarray, pose):
+        """Face landmarks on a head crop (from the body pose), falling back to the full image.
+
+        The face detector of the Tasks API misses small faces in full-body shots; cropping the
+        head first makes it work at typical sign-language framing.
+        """
+        import mediapipe as mp
+
+        h, w = image_rgb.shape[:2]
+        crops = []
+        head = range(0, 11)  # BlazePose nose, eyes, ears, mouth
+        if pose is not None and pose.valid[list(head)].sum() >= 3:
+            pts = pose.xy[list(head)][pose.valid[list(head)]] * [w, h]
+            cx, cy = pts.mean(axis=0)
+            size = max(np.ptp(pts[:, 0]), np.ptp(pts[:, 1]), 16) * 3.0
+            x0, y0 = int(max(cx - size / 2, 0)), int(max(cy - size / 2, 0))
+            x1, y1 = int(min(cx + size / 2, w)), int(min(cy + size / 2, h))
+            if x1 - x0 > 8 and y1 - y0 > 8:
+                crops.append((x0, y0, x1, y1))
+        crops.append((0, 0, w, h))
+        for x0, y0, x1, y1 in crops:
+            crop = np.ascontiguousarray(image_rgb[y0:y1, x0:x1])
+            r = self.face_model.detect(mp.Image(image_format=mp.ImageFormat.SRGB, data=crop))
+            if r.face_landmarks:
+                lm = landmarks_from_list(r.face_landmarks[0])
+                lm.xy = (lm.xy * [x1 - x0, y1 - y0] + [x0, y0]) / [w, h]
+                return lm
+        return None
+
+    # ------------------------------------------------------------------ public API
+    def process(self, image_rgb: np.ndarray) -> MPFrame:
+        """Run the selected MediaPipe parts and return engine-independent landmarks."""
+        if self.engine == "solutions":
+            return self._run_solutions(image_rgb)
+        return self._run_tasks(image_rgb)
+
+    def _predict(self, image_rgb: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        h, w = image_rgb.shape[:2]
+        keypoints, scores = to_coco133(self.process(image_rgb), w, h)
+        if not scores.any():
+            return np.zeros((0, 133, 2), np.float32), np.zeros((0, 133), np.float32)
+        return keypoints, scores
+
+    def predict(self, image_rgb: np.ndarray):
+        if not self.mode_coco:
+            return self.process(image_rgb)
+        return super().predict(image_rgb)
+
+    __call__ = predict
+
+    def _graphs(self) -> list:
+        return [getattr(self, n) for n in ("pose_model", "hands_model", "face_model") if hasattr(self, n)]
+
+    def close(self) -> None:
+        """Release the MediaPipe graphs."""
+        self._finalizer()
+
+
+def _close_all(graphs: list) -> None:
+    for g in graphs:
+        with contextlib.suppress(Exception):  # already closed / interpreter shutting down
+            g.close()
+        # MediaPipe's __del__ calls close() again, which crashes during interpreter shutdown.
+        with contextlib.suppress(Exception):
+            g.close = lambda: None

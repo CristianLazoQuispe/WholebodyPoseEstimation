@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the paper below."
+title: "WholeBodyPose"
+abstract: >-
+  Unified whole-body (COCO-WholeBody, 133 keypoints) pose estimation with RTMPose, ViTPose and MediaPipe,
+  with video processing, temporal filtering and visualization for sign language recognition.
+type: software
+license: MIT
+version: 1.0.0
+repository-code: "https://github.com/CristianLazoQuispe/WholebodyPoseEstimation"
+url: "https://cristianlazoquispe.github.io/WholebodyPoseEstimation/"
+keywords: [pose estimation, whole-body, sign language recognition, COCO-WholeBody]
+authors:
+  - family-names: Lazo-Quispe
+    given-names: Cristian
+    affiliation: "Universidad Nacional de Ingeniería"
+  - family-names: Castro-Cruz
+    given-names: Renato
+    affiliation: "Universidad Nacional de Ingeniería"
+  - family-names: Salazar-Espinosa
+    given-names: Mauricio
+    affiliation: "Pontificia Universidad Católica del Perú"
+  - family-names: Bejarano
+    given-names: Gissella
+    affiliation: "Marist University"
+preferred-citation:
+  type: conference-paper
+  title: "WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data"
+  authors:
+    - family-names: Lazo-Quispe
+      given-names: Cristian
+    - family-names: Castro-Cruz
+      given-names: Renato
+    - family-names: Salazar-Espinosa
+      given-names: Mauricio
+    - family-names: Bejarano
+      given-names: Gissella
+  collection-title: "Eighteenth International Conference on Machine Vision (ICMV 2025)"
+  publisher:
+    name: SPIE
+  year: 2025

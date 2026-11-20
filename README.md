@@ -1,247 +1,211 @@
-# 🧠 WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data  
-
-**Cristian Lazo-Quispe**, Renato Castro-Cruz, Mauricio Salazar-Espinosa, Gissella Bejarano  
-*Universidad Nacional de Ingeniería · Pontificia Universidad Católica del Perú · Marist University*  
-📄 *Published at [ICMV 2025](https://www.spie.org/conferences-and-exhibitions/international-conference-on-machine-vision) — “WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data”*  
-
----
-
 <div align="center">
 
-[![Dataset](https://img.shields.io/badge/Dataset-HuggingFace-blue?logo=huggingface&style=flat-square)](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition)
-[![GitHub Repo](https://img.shields.io/badge/GitHub-Repo-black?logo=github&style=flat-square)](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation)
-[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&style=flat-square)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](./LICENSE)
-[![Project Website](https://img.shields.io/badge/Website-Visit-blueviolet?style=flat-square&logo=google-chrome)](https://cristianlazoquispe.github.io/wholebodypose.github.io/)
+# WholeBodyPose
+
+### A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data
+
+**Cristian Lazo-Quispe**<sup>1</sup>, **Renato Castro-Cruz**<sup>1</sup>, **Mauricio Salazar-Espinosa**<sup>2</sup>, **Gissella Bejarano**<sup>3</sup>
+
+<sup>1</sup>Universidad Nacional de Ingeniería, Lima, Peru · <sup>2</sup>Pontificia Universidad Católica del Perú · <sup>3</sup>Marist University, New York, USA
+
+*18th International Conference on Machine Vision (ICMV 2025) · Proceedings of SPIE*
+
+[![Project page](https://img.shields.io/badge/Project-Page-6f42c1?style=flat-square)](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/)
+[![Paper](https://img.shields.io/badge/Paper-PDF-b31b1b?style=flat-square)](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/paper/WholeBodyPose_ICMV2025.pdf)
+[![Demo](https://img.shields.io/badge/%F0%9F%A4%97%20Demo-Space-yellow?style=flat-square)](https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo)
+[![Datasets](https://img.shields.io/badge/%F0%9F%A4%97%20Datasets-pose--action--recognition-orange?style=flat-square)](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition)
+[![Weights](https://img.shields.io/badge/%F0%9F%A4%97%20Weights-mirror-ff9d00?style=flat-square)](https://huggingface.co/CristianLazoQuispe/wholebodypose-weights)
+<br>
+[![CI](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/actions/workflows/ci.yml/badge.svg)](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/python-3.10%E2%80%933.13-3776ab?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+
+<img src="docs/assets/output_telefono_pucp_slow.gif" width="70%" alt="WholeBodyPose on a sign language video">
+
 </div>
 
----
+## TL;DR
 
-## 🌍 Overview
+Every pose estimator speaks its own dialect: MediaPipe returns 543 landmarks, RTMPose and ViTPose
+return COCO-WholeBody, and each has its own thresholds, coordinate conventions and failure modes.
+**WholeBodyPose** puts **RTMPose (RTMW)**, **ViTPose+** and **MediaPipe** behind one interface that
+always returns the **133 COCO-WholeBody keypoints** (body, feet, face, both hands), plus the
+video pipeline, temporal filtering (NLMS) and visualization needed to turn raw sign language
+videos into training-ready pose sequences.
 
-**WholeBodyPose** is an **open-source, modular, and standardized framework** for **pose-based Sign Language Recognition (SLR)**.  
-It unifies **MediaPipe**, **RTMPose**, and **ViTPose** into a single interface under the **COCO-133 standard**, enabling reproducible preprocessing, filtering, and visualization of keypoints for both research and real-time applications.
-
-The framework bridges the gap between heterogeneous pose estimation outputs, providing:
-- ⚙️ Consistent preprocessing and filtering pipelines  
-- 🧩 Unified COCO-133-compatible keypoint representation  
-- 🎥 Real-time webcam inference and filtering with **NLMS smoothing**  
-- 📊 Ready-to-train SLR pipelines using **Pose-TGCN**, **SPOTER**, **SILT**, and **GCN-BERT**
-
----
-
-## 🔬 Key Contributions
-
-| No. | Contribution | Description |
-| :-: | :------------ | :----------- |
-| 1 | **Unified API for Multiple Backends** | Seamless switching between MediaPipe, RTMPose, and ViTPose using a common interface (`model.predict(frame)` → COCO-133). |
-| 2 | **COCO-133 Standardization** | Harmonized 133-keypoint structure (body, hands, face) + virtual chest/hip points for 135-keypoint mode. |
-| 3 | **Real-Time NLMS Filtering** | Online temporal smoothing for keypoints using Normalized Least Mean Squares (no future frames required). |
-| 4 | **Quality Control & Enhancement** | Built-in image enhancement (gamma/log correction, brightness normalization) for low-light robustness. |
-| 5 | **Plug-and-Play ISLR Pipelines** | Ready-made Jupyter notebooks for **GCN-BERT**, **Pose-TGCN**, **SPOTER**, and **SILT** across multiple datasets. |
-
----
-
-## 🧱 Repository Structure
-
-```
-
-WholebodyPoseEstimation/
-├── codes/
-│   ├── mediapipe/, rtmpose/, vitpose/   # Inference scripts (image/webcam)
-│   ├── filtering/                       # NLMS and Kalman filtering demos
-│   ├── islr_models/                     # ISLR model training pipelines
-│   ├── drawing/                         # Visualization notebooks
-│   └── comparison.py                    # Cross-model evaluation
-├── src/wholebodypose/
-│   ├── models/                          # Unified model wrappers
-│   ├── filters/                         # Sequence filtering
-│   ├── enhancing/                       # Illumination correction
-│   └── utils/                           # COCO133 utils, visualization
-│   └── video/                           # Video pose estimation
-├── docker/                              # Dockerfiles & compose setups
-├── data/                                # Example images/videos & metadata
-├── results/                             # Demo outputs (GIFs, filtered poses)
-├── requirements.txt
-└── setup.py
-
-````
-
----
-
-## ⚡ Quick Start
-
-### Using the Package API
 ```python
-from wholebodypose.models.rtmpose.model import RTMPoseModel
-from wholebodypose.video.video2pose import Video2Pose
+from wholebodypose import PoseEstimator
 
+est = PoseEstimator("rtmpose")                         # or "vitpose", "mediapipe"
+keypoints, scores = est.predict_image("person.jpg")    # (N, 133, 2), (N, 133)
+res = est.process_video("sign.mp4", "outputs/")        # res["total_keypoints"]: (T, 133, 2)
+```
+
+## Backends
+
+| Backend | Model | People | Runs on | Install extra |
+|:--|:--|:-:|:--|:--|
+| `rtmpose` | YOLOX-m + RTMW-x 384×288 (OpenMMLab) | multi | ONNX Runtime CPU / CUDA | `[rtmpose]` (+ `[gpu]`) |
+| `vitpose` | ViTPose+ huge/large/base/small, full-frame top-down | single | PyTorch CPU / CUDA | `[vitpose]` |
+| `mediapipe` | BlazePose heavy + Hands + Face Mesh | single | CPU | `[mediapipe]` |
+
+All backends take an **RGB** image and return `float32` pixel coordinates in COCO-WholeBody order;
+undetected keypoints are `(0, 0)` with score `0`. Default settings reproduce the paper
+(`PoseEstimator(backend)`), and any backend argument can be overridden, e.g.
+`PoseEstimator("rtmpose", mode="lightweight")`. See [docs/guide/backends.md](docs/guide/backends.md).
+
+## Installation
+
+```bash
+pip install "wholebodypose[all] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"
+```
+
+Pick only what you need: `[rtmpose]`, `[vitpose]`, `[mediapipe]`, `[filters]` (NLMS), `[video]`
+(bundled ffmpeg for browser-playable MP4s), `[gpu]` (ONNX Runtime CUDA). The core package only
+depends on NumPy and OpenCV. Model weights are downloaded on first use to
+`~/.cache/wholebodypose` (override with `WHOLEBODYPOSE_HOME`), from our
+[Hugging Face mirror](https://huggingface.co/CristianLazoQuispe/wholebodypose-weights) with a fallback to the
+original upstream URLs.
+
+From source:
+
+```bash
+git clone https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git
+cd WholebodyPoseEstimation
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[all,dev]"
+pytest -m "not slow"        # unit tests, no downloads
+pytest -m slow              # real backends on a real image (downloads weights)
+```
+
+## Quick start
+
+**Command line**
+
+```bash
+wholebodypose backends                                   # list backends
+wholebodypose image data/images/image.jpg -b mediapipe   # -> outputs/image_mediapipe.{png,json}
+wholebodypose video data/videos/videoTest.mp4 -b rtmpose --fps 15
+                                                         # -> outputs/videoTest_rtmpose.{mp4,npz}
+wholebodypose download                                   # pre-fetch every weight
+```
+
+**Python**
+
+```python
 import cv2
+from wholebodypose import PoseEstimator, save_poses, load_poses
+from wholebodypose.filters.sequence import PoseSequenceFilter
 
-# Single image inference
-model = RTMPoseModel(device='cuda')
-image = cv2.imread('person.jpg')
-keypoints, scores = model.predict(image)  # Returns COCO-133 format
+est = PoseEstimator("rtmpose", device="cuda")
 
-# Video processing
-video_processor = Video2Pose(model_name='rtmpose')
-results = video_processor.predict(
-    'input_video.mp4',
-    folder_results='output/',
-    save_as_mov=True  # Requires [video] extra
-)
+# image
+rgb = cv2.cvtColor(cv2.imread("person.jpg"), cv2.COLOR_BGR2RGB)
+keypoints, scores = est.predict(rgb)
+cv2.imwrite("drawn.png", est.draw(cv2.imread("person.jpg"), keypoints, scores))
 
-print(f"Processed {results['n_frames']} frames")
-print(f"Keypoints shape: {results['total_keypoints'].shape}")  # [T, 133, 2]
+# video -> training-ready sequence
+res = est.process_video("sign.mp4", "outputs/", video_processing_fps=15)
+save_poses("sign.npz", res["total_keypoints"], res["total_scores"], fps=res["processing_fps"])
+
+# drop empty / static / hands-not-visible frames
+flt = PoseSequenceFilter(left_hand_indices=range(91, 112), right_hand_indices=range(112, 133))
+clean, masks = flt.apply_all_filters(res["total_keypoints"])
 ```
 
-### Using Jupyter Notebooks
+More in [docs/](docs/README.md) and [examples/](examples/).
 
-For interactive exploration and visualization:
-```bash
-# Image inference
-jupyter notebook codes/rtmpose/inference_image.ipynb
+## Pose datasets
 
-# Webcam inference
-jupyter notebook codes/rtmpose/inference_webcam.ipynb
-```
----
+Pose sequences extracted with WholeBodyPose for six isolated sign language recognition benchmarks
+are on the Hugging Face Hub: [`CristianLazoQuispe/pose-action-recognition`](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition).
 
-## 🚀 Installation
+| Dataset | Classes | Samples | Language | Split |
+|:--|:-:|:-:|:--|:--|
+| WLASL100 | 100 | 2,038 | American SL 🇺🇸 | official |
+| WLASL300 | 300 | 5,117 | American SL 🇺🇸 | official |
+| MSASL100 | 100 | 5,721 | American SL 🇺🇸 | official |
+| ASL-Citizen | 2,731 | 83,399 | American SL 🇺🇸 | official |
+| LSA64 | 64 | 3,200 | Argentinian SL 🇦🇷 | signer-independent |
+| PUCP-DGI30 | 30 | 715 | Peruvian SL 🇵🇪 | stratified random |
 
-### Option 1: Install as Package (Recommended)
+The pose files are derived data; the original videos keep the licenses of their authors.
 
-**Basic installation:** 
-```bash
-pip install git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git
-```
+## Demo
 
-**With video conversion support** (includes ffmpeg-python for MP4/MOV conversion):
-```bash
-pip install "wholebodypose[video] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"
-```
-
-**For development:**
-```bash
-git clone https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git
-cd WholebodyPoseEstimation
-pip install -e ".[video]"  # Editable install with video extras
-```
-
-### Option 2: Manual Setup
-
-**1. Clone the repository:**
-```bash
-git clone https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git
-cd WholebodyPoseEstimation
-```
-
-**2. Install dependencies:**
-```bash
-pip install -r requirements.txt
-```
-
-### 3. (Optional) Docker Setup
-
-**CPU:**
-```bash
-docker compose -f docker/docker-compose-cpu.yaml up
-```
-
-**GPU:**
-```bash
-docker compose -f docker/docker-compose-gpu.yaml up
-```
-
----
-
-## 📚 Train Sign Language Recognition Models
-
-Available training pipelines:
-
-* **GCN-BERT**
-* **Pose-TGCN**
-* **SPOTER**
-* **SILT**
-
-Example:
+Try it without installing anything: **[🤗 WholeBodyPoseDemo](https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo)**.
+Upload a video or an image, pick a backend and get the skeleton overlay plus the keypoints.
+The Space is built from [`hf/space/`](hf/space) by CI; run it locally with
 
 ```bash
-pip install .[islr]
-cd codes/islr_models
-jupyter notebook 3.TrainingGCN-BERT.ipynb
+pip install -e ".[demo]" && python hf/space/app.py
 ```
----
 
-## 📊 Experimental Results (WACV-Style Summary)
+## Repository layout
 
-**Dataset:** WLASL100
-**Setup:** Training from scratch using only pose inputs (RTMPose-based 135 keypoints).
+```
+src/wholebodypose/     library: api, models/{rtmpose,vitpose,mediapipe}, video, filters, io, weights, cli
+tests/                 pytest suite (unit tests + `slow` real-backend tests)
+examples/              short scripts
+docs/                  guides (install, backends, keypoint layout, video pipeline)
+website/               project page, deployed to GitHub Pages by .github/workflows/pages.yml
+hf/                    Hugging Face: Space app, weight-mirror and dataset-card tooling
+docker/                CPU/GPU images
+```
 
-| Model     | Baseline Top-1 | With WholeBodyPose | Δ Accuracy |
-| :-------- | :------------: | :----------------: | :--------: |
-| Pose-TGCN |      55.43     |      **58.14**     |    +2.71   |
-| GCN-BERT  |      60.15     |      **66.67**     |    +6.52   |
-| SILT      |      62.79     |      **66.67**     |    +3.88   |
-| SPOTER    |      63.18     |      **67.05**     |    +3.87   |
+## Citation
 
-Standardized preprocessing yields consistent improvements across all models and datasets.
-
-<p align="center">
-  <img src="results/gifs/sample_accident.gif" width="480"><br>
-  <em>Example of real-time person keypoint tracking and filtering.</em>
-</p>
-
----
-
-## 🧠 Real-Time Filtering (NLMS)
-
-**NLMS filtering** provides real-time denoising of pose keypoints using only past frames — ideal for live SLR and gesture-based interaction.
-
-**Highlights**
-
-* Adaptive learning per keypoint axis (x, y, confidence)
-* Short-term memory fallback during occlusion
-* Linear interpolation for uncertain detections
-* Near-zero latency suitable for real-time deployment
-
----
-
-## 🧰 Datasets
-
-All processed and standardized pose datasets are publicly available on **Hugging Face**:
-
-👉 **[ISLR Pose Datasets on HuggingFace 🤗](https://huggingface.co/datasets/CristianLazoQuispe/ISLR_pose_datasets)**
-
-| Dataset           |  Classes | Keypoints | Type                      |
-| :---------------- | :------: | :-------: | :------------------------ |
-| WLASL100/300/2000 | 100–2000 |    135    | Word-level SLR            |
-| MSASL100/200/1000 | 100–1000 |    135    | Word-level SLR            |
-| ASL-Citizen       |   2731   |    135    | Community-Sourced         |
-| LSA64             |    64    |    135    | Argentinian Sign Language |
-| PUCP-DGI30        |    30    |    135    | Peruvian Sign Dataset     |
-
-All keypoints follow **COCO-133 + 2 virtual landmarks (chest, mid-hip)**, extracted with RTMPose.
-
----
-
-## 🧩 Citation
-
-If you use this repository, please cite:
+If you use WholeBodyPose, please cite:
 
 ```bibtex
 @inproceedings{lazo2025wholebodypose,
-  title={WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data},
-  author={Lazo-Quispe, Cristian and Castro-Cruz, Renato and Salazar-Espinosa, Mauricio and Bejarano, Gissella},
-  booktitle={International Conference on Machine Vision (ICMV)},
-  year={2025},
-  organization={SPIE}
+  title     = {WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data},
+  author    = {Lazo-Quispe, Cristian and Castro-Cruz, Renato and Salazar-Espinosa, Mauricio and Bejarano, Gissella},
+  booktitle = {Eighteenth International Conference on Machine Vision (ICMV 2025)},
+  series    = {Proceedings of SPIE},
+  publisher = {SPIE},
+  year      = {2025}
 }
 ```
 
----
+<details>
+<summary>Please also cite the backend you use</summary>
 
-## 📢 License
+```bibtex
+@article{jiang2024rtmw,
+  title   = {RTMW: Real-Time Multi-Person 2D and 3D Whole-body Pose Estimation},
+  author  = {Jiang, Tao and Xie, Xinchen and Li, Yining},
+  journal = {arXiv preprint arXiv:2407.08634},
+  year    = {2024}
+}
+@article{xu2023vitpose++,
+  title   = {ViTPose++: Vision Transformer for Generic Body Pose Estimation},
+  author  = {Xu, Yufei and Zhang, Jing and Zhang, Qiming and Tao, Dacheng},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  year    = {2023}
+}
+@article{lugaresi2019mediapipe,
+  title   = {MediaPipe: A Framework for Building Perception Pipelines},
+  author  = {Lugaresi, Camillo and others},
+  journal = {arXiv preprint arXiv:1906.08172},
+  year    = {2019}
+}
+@inproceedings{jin2020whole,
+  title     = {Whole-Body Human Pose Estimation in the Wild},
+  author    = {Jin, Sheng and Xu, Lumin and Xu, Jin and Wang, Can and Liu, Wentao and Qian, Chen and Ouyang, Wanli and Luo, Ping},
+  booktitle = {ECCV},
+  year      = {2020}
+}
+```
+</details>
 
-Released under the **MIT License**.
-See [`LICENSE`](./LICENSE) for details.
+## Acknowledgements
+
+WholeBodyPose builds on [rtmlib](https://github.com/Tau-J/rtmlib) / [MMPose](https://github.com/open-mmlab/mmpose),
+[onepose](https://github.com/developer0hye/onepose) / [ViTPose](https://github.com/ViTAE-Transformer/ViTPose),
+[MediaPipe](https://github.com/google-ai-edge/mediapipe) and [padasip](https://github.com/matousc89/padasip).
+See [THIRD_PARTY.md](THIRD_PARTY.md) for licenses.
+
+## License
+
+Code: [MIT](LICENSE). Model weights keep their original licenses (all Apache-2.0, see [THIRD_PARTY.md](THIRD_PARTY.md)).

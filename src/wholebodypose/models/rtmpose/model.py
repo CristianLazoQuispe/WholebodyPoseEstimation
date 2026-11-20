@@ -1,109 +1,132 @@
-from rtmlib import Wholebody, draw_skeleton
-import numpy as np
-import torch
-import os
-import sys
+"""RTMPose / RTMW whole-body backend (OpenMMLab models through ``rtmlib``)."""
+
+from __future__ import annotations
+
+import contextlib
 import io
+import os
 
-class RTMPoseModel:
-    def __init__(self, device:str='cuda', backend:str='onnxruntime',
-                 mode:str='performance', to_openpose:bool=False,
-                 use_thresholding:bool=False,kpt_thr:float=2.5,filter_noise:bool=False,
-                 verbose:bool=True) -> None:
-        """
-        Initialize the RTMPoseModel.
+import cv2
+import numpy as np
 
-        Args:
-            device (str): The device to run the model on. Options: 'cpu', 'cuda'. Default: 'cuda'.
-            backend (str): The backend to use for inference. Options: 'opencv', 'onnxruntime', 'openvino'. Default: 'onnxruntime'.
-            mode (str): The mode of the model. Options: 'performance', 'lightweight', 'balanced'. Default: 'performance'.
-            to_openpose (bool): Whether to convert the output to OpenPose-style. Default: False.
-            filter_noise (bool): The filter noise process eliminates artifacts
-            use_thresholding (bool): Configuration of thresholding.
-                ```
-                scores[scores>=self.kpt_thr]   = 1
-                scores[scores<self.kpt_thr]    = 0
-                keypoints[scores<self.kpt_thr] = 0
-                ```
-            kpt_thr (int): threshold to filtering
-            verbose (bool): If True, shows loading messages. Default: True.
-        """
-        self.device = device
-        self.backend = backend
-        self.mode = mode
-        self.to_openpose = to_openpose
-        self.kpt_thr = kpt_thr
-        self.filter_noise = filter_noise
-        self.use_thresholding = use_thresholding
-        self.verbose = verbose
-        # Check if CUDA is available if device is set to 'cuda'
-        if self.device == 'cuda' and not torch.cuda.is_available():
-            if self.verbose:
-                print("CUDA is not available. Falling back to CPU.")
-            self.device = 'cpu'
+from wholebodypose.models.base import BasePoseModel
+from wholebodypose.weights import get_weight
 
-        # Suppress ONNX Runtime C++ warnings
-        if not self.verbose:
-            os.environ["ORT_LOG_LEVEL"] = "3"
-            try:
-                import onnxruntime as ort
-                ort.set_default_logger_severity(3)
-            except ImportError:
-                pass
+# RTMW SimCC confidences are not calibrated: the 384x288 model scores ~5-8 on visible joints while
+# the 256x192 models score ~1. Default thresholds keep roughly the same operating point.
+DEFAULT_KPT_THR = {"performance": 2.5, "balanced": 0.35, "lightweight": 0.35}
 
-        # Suppress rtmlib print statements if not verbose
-        if not self.verbose:
-            _stdout = sys.stdout
-            sys.stdout = io.StringIO()
+# (detector weight, pose weight, detector input size, pose input size) per rtmlib mode
+MODES = {
+    "performance": ("yolox_m", "rtmw_x_384", (640, 640), (288, 384)),
+    "balanced": ("yolox_m", "rtmw_x_256", (640, 640), (192, 256)),
+    "lightweight": ("yolox_tiny", "rtmw_l_256", (416, 416), (192, 256)),
+}
+
+FOOT_LEFT_IDS = [11, 13, 15]
+FOOT_RIGHT_IDS = [12, 14, 16]
+HAND_RIGHT_IDS = [6, 8, 10, 112]
+HAND_LEFT_IDS = [5, 7, 9, 91]
+
+
+def _ort_has_cuda() -> bool:
+    try:
+        import onnxruntime as ort
+
+        return "CUDAExecutionProvider" in ort.get_available_providers()
+    except ImportError:
+        return False
+
+
+class RTMPoseModel(BasePoseModel):
+    """Multi-person whole-body pose with YOLOX + RTMW (COCO-WholeBody, 133 keypoints).
+
+    Args:
+        device: ``'auto'``, ``'cuda'`` or ``'cpu'``. Falls back to CPU when onnxruntime has no CUDA.
+        backend: rtmlib inference backend (``'onnxruntime'``, ``'opencv'``, ``'openvino'``).
+        mode: ``'performance'`` (paper setting), ``'balanced'`` or ``'lightweight'``.
+        to_openpose: Return rtmlib's OpenPose-style ordering instead of COCO-WholeBody.
+        use_thresholding: Binarize scores with ``kpt_thr`` (see :class:`BasePoseModel`).
+        kpt_thr: Threshold on RTMW SimCC confidences; ``None`` uses ``DEFAULT_KPT_THR[mode]``
+            (paper, performance mode: ``2.5``).
+        filter_noise: Drop feet/hands whose anchoring limb joints are not confidently detected.
+        verbose: Print loading information.
+    """
+
+    name = "rtmpose"
+
+    def __init__(
+        self,
+        device: str = "auto",
+        backend: str = "onnxruntime",
+        mode: str = "performance",
+        to_openpose: bool = False,
+        use_thresholding: bool = False,
+        kpt_thr: float | None = None,
+        filter_noise: bool = False,
+        verbose: bool = True,
+    ) -> None:
+        if mode not in MODES:
+            raise ValueError(f"mode must be one of {list(MODES)}, got {mode!r}")
+        kpt_thr = DEFAULT_KPT_THR[mode] if kpt_thr is None else kpt_thr
+        super().__init__(use_thresholding=use_thresholding, kpt_thr=kpt_thr)
         try:
-            self.model = Wholebody(to_openpose=self.to_openpose,
-                                   mode=self.mode, backend=self.backend,
-                                   device=self.device)
-        finally:
-            if not self.verbose:
-                sys.stdout = _stdout
-        
-        self.foot_left_ids = [11,13,15]
-        self.foot_right_ids = [12,14,16]
-        self.hand_right_ids = [6,8,10,112]
-        self.hand_left_ids = [5,7,9,91]
+            from rtmlib import Wholebody
+        except ImportError as e:  # pragma: no cover - depends on extras
+            raise ImportError("RTMPose backend needs: pip install 'wholebodypose[rtmpose]'") from e
 
-    def predict(self,frame_rgb):
-        keypoints, scores = self.model(frame_rgb)
+        if device in ("auto", "cuda"):
+            device = "cuda" if _ort_has_cuda() else "cpu"
+        self.device, self.backend, self.mode = device, backend, mode
+        self.to_openpose = to_openpose
+        self.filter_noise = filter_noise
+        self.verbose = verbose
+
+        if not verbose:
+            os.environ.setdefault("ORT_LOG_LEVEL", "3")
+            with contextlib.suppress(ImportError):
+                import onnxruntime as ort
+
+                ort.set_default_logger_severity(3)
+
+        det_key, pose_key, det_size, pose_size = MODES[mode]
+        det_path = str(get_weight(det_key, verbose=verbose))
+        pose_path = str(get_weight(pose_key, verbose=verbose))
+
+        sink = contextlib.nullcontext() if verbose else contextlib.redirect_stdout(io.StringIO())
+        with sink:
+            self.model = Wholebody(
+                det=det_path,
+                det_input_size=det_size,
+                pose=pose_path,
+                pose_input_size=pose_size,
+                to_openpose=to_openpose,
+                backend=backend,
+                device=device,
+            )
+
+    def _predict(self, image_rgb: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        # rtmlib (like OpenMMLab) expects BGR input.
+        keypoints, scores = self.model(cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR))
+        keypoints = np.asarray(keypoints, dtype=np.float32)
+        scores = np.asarray(scores, dtype=np.float32)
+        if keypoints.size == 0:
+            return np.zeros((0, 133, 2), np.float32), np.zeros((0, 133), np.float32)
         if self.filter_noise:
-            keypoints,scores = self.filter_scores(keypoints,scores)
-        if self.use_thresholding:
-            keypoints,scores = self.thresholding(keypoints,scores)
+            scores = self.filter_scores(scores)
         return keypoints, scores
 
-    def thresholding(self,keypoints,scores):
-        keypoints[scores<self.kpt_thr] = 0
-        scores[scores<self.kpt_thr]    = 0
-        scores[scores>=self.kpt_thr]   = 1
-        return keypoints,scores
-        
-    def filter_ids(self,list_ids,list_body,list_ids_remove,scores,keypoints):
-        list_body= list(list_body)
-        cnt_ids = np.sum(scores[0][list_ids] > self.kpt_thr)
-        if cnt_ids != len(list_ids):
-            scores[0][list_body]= 0 
-            #keypoints[0][list_body] = 0
-            
-            scores[0][list_ids_remove]= 0 
-            #keypoints[0][list_ids_remove] = 0
-        return keypoints,scores
+    def _filter_part(self, scores: np.ndarray, anchor_ids, part_ids, extra_ids) -> None:
+        for person in scores:  # in-place on each (133,) row
+            if np.sum(person[anchor_ids] > self.kpt_thr) != len(anchor_ids):
+                person[list(part_ids)] = 0
+                person[extra_ids] = 0
 
-    def filter_scores(self,keypoints,scores):
-        keypoints,scores = self.filter_ids(self.foot_left_ids,range(17,20),[15],
-                                 scores,keypoints)
-        keypoints,scores = self.filter_ids(self.foot_right_ids,range(20,23),[16],
-                                 scores,keypoints)
-
-        keypoints,scores = self.filter_ids(self.hand_right_ids,range(112,133),[10],
-                                 scores,keypoints)
-        keypoints,scores = self.filter_ids(self.hand_left_ids,range(91,112),[9],
-                                 scores,keypoints)
-        return keypoints,scores
-
-
-
+    def filter_scores(self, scores: np.ndarray) -> np.ndarray:
+        """Zero feet/hands whose anchoring joints (hip-knee-ankle, shoulder-elbow-wrist) are missing."""
+        scores = scores.copy()
+        self._filter_part(scores, FOOT_LEFT_IDS, range(17, 20), [15])
+        self._filter_part(scores, FOOT_RIGHT_IDS, range(20, 23), [16])
+        self._filter_part(scores, HAND_RIGHT_IDS, range(112, 133), [10])
+        self._filter_part(scores, HAND_LEFT_IDS, range(91, 112), [9])
+        return scores

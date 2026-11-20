@@ -1,33 +1,35 @@
+"""Moving mean/median smoothing of keypoint streams."""
+
+from __future__ import annotations
+
 import numpy as np
 
-def process_keypoints(keypoints, keypoints_buffer, window_size=5):
-    # Agregar los keypoints actuales al buffer
+
+class MeanMedianFilter:
+    """Online smoother: average of the moving mean and moving median over ``window_size`` frames."""
+
+    def __init__(self, window_size: int = 5) -> None:
+        self.window_size = window_size
+        self.buffer: list[np.ndarray] = []
+
+    def reset(self) -> None:
+        self.buffer.clear()
+
+    def __call__(self, keypoints: np.ndarray) -> np.ndarray:
+        self.buffer.append(np.asarray(keypoints, np.float32))
+        if len(self.buffer) > self.window_size:
+            self.buffer.pop(0)
+        if len(self.buffer) < self.window_size:
+            return np.asarray(keypoints, np.float32)
+        arr = np.stack(self.buffer)
+        return (arr.mean(axis=0) + np.median(arr, axis=0)) / 2
+
+
+def process_keypoints(keypoints, keypoints_buffer: list, window_size: int = 5):
+    """Functional form kept for backwards compatibility (``keypoints_buffer`` is mutated)."""
     keypoints_buffer.append(keypoints)
-    
-    # Si el buffer tiene suficientes keypoints, aplicar los filtros
     if len(keypoints_buffer) >= window_size:
-        # Convertir el buffer a un array NumPy
-        keypoints_array = np.array(keypoints_buffer)
-        
-        # Aplicar el filtro de media móvil
-        smoothed_keypoints = np.mean(keypoints_array, axis=0)
-        
-        # Aplicar el filtro de mediana para eliminar outliers
-        median_filtered_keypoints = np.median(keypoints_array, axis=0)
-        
-        # Combinar los keypoints suavizados y filtrados
-        combined_keypoints = (smoothed_keypoints + median_filtered_keypoints) / 2
-        
-        #keypoints['points'][:,0] = savgol_filter(keypoints['points'][:,0], 5, 2, mode='interp')#nearest')
-        #keypoints['points'][:,1] = savgol_filter(keypoints['points'][:,1], 5, 2, mode='interp')#nearest')#interp
-
-        # Eliminar el keypoint más antiguo del buffer
+        arr = np.array(keypoints_buffer)
         keypoints_buffer.pop(0)
-        
-        # Retornar los keypoints combinados como un vector
-        return combined_keypoints.tolist()
-    
-    # Si el buffer no tiene suficientes keypoints, retornar los keypoints originales
+        return ((arr.mean(axis=0) + np.median(arr, axis=0)) / 2).tolist()
     return keypoints
-
-keypoints_buffer = []

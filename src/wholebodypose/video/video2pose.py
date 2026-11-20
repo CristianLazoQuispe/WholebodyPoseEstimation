@@ -1,719 +1,338 @@
-"""
-Video to Pose Estimation Module
+"""Video -> whole-body pose pipeline.
 
-This module provides functionality for extracting whole-body pose estimations from video files
-using various backbone models (RTMPose, VitPose, MediaPipe).
-
-Author: Cristian Lazo Quispe
-License: MIT
+Reads a video, runs a pose backend on every (sub-sampled) frame, optionally draws the skeleton
+and writes a browser-playable MP4, and returns the keypoint sequence.
 """
 
-import os
-import sys
+from __future__ import annotations
+
+import json
 import math
+import os
 import shutil
 import subprocess
-import json
-from typing import Dict, Tuple, Optional, Union
+import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from enum import Enum
 
-import numpy as np
 import cv2
-import torch
+import numpy as np
 
-# Add src/ to Python path
-current_file = Path(__file__).resolve()
-src_path = current_file.parents[2]
-sys.path.insert(0, str(src_path))
-
+from wholebodypose.models.base import BasePoseModel
 from wholebodypose.utils.vision import DrawerPose
-from wholebodypose.utils.files import create_directory
 
-# Optional video conversion (only if ffmpeg installed)
-try:
-    from .converters import convert_mp4_to_mov, reencode_for_web
-    HAS_VIDEO_CONVERSION = True
-except ImportError:
-    HAS_VIDEO_CONVERSION = False
-
-
-# Constants
-class BackgroundColor(Enum):
-    """Predefined background colors for visualization (BGR format)."""
-    RED = (0, 0, 255)
-    BLUE = (255, 0, 0)
-    GREEN = (0, 255, 0)
-    WHITE = (255, 255, 255)
-    BLACK = (0, 0, 0)
-
-
-class RotationAngle(Enum):
-    """Video rotation angles."""
-    ROTATE_90 = 90
-    ROTATE_180 = 180
-    ROTATE_270 = 270
-    ROTATE_NEG_90 = -90
-    ROTATE_NEG_180 = -180
-    ROTATE_NEG_270 = -270
-
-
-DEFAULT_FPS = 15
 DEFAULT_LINE_WIDTH = 2
 DEFAULT_RADIUS = 1
 DEFAULT_KPT_THRESHOLD = 0.5
-VIDEO_CODEC_MP4 = 'avc1'#'mp4v'
+DEFAULT_RESIZE_WIDTH = 640
 MIN_MODE_COUNT = 4
 MODE_TOLERANCE = 1.05
 LOWER_THRESHOLD_RATIO = 0.75
 UPPER_THRESHOLD_RATIO = 1.33
 
-
-class VideoMetadataExtractor:
-    """Handles extraction of video metadata using ffprobe."""
-    
-    @staticmethod
-    def get_rotation_angle(filepath: str) -> int:
-        """
-        Extract video rotation angle from metadata using ffprobe.
-        
-        Args:
-            filepath: Path to the video file
-            
-        Returns:
-            Rotation angle in degrees (0, 90, 180, 270), defaults to 0 if not found
-        """
-        try:
-            cmd = [
-                "ffprobe", "-v", "quiet",
-                "-print_format", "json",
-                "-show_streams",
-                filepath
-            ]
-            result = subprocess.run(
-                cmd, 
-                stdout=subprocess.PIPE, 
-                stderr=subprocess.PIPE, 
-                text=True,
-                check=True
-            )
-            metadata = json.loads(result.stdout)
-
-            for stream in metadata.get("streams", []):
-                if stream.get("codec_type") == "video":
-                    side_data_list = stream.get("side_data_list", [])
-                    for item in side_data_list:
-                        if "rotation" in item:
-                            return int(item["rotation"])
-            return 0
-            
-        except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError) as e:
-            print(f"[WARNING] Failed to extract rotation metadata: {e}")
-            return 0
-        except Exception as e:
-            print(f"[WARNING] Unexpected error reading rotation: {e}")
-            return 0
+BACKGROUND_COLORS = {  # BGR
+    "red": (0, 0, 255),
+    "blue": (255, 0, 0),
+    "green": (0, 255, 0),
+    "white": (255, 255, 255),
+    "black": (0, 0, 0),
+}
 
 
-class VideoProcessor:
-    """Handles video processing operations."""
-    
-    @staticmethod
-    def rotate_frame(frame: np.ndarray, rotation: int) -> np.ndarray:
-        """
-        Rotate a frame based on the rotation angle.
-        
-        Args:
-            frame: Input frame (numpy array)
-            rotation: Rotation angle in degrees
-            
-        Returns:
-            Rotated frame
-        """
-        if rotation in (RotationAngle.ROTATE_90.value, RotationAngle.ROTATE_NEG_270.value):
-            return cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        elif rotation in (RotationAngle.ROTATE_180.value, RotationAngle.ROTATE_NEG_180.value):
-            return cv2.rotate(frame, cv2.ROTATE_180)
-        elif rotation in (RotationAngle.ROTATE_270.value, RotationAngle.ROTATE_NEG_90.value):
-            return cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-        return frame
-    
-    @staticmethod
-    def create_solid_color_frame(color: Tuple[int, int, int], width: int, height: int) -> np.ndarray:
-        """
-        Create a solid color frame.
-        
-        Args:
-            color: BGR color tuple
-            width: Frame width
-            height: Frame height
-            
-        Returns:
-            Solid color frame as numpy array
-        """
-        frame = np.zeros((height, width, 3), dtype=np.uint8)
-        frame[:, :] = color
-        return frame
-    
-    @staticmethod
-    def get_background_color(color_name: Optional[str]) -> Optional[Tuple[int, int, int]]:
-        """
-        Convert color name to BGR tuple.
-        
-        Args:
-            color_name: Name of the color (red, blue, green, white, black)
-            
-        Returns:
-            BGR color tuple or None if color_name is None
-        """
-        if color_name is None:
-            return None
-        
-        color_map = {
-            "red": BackgroundColor.RED.value,
-            "blue": BackgroundColor.BLUE.value,
-            "green": BackgroundColor.GREEN.value,
-            "white": BackgroundColor.WHITE.value,
-            "black": BackgroundColor.BLACK.value,
-        }
-        return color_map.get(color_name.lower(), BackgroundColor.BLACK.value)
+# --------------------------------------------------------------------------- helpers
+def get_rotation_angle(filepath: str) -> int:
+    """Rotation stored in the video metadata (degrees), read with ffprobe; 0 if unknown."""
+    exe = shutil.which("ffprobe")
+    if exe is None:
+        return 0
+    try:
+        out = subprocess.run(
+            [exe, "-v", "quiet", "-print_format", "json", "-show_streams", filepath],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+        for stream in json.loads(out).get("streams", []):
+            if stream.get("codec_type") == "video":
+                for item in stream.get("side_data_list", []):
+                    if "rotation" in item:
+                        return int(item["rotation"])
+                if "rotate" in stream.get("tags", {}):
+                    return -int(stream["tags"]["rotate"])
+    except Exception:  # noqa: BLE001 - metadata is best effort
+        pass
+    return 0
 
 
-class KeypointCleaner:
-    """Handles cleaning and filtering of keypoint predictions."""
-    
-    @staticmethod
-    def clean_outliers(keypoints: Union[np.ndarray, torch.Tensor]) -> torch.Tensor:
-        """
-        Remove outlier keypoints using mode-based filtering.
-        
-        Args:
-            keypoints: Array of shape (N, 2) containing x,y coordinates
-            
-        Returns:
-            Cleaned keypoints as torch tensor
-        """
-        if isinstance(keypoints, (np.ndarray, np.generic)):
-            keypoints = torch.from_numpy(keypoints)
-        
-        rounded = torch.round(keypoints * 1000) / 1000
-        
-        unique_x, counts_x = torch.unique(rounded[:, 0], return_counts=True)
-        mode_idx_x = torch.argmax(counts_x)
-        mode_val_x = unique_x[mode_idx_x].item() * MODE_TOLERANCE
-        mode_count_x = counts_x[mode_idx_x].item()
-        
-        unique_y, counts_y = torch.unique(rounded[:, 1], return_counts=True)
-        mode_idx_y = torch.argmax(counts_y)
-        mode_val_y = unique_y[mode_idx_y].item() * MODE_TOLERANCE
-        mode_count_y = counts_y[mode_idx_y].item()
-        
-        avg_x = torch.mean(rounded[:, 0])
-        avg_y = torch.mean(rounded[:, 1])
-        
-        if (mode_count_x >= MIN_MODE_COUNT and mode_count_y >= MIN_MODE_COUNT and 
-            mode_val_x < avg_x * LOWER_THRESHOLD_RATIO and 
-            mode_val_y < avg_y * LOWER_THRESHOLD_RATIO):
-            mask = torch.logical_and(
-                rounded[:, 0] <= mode_val_x, 
-                rounded[:, 1] <= mode_val_y
-            )
-            keypoints[mask, :] = 0
-        
-        if (mode_count_x >= MIN_MODE_COUNT and mode_count_y >= MIN_MODE_COUNT and 
-            mode_val_x > avg_x * UPPER_THRESHOLD_RATIO and 
-            mode_val_y < avg_y * LOWER_THRESHOLD_RATIO):
-            mask = torch.logical_and(
-                rounded[:, 0] <= mode_val_x, 
-                rounded[:, 1] <= mode_val_y
-            )
-            keypoints[mask, :] = 0
-        
-        return keypoints
+def rotate_frame(frame: np.ndarray, rotation: int) -> np.ndarray:
+    """Undo a metadata rotation (display-matrix convention: positive = counter-clockwise)."""
+    rotation = rotation % 360
+    if rotation == 90:
+        return cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    if rotation == 180:
+        return cv2.rotate(frame, cv2.ROTATE_180)
+    if rotation == 270:
+        return cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+    return frame
 
 
-class PersonSelector:
-    """Handles selection of the primary person from multi-person detections."""
-    
-    @staticmethod
-    def select_largest_person(keypoints: np.ndarray, scores: np.ndarray) -> int:
-        """
-        Select the person with the largest bounding box area from detections.
-        
-        Args:
-            keypoints: Array of shape (num_people, num_keypoints, 2)
-            scores: Array of shape (num_people, num_keypoints) containing confidence scores
-            
-        Returns:
-            Index of the person with the largest visible area
-        """
-        areas = []
-        
-        for i in range(keypoints.shape[0]):
-            visible_mask = scores[i] > 0
-            
-            if visible_mask.sum() == 0:
-                areas.append(0)
-                continue
-            
-            x_coords = keypoints[i, visible_mask, 0]
-            y_coords = keypoints[i, visible_mask, 1]
-            
-            area = (x_coords.max() - x_coords.min()) * (y_coords.max() - y_coords.min())
-            areas.append(area)
-        
-        return int(np.argmax(areas))
+def clean_outliers(keypoints: np.ndarray) -> np.ndarray:
+    """Zero a "phantom cluster" of keypoints collapsed near one corner.
+
+    Some backends place undetected keypoints at a common location; when at least
+    ``MIN_MODE_COUNT`` points share the modal x and y and that mode lies far from the pose
+    centroid, those points are reset to ``(0, 0)``. Input/Output shape: ``(K, 2)``.
+    """
+    keypoints = np.array(keypoints, dtype=np.float32, copy=True)
+    rounded = np.round(keypoints * 1000) / 1000
+    ux, cx = np.unique(rounded[:, 0], return_counts=True)
+    uy, cy = np.unique(rounded[:, 1], return_counts=True)
+    mode_x, count_x = ux[cx.argmax()] * MODE_TOLERANCE, cx.max()
+    mode_y, count_y = uy[cy.argmax()] * MODE_TOLERANCE, cy.max()
+    avg_x, avg_y = rounded[:, 0].mean(), rounded[:, 1].mean()
+
+    clustered = count_x >= MIN_MODE_COUNT and count_y >= MIN_MODE_COUNT and mode_y < avg_y * LOWER_THRESHOLD_RATIO
+    far_x = mode_x < avg_x * LOWER_THRESHOLD_RATIO or mode_x > avg_x * UPPER_THRESHOLD_RATIO
+    if clustered and far_x:
+        mask = (rounded[:, 0] <= mode_x) & (rounded[:, 1] <= mode_y)
+        keypoints[mask] = 0
+    return keypoints
 
 
+def select_largest_person(keypoints: np.ndarray, scores: np.ndarray) -> int:
+    """Index of the person with the largest bounding box over visible keypoints."""
+    areas = []
+    for kp, sc in zip(keypoints, scores, strict=True):
+        vis = sc > 0
+        if not vis.any():
+            areas.append(0.0)
+            continue
+        xs, ys = kp[vis, 0], kp[vis, 1]
+        areas.append(float((xs.max() - xs.min()) * (ys.max() - ys.min())))
+    return int(np.argmax(areas))
+
+
+def _open_writer(path: str, fps: float, size: tuple[int, int]) -> cv2.VideoWriter:
+    for codec in ("mp4v", "avc1", "MJPG"):
+        writer = cv2.VideoWriter(path, cv2.VideoWriter_fourcc(*codec), fps, size)
+        if writer.isOpened():
+            return writer
+        writer.release()
+    raise RuntimeError(f"Could not open a video writer for {path}")
+
+
+# --------------------------------------------------------------------------- pipeline
 class Video2Pose:
-    """
-    Main class for video-to-pose estimation pipeline.
-    
-    Supports multiple pose estimation backends:
-    - RTMPose: Fast real-time pose estimation
-    - VitPose: Transformer-based pose estimation
-    - MediaPipe: Google's lightweight pose solution
-    """
-    
-    def __init__(self, mode_coco: bool = True, model_name: str = "rtmpose", verbose: bool = True) -> None:
-        """
-        Initialize the Video2Pose estimator.
+    """Whole-body pose estimation over a video file.
 
-        Args:
-            mode_coco: If True, uses COCO Wholebody format. If False, adds custom
-                      points (middle_chest, middle_hip) and links.
-            model_name: Backbone model to use ('rtmpose', 'vitpose', 'mediapipe')
-            verbose: If True, shows loading and processing messages. Default: True.
-        """
+    Args:
+        mode_coco: Draw COCO-WholeBody (133) skeleton; ``False`` adds neck/pelvis points (135).
+        model_name: ``'rtmpose'``, ``'vitpose'`` or ``'mediapipe'`` (ignored if ``model`` given).
+        verbose: Print progress information.
+        model: An already built backend (any :class:`BasePoseModel`), e.g. to share it across calls.
+        device: Device for the backend built from ``model_name``.
+        **model_kwargs: Overrides of the backend's paper defaults (see ``wholebodypose.api.BACKENDS``).
+    """
+
+    def __init__(
+        self,
+        mode_coco: bool = True,
+        model_name: str = "rtmpose",
+        verbose: bool = True,
+        model: BasePoseModel | None = None,
+        device: str = "auto",
+        **model_kwargs,
+    ) -> None:
         self.mode_coco = mode_coco
-        self.model_name = model_name
         self.verbose = verbose
         self.draw_skeleton = DrawerPose(mode_coco=mode_coco)
+        if model is None:
+            from wholebodypose.api import create_model
 
-        self.model = self._initialize_model()
+            model = create_model(model_name, device=device, verbose=verbose, **model_kwargs)
+        self.model = model
+        self.model_name = getattr(model, "name", model_name)
 
-        self.metadata_extractor = VideoMetadataExtractor()
-        self.video_processor = VideoProcessor()
-        self.keypoint_cleaner = KeypointCleaner()
-        self.person_selector = PersonSelector()
-    
-    def _initialize_model(self):
-        """
-        Initialize the pose estimation model based on model_name.
-        
-        Returns:
-            Initialized pose model instance
-        """
-        if self.model_name == "mediapipe":
-            from wholebodypose.models.mediapipe.model import MediapipeModel
-            return MediapipeModel(
-                mode_coco=True, 
-                use_thresholding=True, 
-                kpt_thr=DEFAULT_KPT_THRESHOLD
-            )
-        
-        elif self.model_name == "vitpose":
-            from wholebodypose.models.vitpose.model import VITPoseModel
-            return VITPoseModel(
-                device='cuda',
-                model_name='ViTPose+_huge_coco_wholebody',
-                use_thresholding=True,
-                kpt_thr=DEFAULT_KPT_THRESHOLD
-            )
-        
-        else:
-            from wholebodypose.models.rtmpose.model import RTMPoseModel
-            return RTMPoseModel(
-                mode='performance',
-                backend='onnxruntime',
-                device='cuda',
-                use_thresholding=True,
-                filter_noise=True,
-                kpt_thr=2.5,
-                verbose=self.verbose
-            )
-    
-    def convert_mp4_to_mov(
-        self, 
-        filepath_mp4: str, 
-        folder_results: str, 
-        remove_mp4: bool = True
-    ) -> Tuple[bool, Optional[str]]:
-        """
-        Convert MP4 video to MOV format.
-        
-        Args:
-            filepath_mp4: Path to input MP4 file
-            folder_results: Folder to save the MOV file
-            remove_mp4: If True, removes the original MP4 file
-            
-        Returns:
-            Tuple of (success_status, output_filepath)
-        """
-        if not HAS_VIDEO_CONVERSION:
-            raise ImportError(
-                "Video conversion requires ffmpeg. "
-                "Install with: pip install wholebodypose[video]"
-            )
-        
-        status, filepath_mov = convert_mp4_to_mov(filepath_mp4, folder_results)
-        
-        if remove_mp4 and status:
-            try:
-                os.remove(filepath_mp4)
-            except OSError as e:
-                print(f"[WARNING] Failed to remove MP4 file: {e}")
-        
-        return status, filepath_mov
-    
-    def _copy_input_video(self, filepath: str, folder_results: str) -> str:
-        """
-        Create a copy of the input video in the results folder.
-        
-        Args:
-            filepath: Original video path
-            folder_results: Destination folder
-            
-        Returns:
-            Path to the copied video
-        """
-        filename = Path(filepath).stem
-        copied_path = os.path.join(folder_results, f"{filename}_input.mp4")
-        shutil.copy(filepath, copied_path)
-        return copied_path
-    
-    def _initialize_video_capture(self, filepath: str) -> Tuple[cv2.VideoCapture, Dict]:
-        """
-        Initialize video capture and extract video properties.
-        
-        Args:
-            filepath: Path to video file
-            
-        Returns:
-            Tuple of (VideoCapture object, properties dict)
-        """
-        vid = cv2.VideoCapture(filepath)
-        
-        if not vid.isOpened():
-            raise ValueError(f"Failed to open video file: {filepath}")
-        
-        properties = {
-            'filepath': filepath,
-            'width': int(vid.get(cv2.CAP_PROP_FRAME_WIDTH)),
-            'height': int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT)),
-            'fps': int(vid.get(cv2.CAP_PROP_FPS)),
-            'total_frames': int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
-        }
-        
-        properties['duration'] = properties['total_frames'] / properties['fps']
-        
-        return vid, properties
-    
-    def _get_rotated_frame_dimensions(
-        self, 
-        vid: cv2.VideoCapture, 
-        rotation: int
-    ) -> Tuple[int, int]:
-        """
-        Get frame dimensions after applying rotation.
-        
-        Args:
-            vid: VideoCapture object
-            rotation: Rotation angle in degrees
-            
-        Returns:
-            Tuple of (width, height) after rotation
-        """
-        ret, frame = vid.read(cv2.CAP_DSHOW)
-        if not ret or frame is None:
-            raise ValueError("Failed to read first frame from video")
-        
-        frame = self.video_processor.rotate_frame(frame, rotation)
-        height, width = frame.shape[:2]
-        
-        return width, height
-    
-    def _initialize_video_writer(
-        self,
-        filepath: str,
-        folder_results: str,
-        width: int,
-        height: int,
-        fps: int = DEFAULT_FPS,
+    def _log(self, msg: str) -> None:
+        if self.verbose:
+            print(f"[wholebodypose] {msg}")
 
-    ) -> Tuple[cv2.VideoWriter, str]:
-        """
-        Initialize video writer for output.
-
-        Args:
-            filepath: Original video filepath
-            folder_results: Output folder
-            width: Frame width
-            height: Frame height
-
-        Returns:
-            Tuple of (VideoWriter object, output filepath)
-        """
-        filename_base = Path(filepath).stem
-        output_path = os.path.join(
-            folder_results,
-            f"{filename_base}_{self.model_name}.mp4"
-        )
-
-        # Try web-compatible codecs
-        web_codecs = [
-            ('avc1', 'H.264 (avc1)'),
-            ('H264', 'H.264 (H264)'),
-            ('X264', 'H.264 (X264)'),
-            ('MJPG', 'Motion JPEG'),  # Web-compatible fallback
-        ]
-
-        writer = None
-        codec_used = None
-
-        # Suppress OpenCV C++ FFMPEG errors during codec probing
-        prev_log_level = cv2.getLogLevel()
-        cv2.setLogLevel(0)  # LOG_LEVEL_SILENT
-        # Redirect C-level stderr to /dev/null
-        _stderr_fd = os.dup(2)
-        _devnull = os.open(os.devnull, os.O_WRONLY)
-        os.dup2(_devnull, 2)
-        os.close(_devnull)
-        try:
-            for codec, name in web_codecs:
-                test_writer = cv2.VideoWriter(
-                    output_path,
-                    cv2.VideoWriter_fourcc(*codec),
-                    fps,
-                    (width, height)
-                )
-
-                if test_writer.isOpened():
-                    writer = test_writer
-                    codec_used = codec
-                    break
-                else:
-                    test_writer.release()
-        finally:
-            # Restore stderr
-            os.dup2(_stderr_fd, 2)
-            os.close(_stderr_fd)
-            cv2.setLogLevel(prev_log_level)
-
-        if self.verbose and codec_used:
-            codec_name = dict(web_codecs).get(codec_used, codec_used)
-            print(f"[INFO] Using {codec_name} codec")
-
-        return writer, output_path
-    
-    def reencode_video_for_web(
-        self, 
-        input_path: str, 
-        output_folder: str
-    ) -> Tuple[bool, str]:
-        """
-        Re-encode video with web-friendly settings using H.264 codec.
-        
-        Args:
-            input_path: Path to input video
-            output_folder: Folder for output video
-            
-        Returns:
-            Tuple of (success_status, output_path)
-        """
-        if not HAS_VIDEO_CONVERSION:
-            raise ImportError(
-                "Video conversion requires ffmpeg. "
-                "Install with: pip install wholebodypose[video]"
-            )
-        
-        return reencode_for_web(input_path, output_folder)
-    
     def predict(
         self,
         filepath: str,
-        folder_results: Optional[str] = None,
+        folder_results: str | None = None,
         show: bool = False,
         line_width: int = DEFAULT_LINE_WIDTH,
         radius: int = DEFAULT_RADIUS,
         save_as_mov: bool = False,
-        background_plot: Optional[str] = None,
+        background_plot: str | None = None,
         multiperson: bool = False,
-        video_processing_fps: int = None,
-        output_video_fps: int = DEFAULT_FPS
-    ) -> Dict:
-        """
-        Run pose estimation on a video file.
-        
+        video_processing_fps: float | None = None,
+        output_video_fps: float | None = None,
+        resize_width: int | None = DEFAULT_RESIZE_WIDTH,
+        max_frames: int | None = None,
+        web_compatible: bool = True,
+        progress: Callable[[int, int], None] | None = None,
+    ) -> dict:
+        """Run pose estimation on a video.
+
         Args:
-            filepath: Path to input video file
-            folder_results: Output folder for results (if None, no video is saved)
-            show: If True, displays video during processing
-            line_width: Line thickness for skeleton visualization
-            radius: Radius of keypoint circles
-            save_as_mov: If True, converts output to MOV format
-            background_plot: Background color name ('red', 'blue', 'green', 'white', 'black')
-            
+            filepath: Input video.
+            folder_results: Where to write ``<stem>_<backend>.mp4``; ``None`` skips rendering.
+            show: Display frames in an OpenCV window (press ``q`` to stop).
+            line_width, radius: Skeleton drawing style.
+            save_as_mov: Also convert the rendered video to MOV.
+            background_plot: Draw on a solid background (``red|blue|green|white|black``).
+            multiperson: Keep every detected person instead of the largest one.
+            video_processing_fps: Sub-sample the input to roughly this FPS.
+            output_video_fps: FPS of the rendered video (default: the effective processing FPS,
+                so playback speed matches the input).
+            resize_width: Frames are resized to this width before inference (paper: 640);
+                ``None`` keeps the original size. Keypoints are in this resized frame.
+            max_frames: Stop after this many processed frames.
+            web_compatible: Re-encode the rendered video to H.264 with ffmpeg when available.
+            progress: Callback ``progress(processed, expected_total)``.
+
         Returns:
-            Dictionary containing:
-                - filepath: Input video path
-                - width, height: Video dimensions
-                - fps: Frames per second
-                - duration: Video duration in seconds
-                - n_frames: Number of processed frames
-                - total_keypoints: Array of keypoints (n_frames, n_keypoints, 2)
-                - total_scores: Array of confidence scores (n_frames, n_keypoints)
-                - filepath_result: Output video path (if folder_results is not None)
+            Dict with ``filepath, width, height, fps, total_frames, duration, n_frames,
+            processing_fps, frame_size`` and ``total_keypoints`` / ``total_scores``:
+            arrays ``(T, 133, 2)`` / ``(T, 133)`` in single-person mode, or lists of
+            ``(N_t, 133, 2)`` / ``(N_t, 133)`` arrays in multi-person mode. When rendering,
+            ``filepath_result`` points to the output video.
         """
-        if save_as_mov and not HAS_VIDEO_CONVERSION:
-            raise ImportError(
-                "Video conversion requires ffmpeg. "
-                "Install with: pip install wholebodypose[video]"
-            )
-        
-        if folder_results:
-            create_directory(folder_results)
-            self._copy_input_video(filepath, folder_results)
-        
-        rotation = self.metadata_extractor.get_rotation_angle(filepath)
-        if self.verbose:
-            print(f"[INFO] Detected rotation: {rotation}°")
-        
-        background_color = self.video_processor.get_background_color(background_plot)
-        
-        vid, results = self._initialize_video_capture(filepath)
-        original_fps = results['fps']
-        
-        if video_processing_fps is None:
-            video_processing_fps = original_fps
+        if not os.path.exists(filepath):
+            raise FileNotFoundError(filepath)
+        vid = cv2.VideoCapture(filepath)
+        if not vid.isOpened():
+            raise ValueError(f"Failed to open video file: {filepath}")
 
-        if output_video_fps is None:
-            output_video_fps = original_fps
+        # Let OpenCV apply the rotation metadata; otherwise rotate manually.
+        rotation = 0
+        if not (hasattr(cv2, "CAP_PROP_ORIENTATION_AUTO") and vid.set(cv2.CAP_PROP_ORIENTATION_AUTO, 1)):
+            rotation = get_rotation_angle(filepath)
 
+        fps = vid.get(cv2.CAP_PROP_FPS) or 30.0
+        total = int(vid.get(cv2.CAP_PROP_FRAME_COUNT))
+        results: dict = {
+            "filepath": filepath,
+            "width": int(vid.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            "height": int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+            "fps": fps,
+            "total_frames": total,
+            "duration": total / fps if fps else 0.0,
+            "backend": self.model_name,
+        }
+        frame_skip = max(1, math.ceil(fps / video_processing_fps)) if video_processing_fps else 1
+        processing_fps = fps / frame_skip
+        output_video_fps = output_video_fps or processing_fps
+        expected = math.ceil(total / frame_skip) if total > 0 else 0
+        if max_frames:
+            expected = min(expected, max_frames) if expected else max_frames
+        results["processing_fps"] = processing_fps
+        self._log(f"{Path(filepath).name}: {fps:.2f} fps, every {frame_skip} frame(s), rotation {rotation}")
 
-        frame_skip = max(1, math.ceil(original_fps / video_processing_fps))
-        if self.verbose:
-            print(f"[INFO] Original          FPS: {original_fps}")
-            print(f"Processing every {frame_skip} frame(s)")
-            print(f"[INFO] Target processing FPS: {video_processing_fps}")
-            print(f"[INFO] Output video      FPS: {output_video_fps}")
-
-        width, height = self._get_rotated_frame_dimensions(vid, rotation)
-        results['width'] = width
-        results['height'] = height
-        
-        #set fps of video to default fps
-        vid.set(cv2.CAP_PROP_FPS, DEFAULT_FPS)
-        #
-        vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
-
-        h, w = height, width
-        new_w = 640
-        new_h = int(h * (new_w / w))
-    
+        bg = BACKGROUND_COLORS.get(background_plot.lower(), (0, 0, 0)) if background_plot else None
         writer = None
-        if folder_results:
-            writer, output_path = self._initialize_video_writer(
-                filepath, folder_results, new_w, new_h, output_video_fps
-            )
-            results['filepath_result'] = output_path
-        
+        tmp_path = None
+        kp_list: list[np.ndarray] = []
+        sc_list: list[np.ndarray] = []
+        frame_idx = processed = 0
         if show:
             cv2.namedWindow("Pose Estimation", cv2.WINDOW_NORMAL)
-        
-        keypoints_list = []
-        scores_list = []
-        frame_count = 0
-        processed_count = 0
 
-        while True:
-            ret, frame = vid.read()
-            
-            if not ret or frame is None:
-                break
-            
-            if frame_count % frame_skip != 0:
-                frame_count += 1
-                continue            
-
-            h, w = frame.shape[:2]
-            new_w = 640
-            new_h = int(h * (new_w / w))
-
-            frame = cv2.resize(frame, (new_w, new_h))            
-
-            frame = self.video_processor.rotate_frame(frame, rotation)
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            keypoints, scores = self.model.predict(frame_rgb)
-            
-            if background_color is not None:
-                frame = self.video_processor.create_solid_color_frame(
-                    background_color, width, height
-                )
-            
-            if not multiperson:
-                person_idx = self.person_selector.select_largest_person(keypoints, scores)
-                keypoints = keypoints[person_idx, :, :]
-                scores = scores[person_idx, :]
-
-            keypoints_list.append(keypoints)
-            scores_list.append(scores)
-            
-            if not multiperson:
-                keypoints[:, :] = self.keypoint_cleaner.clean_outliers(keypoints[:, :])
-            else:
-                for idx in range(keypoints.shape[0]):
-                    keypoints[idx, :, :] = self.keypoint_cleaner.clean_outliers(
-                        keypoints[idx, :, :])
-            
-            frame = self.draw_skeleton(
-                frame,
-                np.array(keypoints) if multiperson else np.array([keypoints]),
-                np.array(scores) if multiperson else np.array([scores]),
-                kpt_thr=DEFAULT_KPT_THRESHOLD,
-                line_width=line_width,
-                radius=radius
-            )
-            
-            if show:
-                cv2.imshow('Pose Estimation', frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+        try:
+            while True:
+                ok, frame = vid.read()
+                if not ok or frame is None:
                     break
-            
+                if frame_idx % frame_skip:
+                    frame_idx += 1
+                    continue
+                frame_idx += 1
+
+                frame = rotate_frame(frame, rotation)
+                if resize_width:
+                    h, w = frame.shape[:2]
+                    frame = cv2.resize(frame, (resize_width, round(h * resize_width / w)))
+                h, w = frame.shape[:2]
+
+                keypoints, scores = self.model.predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                keypoints = np.array([clean_outliers(k) for k in keypoints], np.float32).reshape(-1, 133, 2)
+
+                if multiperson:
+                    kp_list.append(keypoints)
+                    sc_list.append(scores)
+                    draw_kp, draw_sc = keypoints, scores
+                else:
+                    if len(keypoints):
+                        i = select_largest_person(keypoints, scores)
+                        kp, sc = keypoints[i], scores[i]
+                    else:
+                        kp, sc = np.zeros((133, 2), np.float32), np.zeros(133, np.float32)
+                    kp_list.append(kp)
+                    sc_list.append(sc)
+                    draw_kp, draw_sc = kp[None], sc[None]
+
+                if folder_results or show:
+                    canvas = np.full_like(frame, bg) if bg is not None else frame
+                    canvas = self.draw_skeleton(
+                        canvas,
+                        draw_kp,
+                        draw_sc,
+                        kpt_thr=DEFAULT_KPT_THRESHOLD,
+                        line_width=line_width,
+                        radius=radius,
+                    )
+                    if folder_results:
+                        if writer is None:
+                            Path(folder_results).mkdir(parents=True, exist_ok=True)
+                            fd, tmp_path = tempfile.mkstemp(suffix=".mp4", dir=folder_results)
+                            os.close(fd)
+                            writer = _open_writer(tmp_path, output_video_fps, (w, h))
+                        writer.write(canvas)
+                    if show:
+                        cv2.imshow("Pose Estimation", canvas)
+                        if cv2.waitKey(1) & 0xFF == ord("q"):
+                            break
+
+                processed += 1
+                if progress is not None:
+                    progress(processed, expected)
+                if max_frames and processed >= max_frames:
+                    break
+        finally:
+            vid.release()
             if writer is not None:
-                writer.write(frame)
-            
-            frame_count += 1
-            processed_count += 1
-        
-        if self.verbose:
-            print(f"[INFO] Processed {processed_count}/{frame_count} frames")
-        
-        
-        vid.release()
-        if writer is not None:
-            writer.release()
-        if show:
-            cv2.destroyAllWindows()
-        
-        results['n_frames'] = processed_count
-        results['total_keypoints'] = keypoints_list
-        results['total_scores']    = scores_list
-                
-        if folder_results and writer is not None:
-            success, web_path = True,output_path #self.reencode_video_for_web(output_path, folder_results)
-            if success:
-                results['filepath_result'] = web_path
-            
+                writer.release()
+            if show:
+                cv2.destroyAllWindows()
+
+        self._log(f"processed {processed} frames")
+        results["n_frames"] = processed
+        results["frame_size"] = (w, h) if processed else None
+        if multiperson:
+            results["total_keypoints"], results["total_scores"] = kp_list, sc_list
+        else:
+            results["total_keypoints"] = np.array(kp_list, np.float32).reshape(-1, 133, 2)
+            results["total_scores"] = np.array(sc_list, np.float32).reshape(-1, 133)
+
+        if folder_results and tmp_path:
+            out_path = str(Path(folder_results) / f"{Path(filepath).stem}_{self.model_name}.mp4")
+            if web_compatible:
+                from wholebodypose.video.converters import reencode_for_web
+
+                ok, _ = reencode_for_web(tmp_path, out_path)
+                if ok:
+                    os.remove(tmp_path)
+                else:
+                    os.replace(tmp_path, out_path)
+            else:
+                os.replace(tmp_path, out_path)
+            results["filepath_result"] = out_path
             if save_as_mov:
-                success, mov_path = self.convert_mp4_to_mov(
-                    results['filepath_result'], 
-                    folder_results, 
-                    remove_mp4=True
-                )
-                if success:
-                    results['filepath_result'] = mov_path
-                    if self.verbose:
-                        print(f"[INFO] Saved MOV output: {mov_path}")
-        
+                from wholebodypose.video.converters import convert_mp4_to_mov
+
+                ok, mov = convert_mp4_to_mov(out_path, folder_results)
+                if ok:
+                    results["filepath_result_mov"] = mov
         return results
