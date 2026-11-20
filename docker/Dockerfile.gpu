@@ -28,7 +28,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # Ubuntu 24.04 ships Python 3.12. git: onepose (vitpose extra); libgl1, libglib2.0-0: MediaPipe's OpenCV.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 python3-venv git libgl1 libglib2.0-0 \
+    && apt-get install -y --no-install-recommends python3 python3-venv git libgl1 libegl1 libgles2 libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/* \
     && python3 -m venv /opt/venv
 

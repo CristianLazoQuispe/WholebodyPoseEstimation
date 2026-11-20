@@ -1,2 +1,4 @@
 ffmpeg
 libgl1
+libegl1
+libgles2

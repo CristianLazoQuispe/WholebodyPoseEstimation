@@ -69,6 +69,8 @@ jobs:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: pyproject.toml
+      - name: System libraries for MediaPipe (EGL/GLES)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libegl1 libgles2 libgl1
       - name: Install (CPU PyTorch + every backend)
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu

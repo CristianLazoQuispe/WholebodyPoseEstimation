@@ -23,7 +23,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # git: the vitpose extra installs onepose from GitHub.
 # libgl1, libglib2.0-0: MediaPipe depends on the non-headless OpenCV build.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git libgl1 libglib2.0-0 \
+    && apt-get install -y --no-install-recommends git libgl1 libegl1 libgles2 libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # CPU-only PyTorch first, so the vitpose extra does not pull the CUDA wheels.
