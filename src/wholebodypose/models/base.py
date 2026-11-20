@@ -47,37 +47,3 @@ class BasePoseModel:
         keypoints[low] = 0
         scores = np.where(low, 0.0, 1.0).astype(np.float32)
         return keypoints, scores
-
-
-def cuda_available() -> bool:
-    """Return True when a CUDA device can be used (torch or onnxruntime)."""
-    try:
-        import onnxruntime as ort
-
-        if "CUDAExecutionProvider" in ort.get_available_providers():
-            return True
-    except ImportError:
-        pass
-    try:
-        import torch
-
-        return bool(torch.cuda.is_available())
-    except ImportError:
-        return False
-
-
-def resolve_device(device: str = "auto", framework: str = "any") -> str:
-    """Map ``'auto'`` to ``'cuda'`` or ``'cpu'`` and fall back to CPU if CUDA is missing.
-
-    ``framework='torch'`` only accepts CUDA when PyTorch itself can use it.
-    """
-    if device not in ("auto", "cuda"):
-        return "cpu"
-    if framework == "torch":
-        try:
-            import torch
-
-            return "cuda" if torch.cuda.is_available() else "cpu"
-        except ImportError:
-            return "cpu"
-    return "cuda" if cuda_available() else "cpu"

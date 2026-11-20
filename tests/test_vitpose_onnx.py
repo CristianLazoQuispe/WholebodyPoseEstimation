@@ -1,4 +1,4 @@
-"""ViTPose ONNX engine: NumPy pre/post-processing (fast) and torch-vs-ONNX agreement (slow)."""
+"""ViTPose on ONNX Runtime: NumPy pre/post-processing, model wiring, multi-person (slow)."""
 
 import numpy as np
 import pytest
@@ -44,43 +44,16 @@ def test_decode_heatmaps_peak_shift_and_transform():
     assert s[0, 0] == pytest.approx(1.0) and s[0, 2] == 0
 
 
-def test_decode_matches_onepose():
-    functional = pytest.importorskip("onepose.functional")
-    rng = np.random.default_rng(0)
-    hm = rng.random((3, 133, 64, 48), dtype=np.float32)
-    centers = rng.uniform(100, 500, (3, 2)).astype(np.float32)
-    scales = rng.uniform(1, 4, (3, 2)).astype(np.float32)
-    ref_k, ref_s = functional.keypoints_from_heatmaps(hm, center=centers, scale=scales, post_process="default")
-    k, s = vo.decode_heatmaps(hm, centers, scales)
-    assert np.allclose(k, ref_k, atol=1e-3) and np.array_equal(s, ref_s[..., 0])
+def test_model_name_validation():
+    with pytest.raises(ValueError, match="model_name"):
+        vp.VITPoseModel(model_name="ViTPose_tiny", verbose=False)
 
 
-def test_preprocess_matches_onepose():
-    pytest.importorskip("onepose")
-    import cv2
-    from onepose.transforms import BGR2RGB, ComposeTransforms, NormalizeTensor, TopDownAffine, ToTensor, _box2cs
-
-    rng = np.random.default_rng(1)
-    img = rng.integers(0, 256, (300, 500, 3), dtype=np.uint8)
-    c, s = _box2cs([192, 256], [0, 0, 500, 300])
-    t = ComposeTransforms([BGR2RGB(), TopDownAffine(), ToTensor(), NormalizeTensor()])
-    ref = t({"img": cv2.cvtColor(img, cv2.COLOR_RGB2BGR), "rotation": 0, "center": c, "scale": s,
-             "image_size": np.array([192, 256])})["img"].numpy()  # fmt: skip
-    x, c2, s2 = vo.preprocess(img)
-    assert np.allclose(c, c2) and np.allclose(s, s2)
-    assert np.abs(x - ref).max() < 1e-5
-
-
-def test_engine_validation():
-    with pytest.raises(ValueError, match="engine"):
-        vp.VITPoseModel(engine="tensorrt", verbose=False)
-
-
-def test_onnx_weight_keys_registered():
+def test_weight_keys_registered():
     from wholebodypose.weights import WEIGHTS
 
-    for name in vp.MODEL_NAMES:
-        w = WEIGHTS[vp.onnx_weight_key(name)]
+    for key in vp.MODEL_NAMES.values():
+        w = WEIGHTS[key]
         assert w.filename.endswith(".onnx") and w.upstream is None
 
 
@@ -97,12 +70,11 @@ class _FakeOnnx:
         return k, np.full((n, 133), 0.9, np.float32)
 
 
-def test_onnx_engine_without_torch(monkeypatch, tmp_path):
-    pytest.importorskip("onnxruntime")
+def test_model_full_frame_and_multiperson(monkeypatch, tmp_path):
     monkeypatch.setattr(vp, "get_weight", lambda key, verbose=True: tmp_path / f"{key}.onnx")
     monkeypatch.setattr(vo, "ViTPoseOnnx", _FakeOnnx)
-    m = vp.VITPoseModel(engine="onnx", verbose=False, model_name="ViTPose+_small_coco_wholebody")
-    assert m.engine == "onnx" and m.model is None
+    m = vp.VITPoseModel(verbose=False, model_name="ViTPose+_small_coco_wholebody")
+    assert m.device == "cpu"
     k, s = m.predict(np.zeros((50, 40, 3), np.uint8))
     assert k.shape == (1, 133, 2) and np.allclose(k[0, 0], [5, 7]) and s.shape == (1, 133)
 
@@ -110,52 +82,14 @@ def test_onnx_engine_without_torch(monkeypatch, tmp_path):
     m.detector = lambda bgr: np.array([[10, 10, 30, 40], [0, 0, 39, 49]], np.float32)
     m.box_padding = 0.0
     k, s = m.predict(np.zeros((50, 40, 3), np.uint8))
-    assert m.onnx.calls[-1] == 2 and k.shape == (2, 133, 2)
+    assert m.model.calls[-1] == 2 and k.shape == (2, 133, 2)
     assert np.allclose(k[:, 0], [[5, 7], [15, 17]])  # largest box first
-
-
-def test_auto_falls_back_to_torch(monkeypatch):
-    pytest.importorskip("onnxruntime")  # without it the fallback reason is the missing package
-
-    def missing(key, verbose=True):
-        raise RuntimeError("not on the mirror")
-
-    loaded = {}
-    monkeypatch.setattr(vp, "get_weight", missing)
-    monkeypatch.setattr(
-        vp.VITPoseModel, "_load_torch", lambda self, d, v, err: loaded.update(err=err) or setattr(self, "device", "cpu")
-    )
-    m = vp.VITPoseModel(engine="auto", verbose=False)
-    assert m.engine == "torch" and "mirror" in str(loaded["err"])
-    with pytest.raises((RuntimeError, ImportError)):
-        vp.VITPoseModel(engine="onnx", verbose=False)
 
 
 # ------------------------------------------------------------------------------------------- slow
 @pytest.mark.slow
-@pytest.mark.parametrize("size", ["small", "base"])
-def test_torch_and_onnx_agree(size, sample_image_path):
-    pytest.importorskip("onepose")
-    pytest.importorskip("onnxruntime")
-    import cv2
-
-    img = cv2.cvtColor(cv2.imread(str(sample_image_path)), cv2.COLOR_BGR2RGB)
-    name = f"ViTPose+_{size}_coco_wholebody"
-    try:
-        o = vp.VITPoseModel(device="cpu", model_name=name, engine="onnx", verbose=False)
-    except (RuntimeError, FileNotFoundError, OSError) as e:  # the ONNX files are mirror-only
-        pytest.skip(f"ONNX weight unavailable: {e}")
-    t = vp.VITPoseModel(device="cpu", model_name=name, engine="torch", verbose=False)
-    kt, st = t.predict(img)
-    ko, so = o.predict(img)
-    d = np.linalg.norm(kt - ko, axis=-1)
-    # measured: max 0 px, score diff <= 5.1e-6 (docs/guide/onnx.md)
-    assert d.max() < 0.01 and np.abs(st - so).max() < 1e-4
-
-
-@pytest.mark.slow
-def test_onnx_multiperson_two_dancers():
-    """Frame 30 of data/videos/videoTest.mp4 shows two people side by side (core install only)."""
+def test_multiperson_two_dancers():
+    """Frame 30 of data/videos/videoTest.mp4 shows two people side by side."""
     import cv2
 
     from tests.conftest import ROOT
@@ -165,12 +99,7 @@ def test_onnx_multiperson_two_dancers():
     ok, bgr = cap.read()
     cap.release()
     assert ok
-    try:
-        m = vp.VITPoseModel(
-            device="cpu", model_name="ViTPose+_small_coco_wholebody", engine="onnx", detector="yolox_m", verbose=False
-        )
-    except RuntimeError as e:
-        pytest.skip(f"ONNX weight unavailable: {e}")
+    m = vp.VITPoseModel(device="cpu", model_name="ViTPose+_small_coco_wholebody", detector="yolox_m", verbose=False)
     k, s = m.predict(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
     assert len(k) == 2
     centers = sorted(float(k[i, :17][s[i, :17] > 0.5, 0].mean()) for i in range(2))

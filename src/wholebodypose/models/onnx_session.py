@@ -9,15 +9,6 @@ from __future__ import annotations
 from pathlib import Path
 
 
-def ort_available() -> bool:
-    """True when ``onnxruntime`` (or ``onnxruntime-gpu``) can be imported."""
-    try:
-        import onnxruntime  # noqa: F401
-    except ImportError:
-        return False
-    return True
-
-
 def ort_has_cuda() -> bool:
     """True when the installed onnxruntime build has the CUDA execution provider."""
     try:
@@ -47,8 +38,7 @@ def create_session(model_path: str | Path, device: str = "auto", intra_op_num_th
         intra_op_num_threads: CPU threads per operator; ``0`` keeps onnxruntime's default.
         log_level: onnxruntime log severity (``3`` = errors only).
 
-    Every other session option keeps onnxruntime's default (full graph optimization), which is
-    also what rtmlib uses, so the outputs match rtmlib's sessions exactly.
+    Every other session option keeps onnxruntime's default (full graph optimization).
     """
     try:
         import onnxruntime as ort

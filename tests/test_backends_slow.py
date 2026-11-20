@@ -7,27 +7,19 @@ from wholebodypose import PoseEstimator
 
 pytestmark = pytest.mark.slow
 
-# RTMPose and ViTPose (ONNX engine) only need the core install (onnxruntime).
+# RTMPose and ViTPose only need the core install (onnxruntime).
 CASES = [
     ("rtmpose", {"mode": "lightweight"}, "onnxruntime"),
     ("mediapipe", {}, "mediapipe"),
-    ("vitpose", {"model_name": "ViTPose+_small_coco_wholebody", "engine": "onnx"}, "onnxruntime"),
-    ("vitpose", {"model_name": "ViTPose+_small_coco_wholebody", "engine": "torch"}, "onepose"),
+    ("vitpose", {"model_name": "ViTPose+_small_coco_wholebody"}, "onnxruntime"),
 ]
-IDS = ["rtmpose", "mediapipe", "vitpose-onnx", "vitpose-torch"]
-
-
-def _make(backend, **kwargs):
-    try:
-        return PoseEstimator(backend, **kwargs)
-    except RuntimeError as e:  # the ViTPose .onnx files are mirror-only
-        pytest.skip(f"weight unavailable: {e}")
+IDS = ["rtmpose", "mediapipe", "vitpose"]
 
 
 @pytest.mark.parametrize("backend,kwargs,module", CASES, ids=IDS)
 def test_backend_on_image(backend, kwargs, module, sample_image_path):
     pytest.importorskip(module)
-    est = _make(backend, device="cpu", verbose=False, **kwargs)
+    est = PoseEstimator(backend, device="cpu", verbose=False, **kwargs)
     k, s = est.predict_image(sample_image_path)
     assert k.shape[1:] == (133, 2) and s.shape[1:] == (133,) and len(k) >= 1
     body = s[0, :17] > 0
@@ -59,7 +51,7 @@ def test_multiperson_two_dancers(backend, kwargs, module):
     ok, bgr = cap.read()
     cap.release()
     assert ok
-    est = _make(backend, device="cpu", verbose=False, multiperson=True, **kwargs)
+    est = PoseEstimator(backend, device="cpu", verbose=False, multiperson=True, **kwargs)
     k, s = est.predict(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
     assert len(k) == 2
     centers = sorted(float(k[i, :17][s[i, :17] > 0, 0].mean()) for i in range(2))

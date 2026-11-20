@@ -326,7 +326,7 @@ def test_cli_list_and_build(wlasl_root, tmp_path, monkeypatch, capsys):
 
 
 def test_rtmpose_legacy_rgb_flag(monkeypatch):
-    """The legacy flag passes the RGB image to rtmlib unchanged; the default converts to BGR."""
+    """The legacy flag passes the RGB image to the models unchanged; the default converts to BGR."""
     from wholebodypose.models.rtmpose import model as M
 
     seen = []
@@ -350,7 +350,6 @@ WLASL_VIDEOS = Path("/data/cristian/paper_2025/WLASL_videos/WLASL/videos")
 @pytest.mark.slow
 @pytest.mark.skipif(not (PUBLISHED.exists() and WLASL_VIDEOS.exists()), reason="published ISLR data not available")
 def test_icmv2025_preset_reproduces_published_sample():
-    pytest.importorskip("rtmlib")
     from wholebodypose.api import create_model
 
     ref = next(H.iter_samples(PUBLISHED))

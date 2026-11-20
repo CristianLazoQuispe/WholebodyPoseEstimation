@@ -1,3 +1,3 @@
 # Hugging Face Space dependencies (CPU hardware). gradio must match `sdk_version` in README.md.
 gradio==6.32.0
-wholebodypose[mediapipe,video] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git@v1.1.0
+wholebodypose[mediapipe,video] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git@main

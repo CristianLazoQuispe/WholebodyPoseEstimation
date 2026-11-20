@@ -36,8 +36,7 @@ docs/
 │   │                       speed, backend citations
 │   ├── keypoints.md        COCO-WholeBody 133 layout and the 135-point variant
 │   ├── video-pipeline.md   Video2Pose options and outputs, save/load formats, filtering
-│   ├── onnx.md             ONNX Runtime engines: RTMPose vendored code vs rtmlib, ViTPose vs PyTorch,
-│   │                       CPU latency, quantization
+│   ├── onnx.md             ONNX Runtime models: vendored RTMPose code, ViTPose graph, validation
 │   └── weights.md          Hugging Face mirror, cache, offline use
 ├── release.md              maintainers: GitHub Release, PyPI Trusted Publishing setup
 ├── datasets/
@@ -58,7 +57,7 @@ docs/
 | know which index is the left wrist / the right hand / the face | [guide/keypoints.md](guide/keypoints.md) |
 | turn sign language videos into training sequences | [guide/video-pipeline.md](guide/video-pipeline.md) |
 | smooth keypoints (NLMS) or drop bad frames | [guide/video-pipeline.md#filtering](guide/video-pipeline.md#filtering) |
-| run ViTPose without PyTorch, or decide on int8/fp16 | [guide/onnx.md](guide/onnx.md) |
+| know how the ONNX models are run and validated | [guide/onnx.md](guide/onnx.md) |
 | run on a machine without internet, or mirror the weights | [guide/weights.md](guide/weights.md) |
 | use the pose datasets of the paper | [datasets/README.md](datasets/README.md), the [dataset card](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition) |
 | rebuild the pose datasets from the raw videos | [datasets/README.md#rebuilding-from-videos](datasets/README.md#rebuilding-from-videos) |
@@ -73,7 +72,7 @@ docs/
 ```text
 src/wholebodypose/     library: api, models/{rtmpose,vitpose,mediapipe}, video, filters, io, weights, cli
 tests/                 pytest suite (unit tests + `slow` real-backend tests)
-examples/              short scripts
+examples/              image, video and dataset scripts
 docs/                  guides (install, backends, keypoint layout, video pipeline) and datasets
 website/               project page, deployed to GitHub Pages by .github/workflows/pages.yml
 hf/                    Hugging Face: Space app, weight-mirror and dataset-card tooling

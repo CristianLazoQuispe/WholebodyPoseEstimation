@@ -82,10 +82,9 @@ def cmd_backends(args) -> int:
         print(f"onnxruntime {ort.__version__}: {', '.join(ort.get_available_providers())}")
     except ImportError:
         print("onnxruntime: not installed (pip install onnxruntime or onnxruntime-gpu)")
-    optional = {"mediapipe": "mediapipe", "torch": "torch (ViTPose engine='torch')", "onepose": "onepose"}
-    optional["rtmlib"] = "rtmlib (RTMPose engine='rtmlib')"
-    found = [label for mod, label in optional.items() if importlib.util.find_spec(mod) is not None]
-    print("optional: " + (", ".join(found) if found else "none installed"))
+    optional = {"mediapipe": "mediapipe", "imageio_ffmpeg": "video", "padasip": "filters", "h5py": "datasets"}
+    found = [extra for mod, extra in optional.items() if importlib.util.find_spec(mod) is not None]
+    print("extras: " + (", ".join(found) if found else "none installed"))
     return 0
 
 

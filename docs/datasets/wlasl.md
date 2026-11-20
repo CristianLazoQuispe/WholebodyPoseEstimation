@@ -151,7 +151,7 @@ Code: `Notebooks/old/AnalysisWLASL.ipynb`.
 ## 5. Rebuild with the library
 
 ```bash
-pip install "wholebodypose[rtmpose,gpu,datasets]"
+pip install "wholebodypose[gpu,datasets]"
 # videos: the 21,083 clips of Kaggle quanbkit1/wlasl-rgb-video or the identical wlasl-processed.zip,
 # extracted so that <root>/videos/<id>.mp4 and <root>/info.json exist
 wholebodypose-build-islr --dataset wlasl --subset 100 --root /path/to/WLASL \

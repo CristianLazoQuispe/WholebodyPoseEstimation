@@ -95,7 +95,7 @@ label_map = json.load(open("wlasl_100_maplabels.json"))["id_to_label"]  # gloss 
 ## Rebuilding from videos
 
 ```bash
-pip install "wholebodypose[rtmpose,gpu,datasets]"     # [rtmpose] alone runs on CPU
+pip install "wholebodypose[datasets]"     # + [gpu] for CUDA
 
 # 1. check the sample lists (no video is read)
 wholebodypose-build-islr --dataset lsa64 --root /path/to/LSA64_dataset --list
@@ -133,7 +133,7 @@ Python API: `wholebodypose.datasets.build.build_dataset(...)`, `extract_video(..
 | | `icmv2025` (reproduces the release) | `v1` (recommended for new data) |
 |:--|:--|:--|
 | model | RTMW-l 384x288 + YOLOX-m, rtmlib `performance` | same |
-| colour fed to rtmlib | **RGB** (`legacy_rgb_input=True`, the original bug) | BGR (correct) |
+| colour fed to the model | **RGB** (`legacy_rgb_input=True`, the original bug) | BGR (correct) |
 | resolution | original (no resize) | original |
 | person | first detection | largest bounding box |
 | threshold / filter | score < 2.5 -> (0, 0); hand/foot chain filter | same |
@@ -170,7 +170,7 @@ frames per video, CPU (onnxruntime 1.32, rtmlib 0.0.16); the published data was 
 width/height equal the video's. Differences are in normalized units over keypoints 0-132 detected in
 both; detection agreement = fraction of (frame, keypoint) pairs where both agree on detected / not.
 
-| input to rtmlib, resize width, person, threshold | dataset | n videos | T match | W/H match | frames | median abs diff | mean abs diff | detection agreement |
+| input to the model, resize width, person, threshold | dataset | n videos | T match | W/H match | frames | median abs diff | mean abs diff | detection agreement |
 |---|---|---|---|---|---|---|---|---|
 | BGR, none, first, 2.5 | ASLCitizen100 | 10 | 100% | 100% | 300 | 9.11e-04 | 2.15e-03 | 0.9904 |
 | BGR, none, first, 2.5 | DGI_PUCP30 | 10 | 100% | 100% | 161 | 5.49e-04 | 9.46e-04 | 1.0000 |
@@ -227,7 +227,7 @@ groups, CPU):
 
 Conclusions:
 
-- The published data is reproduced by **RGB input to rtmlib, original resolution, first detection,
+- The published data is reproduced by **RGB input to the model, original resolution, first detection,
   threshold 2.5 with the chain filter**: preset `icmv2025` (detection agreement 99.96-100 %, median
   difference 1e-8 to 7e-6, mean 3e-5 to 1.2e-4 normalized). The remaining differences are
   GPU-vs-CPU floating point noise that occasionally flips a score across the threshold.

@@ -1,6 +1,5 @@
 # Lint, unit tests on every supported Python (core install only), real RTMPose + ViTPose on the core
-# install (ONNX Runtime only), a package build check and, on main / weekly / on demand, every backend
-# plus the reference engines (rtmlib, PyTorch + onepose) with downloaded weights.
+# install, a package build check and, on main / weekly / on demand, every backend and the examples.
 name: CI
 
 on:
@@ -10,7 +9,7 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: "0 5 * * 1" # Mondays 05:00 UTC: catches upstream breakage (MediaPipe, ONNX Runtime, rtmlib, weights URLs)
+    - cron: "0 5 * * 1" # Mondays 05:00 UTC: catches upstream breakage (MediaPipe, ONNX Runtime, weights URLs)
 
 permissions:
   contents: read
@@ -69,24 +68,19 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: pyproject.toml
-      - name: Install (core + dev only; no torch, rtmlib, onepose or mediapipe)
+      - name: Install (core + dev only)
         run: |
           pip install -e ".[dev]"
-          python - <<'PY'
-          import importlib.util as u
-          extra = [m for m in ("torch", "rtmlib", "onepose", "mediapipe") if u.find_spec(m)]
-          assert not extra, f"core install pulled {extra}"
-          PY
+          python -c "import importlib.util as u; assert not u.find_spec('mediapipe'), 'core install pulled mediapipe'"
       - name: Restore model weights # default WHOLEBODYPOSE_HOME
         uses: actions/cache@v4
         with:
           path: ~/.cache/wholebodypose
           key: wholebodypose-core-weights-${{ hashFiles('src/wholebodypose/weights.py') }}
           restore-keys: wholebodypose-core-weights-
-      # ViTPose .onnx files come from the public weight mirror.
-      - name: Real backends (RTMPose lightweight, ViTPose small ONNX)
+      - name: Real backends (RTMPose lightweight, ViTPose small)
         run: |
-          pytest -ra -m slow tests/test_backends_slow.py -k "rtmpose or vitpose-onnx"
+          pytest -ra -m slow tests/test_backends_slow.py -k "rtmpose or vitpose"
           pytest -ra -m slow tests/test_vitpose_onnx.py tests/test_rtmpose_onnx.py
       - name: CLI on a real image
         run: |
@@ -107,12 +101,10 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: System libraries for MediaPipe (EGL/GLES)
         run: sudo apt-get update -qq && sudo apt-get install -y -qq libegl1 libgles2 libgl1
-      - name: Install every backend and the reference engines (rtmlib, CPU PyTorch, onepose)
+      - name: Install every backend
         run: |
-          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-          pip install -e ".[all,dev]" rtmlib
-          pip install "onepose @ git+https://github.com/developer0hye/onepose.git@dcb645fb52d2f3055dff893965d484e20b917c0f"
-          pip list | grep -iE "^(torch|onnxruntime|rtmlib|mediapipe|onepose|padasip|numpy|opencv)" || true
+          pip install -e ".[all,dev]"
+          pip list | grep -iE "^(onnxruntime|mediapipe|padasip|numpy|opencv)" || true
       - name: Restore model weights # default WHOLEBODYPOSE_HOME
         uses: actions/cache@v4
         with:
@@ -123,10 +115,10 @@ jobs:
         run: pytest -ra
       - name: Examples smoke test
         run: |
-          python examples/image_inference.py data/images/image.jpg -b mediapipe -o "$RUNNER_TEMP/out"
-          python examples/video_to_npz.py data/videos/videoTest.mp4 -b rtmpose --device cpu --max-frames 5 -o "$RUNNER_TEMP/out"
-          python examples/filter_sequence.py "$RUNNER_TEMP/out/videoTest_rtmpose.npz" --nlms
-          python examples/webcam_realtime.py --source data/videos/videoTest.mp4 --no-show --max-frames 5 --smooth nlms
+          python examples/image.py data/images/image.jpg -b mediapipe -o "$RUNNER_TEMP/out/pose.png"
+          python examples/video.py data/videos/videoTest.mp4 -b rtmpose --max-frames 5 -o "$RUNNER_TEMP/out"
+          mkdir -p "$RUNNER_TEMP/videos/dance" && cp data/videos/videoTest.mp4 "$RUNNER_TEMP/videos/dance/"
+          python examples/dataset.py "$RUNNER_TEMP/videos" "$RUNNER_TEMP/out/dataset.hdf5" --max-frames 5
 
   build:
     name: Build and check the package

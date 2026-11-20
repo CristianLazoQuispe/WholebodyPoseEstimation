@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from wholebodypose.filters.filtering_mean import MeanMedianFilter, process_keypoints
+from wholebodypose.filters.filtering_mean import MeanMedianFilter
 from wholebodypose.filters.sequence import PoseSequenceFilter
 
 
@@ -10,8 +10,6 @@ def test_mean_median_filter_smooths():
     outs = [f(np.full((133, 2), v, np.float32)) for v in (0, 0, 9)]
     assert outs[0].mean() == 0 and outs[1].mean() == 0
     assert outs[2].mean() == pytest.approx((3 + 0) / 2)  # (mean + median) / 2
-    buf: list = []
-    assert process_keypoints([1.0], buf, window_size=2) == [1.0]
 
 
 def test_sequence_filters():

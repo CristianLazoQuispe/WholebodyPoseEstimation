@@ -1,14 +1,13 @@
-"""ViTPose+ on ONNX Runtime, with NumPy/OpenCV pre- and post-processing (no PyTorch, no onepose).
+"""ViTPose+ on ONNX Runtime, with NumPy/OpenCV pre- and post-processing.
 
-This reproduces onepose's ``Model.forward`` for the COCO-WholeBody configs:
+Processing for the COCO-WholeBody configs:
 
-* box -> (center, scale) with the 192:256 aspect ratio and no padding (``onepose.transforms._box2cs``);
+* box -> (center, scale) with the 192:256 aspect ratio and no padding;
 * affine warp to 192x256 (``cv2.warpAffine``, bilinear, no UDP), RGB, ``/255``, ImageNet mean/std;
 * heatmap argmax + the +/-0.25 px "default" shift towards the higher neighbour, then the inverse
-  transform (``onepose.functional.keypoints_from_heatmaps`` with ``post_process='default'``,
-  ``use_udp=False``). onepose does not run flip test, so neither does this module.
+  transform. No flip test.
 
-The graph itself (``scripts/export_vitpose_onnx.py``) maps ``(N, 3, 256, 192)`` to ``(N, 133, 64, 48)``.
+The graph itself maps ``(N, 3, 256, 192)`` to ``(N, 133, 64, 48)``.
 
 The pre- and post-processing are ports of onepose (https://github.com/developer0hye/onepose, itself
 based on ViTPose/MMPose), Apache License 2.0 (LICENSES/Apache-2.0.txt); see THIRD_PARTY.md.
@@ -40,7 +39,7 @@ def box_to_center_scale(x: float, y: float, w: float, h: float) -> tuple[np.ndar
 
 
 def affine_transform(center: np.ndarray, scale: np.ndarray) -> np.ndarray:
-    """2x3 matrix mapping the box to the ``INPUT_W x INPUT_H`` crop (rotation 0, as in onepose)."""
+    """2x3 matrix mapping the box to the ``INPUT_W x INPUT_H`` crop (rotation 0)."""
     src_w = scale[0] * 200.0
     src = np.zeros((3, 2), np.float32)
     dst = np.zeros((3, 2), np.float32)
@@ -91,7 +90,7 @@ class ViTPoseOnnx:
     """A ViTPose+ ONNX graph plus its NumPy pre/post-processing.
 
     Args:
-        model_path: ``.onnx`` file exported by ``scripts/export_vitpose_onnx.py``.
+        model_path: ViTPose+ ``.onnx`` file (``get_weight("vitpose_<size>")``).
         device: ``'auto'``, ``'cuda'`` or ``'cpu'``.
         intra_op_num_threads: ONNX Runtime CPU threads (``0`` = its default).
     """

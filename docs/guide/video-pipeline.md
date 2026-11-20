@@ -162,8 +162,7 @@ The filters always adapt to the observation, not to their output. Use it on raw 
 (`use_thresholding=False`) to benefit from the middle band; with binary scores it acts as a
 short-gap filler. `num_keypoints` defaults to 135 (dataset layout): pass `133` for library output.
 The online building blocks (`initialize_adaptive_filter`, `KeypointMemory`, `track_keypoints` in
-`wholebodypose.filters.filtering_nlms`) can run frame by frame, as in
-[`examples/webcam_realtime.py`](../../examples/webcam_realtime.py).
+`wholebodypose.filters.filtering_nlms`) can run frame by frame.
 
 ### `MeanMedianFilter`: moving smoothing
 
@@ -179,5 +178,3 @@ from wholebodypose.filters.filtering_mean import MeanMedianFilter
 f = MeanMedianFilter(window_size=5)
 smoothed = np.stack([f(k) for k in keypoints])
 ```
-
-See [`examples/filter_sequence.py`](../../examples/filter_sequence.py) for the three combined.

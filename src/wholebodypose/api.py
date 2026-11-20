@@ -38,7 +38,7 @@ BACKENDS: dict[str, Backend] = {
             "vitpose",
             "wholebodypose.models.vitpose.model:VITPoseModel",
             "",
-            "ViTPose+ top-down, ONNX Runtime (PyTorch optional); multi-person with detector='yolox_m'",
+            "ViTPose+ top-down, ONNX Runtime; multi-person with detector='yolox_m'",
             {"model_name": "ViTPose+_huge_coco_wholebody", "use_thresholding": True, "kpt_thr": 0.5},
             multiperson=True,
         ),
@@ -47,7 +47,7 @@ BACKENDS: dict[str, Backend] = {
             "wholebodypose.models.mediapipe.model:MediapipeModel",
             "mediapipe",
             "MediaPipe pose + hands + face, CPU friendly; multi-person with max_people>1",
-            {"mode_coco": True, "use_thresholding": True, "kpt_thr": 0.5},
+            {"use_thresholding": True, "kpt_thr": 0.5},
             multiperson=True,
         ),
     ]

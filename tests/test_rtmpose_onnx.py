@@ -1,4 +1,4 @@
-"""Vendored rtmlib code (YOLOX + RTMW on ONNX Runtime): unit tests, and exact agreement with rtmlib (slow)."""
+"""Vendored YOLOX + RTMW code on ONNX Runtime: unit tests."""
 
 import numpy as np
 import pytest
@@ -74,91 +74,6 @@ def test_simcc_maximum():
     assert locs[0, 1].tolist() == [-1, -1] and vals[0, 1] == 0
 
 
-def test_engine_and_backend_validation():
-    with pytest.raises(ValueError, match="engine"):
-        rm.RTMPoseModel(engine="tensorrt", verbose=False)
-    with pytest.raises(ValueError, match="engine='rtmlib'"):
-        rm.RTMPoseModel(engine="onnx", backend="openvino", verbose=False)
-
-
-def test_numpy_parts_match_rtmlib():
-    """Pre/post-processing alone, on random inputs (needs rtmlib, no weights)."""
-    pytest.importorskip("rtmlib")
-    from rtmlib.tools.object_detection import post_processings as rpp
-    from rtmlib.tools.pose_estimation import post_processings as rpost
-    from rtmlib.tools.pose_estimation import pre_processings as rpre
-
-    rng = np.random.default_rng(0)
-    img = rng.integers(0, 256, (360, 500, 3), dtype=np.uint8)
-    bbox = np.array([30.5, 40.25, 300.0, 350.75])
-    c, s = rtmw.bbox_xyxy2cs(bbox, 1.25)
-    rc, rs = rpre.bbox_xyxy2cs(bbox, 1.25)
-    assert np.array_equal(c, rc) and np.array_equal(s, rs)
-    a, sa = rtmw.top_down_affine((288, 384), s, c, img)
-    b, sb = rpre.top_down_affine((288, 384), rs, rc, img)
-    assert np.array_equal(a, b) and np.array_equal(sa, sb)
-
-    sx, sy = rng.normal(size=(2, 133, 576)).astype(np.float32), rng.normal(size=(2, 133, 768)).astype(np.float32)
-    for ours, ref in zip(rtmw.get_simcc_maximum(sx, sy), rpost.get_simcc_maximum(sx, sy), strict=True):
-        assert np.array_equal(ours, ref)
-    kp, sc = rng.normal(size=(2, 133, 2)), rng.random((2, 133)).astype(np.float32)
-    for ours, ref in zip(rtmw.convert_coco_to_openpose(kp, sc), rpost.convert_coco_to_openpose(kp, sc), strict=True):
-        assert np.array_equal(ours, ref)
-
-    boxes = rng.uniform(0, 500, (200, 4))
-    boxes[:, 2:] += boxes[:, :2]
-    scores = rng.random((200, 2))
-    for ours, ref in zip(
-        yolox.multiclass_nms(boxes, scores, 0.45, 0.5), rpp.multiclass_nms(boxes, scores, 0.45, 0.5), strict=True
-    ):
-        assert np.array_equal(ours, ref)
-
-
-# ------------------------------------------------------------------------------------------- slow
-def _frames():
-    import cv2
-
-    from tests.conftest import ROOT
-
-    frames = [cv2.imread(str(ROOT / "data" / "images" / "image.jpg"))]
-    cap = cv2.VideoCapture(str(ROOT / "data" / "videos" / "videoTest.mp4"))
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 30)  # two people
-    ok, bgr = cap.read()
-    cap.release()
-    assert ok
-    return [*frames, bgr]
-
-
-@pytest.mark.slow
-@pytest.mark.parametrize("mode", list(rm.MODES))
-@pytest.mark.parametrize("legacy", [False, True], ids=["bgr", "legacy_rgb"])
-def test_onnx_engine_identical_to_rtmlib(mode, legacy):
-    """The vendored engine and rtmlib give the same arrays, bit for bit (same .onnx files, same CPU)."""
-    pytest.importorskip("rtmlib")
-    import cv2
-
-    kw = {"mode": mode, "device": "cpu", "verbose": False, "legacy_rgb_input": legacy, "use_thresholding": False}
-    ours = rm.RTMPoseModel(engine="onnx", **kw)
-    ref = rm.RTMPoseModel(engine="rtmlib", **kw)
-    for bgr in _frames():
-        rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
-        (k1, s1), (k2, s2) = ours.predict(rgb), ref.predict(rgb)
-        assert len(k1) >= 1
-        assert np.array_equal(k1, k2) and np.array_equal(s1, s2)
-
-
-@pytest.mark.slow
-def test_vendored_yolox_identical_to_rtmlib():
-    pytest.importorskip("rtmlib")
-    from rtmlib import YOLOX as RtmYOLOX
-
-    from wholebodypose.weights import get_weight
-
-    for key, size in (("yolox_m", (640, 640)), ("yolox_tiny", (416, 416))):
-        path = str(get_weight(key, verbose=False))
-        ours = yolox.YOLOX(path, model_input_size=size, score_thr=0.5)
-        ref = RtmYOLOX(path, model_input_size=size, device="cpu")
-        ref.score_thr = 0.5
-        for bgr in _frames():
-            a, b = ours(bgr), ref(bgr)
-            assert len(a) >= 1 and np.array_equal(a, b)
+def test_mode_validation():
+    with pytest.raises(ValueError, match="mode"):
+        rm.RTMPoseModel(mode="fastest", verbose=False)

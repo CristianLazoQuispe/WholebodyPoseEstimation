@@ -14,8 +14,8 @@ Presets
 -------
 ``icmv2025``  reproduces the published ICMV 2025 data: RTMW performance mode, threshold 2.5,
               noise filter, the first detection, original resolution and the *legacy RGB input*
-              (rtmlib expects BGR; the original code passed RGB).
-``v1``        the same model and thresholds with the colour bug fixed (BGR to rtmlib) and the
+              (the models expect BGR; the original code passed RGB).
+``v1``        the same model and thresholds with the colour bug fixed (BGR input) and the
               largest person instead of the first detection. Recommended for new datasets.
 """
 

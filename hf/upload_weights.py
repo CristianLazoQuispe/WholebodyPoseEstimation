@@ -3,7 +3,7 @@
 The mirror (``CristianLazoQuispe/wholebodypose-weights`` by default, i.e. ``WEIGHTS_REPO`` in
 ``wholebodypose.weights``) holds byte-identical copies of every third-party file listed in
 ``wholebodypose.weights.WEIGHTS``, at the same relative path the library uses for its local cache
-(``rtmpose/...onnx``, ``vitpose/...pth``, ``mediapipe/...task``). Nothing is re-trained or converted.
+(``rtmpose/...onnx``, ``vitpose/...onnx``, ``mediapipe/...task``).
 
 Modes (they can be combined; with none, ``--dry-run`` is assumed):
 
@@ -65,10 +65,6 @@ USED_BY = {
     "vitpose_base": "`vitpose`, `model_name='ViTPose+_base_coco_wholebody'`",
     "vitpose_large": "`vitpose`, `model_name='ViTPose+_large_coco_wholebody'`",
     "vitpose_huge": "`vitpose` (paper default)",
-    "vitpose_small_onnx": "`vitpose`, ONNX engine, `model_name='ViTPose+_small_coco_wholebody'`",
-    "vitpose_base_onnx": "`vitpose`, ONNX engine, `model_name='ViTPose+_base_coco_wholebody'`",
-    "vitpose_large_onnx": "`vitpose`, ONNX engine, `model_name='ViTPose+_large_coco_wholebody'`",
-    "vitpose_huge_onnx": "`vitpose`, ONNX engine (paper model)",
     "mp_pose_heavy": "`mediapipe` body, `model_complexity=2` (paper default)",
     "mp_pose_full": "`mediapipe` body, `model_complexity` < 2",
     "mp_hand": "`mediapipe` hands",

@@ -93,8 +93,8 @@ jobs:
           prerelease: ${{ steps.pre.outputs.flag == 'true' }}
 
   # Manual only (workflow_dispatch input), and only after the one-time setup in docs/release.md.
-  # The metadata has no direct-URL dependencies any more (onepose is a documented manual install), so
-  # PyPI accepts it. TestPyPI always runs first; `pypi` additionally needs a release tag.
+  # The metadata has no direct-URL dependencies, so PyPI accepts it.
+  # TestPyPI always runs first; `pypi` additionally needs a release tag.
   testpypi:
     name: Publish to TestPyPI
     needs: build

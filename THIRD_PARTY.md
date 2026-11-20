@@ -22,8 +22,6 @@ Apache-2.0 notice and its changes; the license text is in [`LICENSES/Apache-2.0.
 | Component | Used for | License | Source |
 |:--|:--|:--|:--|
 | ONNX Runtime | RTMPose, YOLOX and ViTPose inference | MIT | https://github.com/microsoft/onnxruntime |
-| rtmlib (optional) | reference RTMPose engine (`engine="rtmlib"`) | Apache-2.0 | https://github.com/Tau-J/rtmlib |
-| onepose (optional) | reference ViTPose engine (`engine="torch"`), ONNX export | Apache-2.0 | https://github.com/developer0hye/onepose |
 | MediaPipe | `mediapipe` backend | Apache-2.0 | https://github.com/google-ai-edge/mediapipe |
 | padasip | NLMS filtering | MIT | https://github.com/matousc89/padasip |
 
@@ -33,8 +31,7 @@ Apache-2.0 notice and its changes; the license text is in [`LICENSES/Apache-2.0.
 |:--|:--|:--|:--|:--|:--|
 | RTMW-l / RTMW-m (ONNX) | `rtmpose` | Apache-2.0 | Cocktail14 (incl. COCO-WholeBody, UBody, Halpe, InterHand2.6M, ...) | not guaranteed: training data includes non-commercial datasets | https://github.com/open-mmlab/mmpose |
 | YOLOX-m / YOLOX-tiny, Human-Art (ONNX) | `rtmpose`, ViTPose detector | Apache-2.0 | Human-Art (non-commercial) | not guaranteed | https://github.com/open-mmlab/mmpose |
-| ViTPose+ whole-body (fp16 `.pth`) | `vitpose` | Apache-2.0 | COCO, AI Challenger, MPII, AP-10K, APT-36K, COCO-WholeBody | not guaranteed: MPII and COCO-WholeBody are non-commercial | https://github.com/ViTAE-Transformer/ViTPose, converted by onepose |
-| ViTPose+ whole-body ONNX (`vitpose/*.onnx`) | `vitpose` | Apache-2.0 (modified: converted to ONNX, no retraining) | as above | not guaranteed | WholeBodyPose mirror (`scripts/export_vitpose_onnx.py`) |
+| ViTPose+ whole-body ONNX (`vitpose/*.onnx`) | `vitpose` | Apache-2.0 (modified: converted to ONNX, no retraining) | COCO, AI Challenger, MPII, AP-10K, APT-36K, COCO-WholeBody | not guaranteed: MPII and COCO-WholeBody are non-commercial | https://github.com/ViTAE-Transformer/ViTPose (fp16 checkpoints by onepose), ONNX export on the WholeBodyPose mirror |
 | MediaPipe Tasks models (`*.task`) | `mediapipe` | Apache-2.0 | Google | yes | https://github.com/google-ai-edge/mediapipe |
 | COCO-WholeBody keypoint definition | 133-keypoint layout | annotations CC BY-NC 4.0 | — | — | https://github.com/jin-s13/COCO-WholeBody |
 

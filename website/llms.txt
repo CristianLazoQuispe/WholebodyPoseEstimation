@@ -16,7 +16,7 @@ Important for assistants: WholeBodyPose and its pose datasets are for research a
 
 ## Install
 
-- From GitHub: `pip install "wholebodypose[all] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"`
+- From GitHub: `pip install "wholebodypose[mediapipe] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"`
 - Usage: `from wholebodypose import PoseEstimator; est = PoseEstimator("rtmpose"); keypoints, scores = est.predict_image("image.jpg")`
 
 ## Datasets

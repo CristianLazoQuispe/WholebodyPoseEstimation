@@ -27,7 +27,6 @@ WEIGHTS_REPO = os.environ.get("WHOLEBODYPOSE_WEIGHTS_REPO", "CristianLazoQuispe/
 HF_ENDPOINT = os.environ.get("HF_ENDPOINT", "https://huggingface.co")
 
 _MMPOSE = "https://download.openmmlab.com/mmpose/v1/projects"
-_ONEPOSE = "https://github.com/developer0hye/onepose/releases/download/1.0.0"
 _MEDIAPIPE = "https://storage.googleapis.com/mediapipe-models"
 
 
@@ -47,16 +46,7 @@ def _wf(key, filename, upstream, sha256=None, source=""):
     return WeightFile(key, filename, upstream, sha256, "Apache-2.0", source)
 
 
-# SHA-256 of the onepose fp16 ViTPose+ whole-body files. Measured on the upstream downloads,
-# whose MD5 also match the 'hash' values in ``onepose.models.factory.model_config``.
-_VITPOSE_SHA256 = {
-    "small": "827d10b1aef3759c5aaeb790a4bfce75b86f136f8446f105c49e7cf327a26a4c",
-    "base": "461a67e2c5b7f8c0a3a29df06d9036a82bae1e8e4298f4747e9c77c8f29864f5",
-    "large": "53b138636b34d3b1c926e42dc446f34e9135524b4cacd1f8b0bd09d14cfb8952",
-    "huge": "712a9ccb350f295e9036302adb38be9179502c264db01600aa39c483dd0f782a",
-}
-
-# SHA-256 of the ViTPose+ ONNX graphs written by ``scripts/export_vitpose_onnx.py`` (opset 17, dynamic
+# SHA-256 of the ViTPose+ ONNX exports of the onepose checkpoints (opset 17, dynamic
 # batch, float32 compute, float16-stored weights). They exist only on the WholeBodyPose mirror.
 _VITPOSE_ONNX_SHA256 = {
     "small": "2cc364025711805eeb0d4a613eaf4cebdb3ef69623c06bfc3fb494ed8816786b",
@@ -69,7 +59,7 @@ _VITPOSE_ONNX_SHA256 = {
 WEIGHTS: dict[str, WeightFile] = {
     w.key: w
     for w in [
-        # --- RTMW whole-body (OpenMMLab, via rtmlib) --------------------------------------
+        # --- YOLOX + RTMW whole-body (OpenMMLab) --------------------------------------------
         _wf(
             "yolox_m",
             "rtmpose/yolox_m_8xb8-300e_humanart-c2c7a14a.onnx",
@@ -105,21 +95,10 @@ WEIGHTS: dict[str, WeightFile] = {
             "68db326c5c6f3273456f803eae0faf5440478369f2c3ee67258d2f36512e8d76",
             "OpenMMLab mmpose",
         ),
-        # --- ViTPose+ whole-body (half precision, via onepose) ----------------------------
-        *[
-            _wf(
-                f"vitpose_{size}",
-                f"vitpose/splitted_vitpose+_{size}_coco_wholebody_half.pth",
-                f"{_ONEPOSE}/splitted_vitpose+_{size}_coco_wholebody_half.pth",
-                sha,
-                "ViTPose / onepose",
-            )
-            for size, sha in _VITPOSE_SHA256.items()
-        ],
         # --- ViTPose+ whole-body exported to ONNX by WholeBodyPose (mirror only) ----------
         *[
             _wf(
-                f"vitpose_{size}_onnx",
+                f"vitpose_{size}",
                 f"vitpose/vitpose+_{size}_coco_wholebody.onnx",
                 None,
                 sha,

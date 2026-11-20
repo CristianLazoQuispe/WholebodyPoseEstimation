@@ -46,7 +46,7 @@ body:
       description: |
         Output of:
         `python -c "import sys, platform, wholebodypose; print(sys.version, platform.platform(), wholebodypose.__version__)"`
-        and `pip list | grep -iE "wholebodypose|numpy|opencv|onnxruntime|rtmlib|mediapipe|torch|onepose|padasip"`
+        and `pip list | grep -iE "wholebodypose|numpy|opencv|onnxruntime|mediapipe|padasip"`
       render: text
     validations:
       required: true

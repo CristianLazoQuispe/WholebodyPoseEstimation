@@ -23,13 +23,3 @@ class MeanMedianFilter:
             return np.asarray(keypoints, np.float32)
         arr = np.stack(self.buffer)
         return (arr.mean(axis=0) + np.median(arr, axis=0)) / 2
-
-
-def process_keypoints(keypoints, keypoints_buffer: list, window_size: int = 5):
-    """Functional form kept for backwards compatibility (``keypoints_buffer`` is mutated)."""
-    keypoints_buffer.append(keypoints)
-    if len(keypoints_buffer) >= window_size:
-        arr = np.array(keypoints_buffer)
-        keypoints_buffer.pop(0)
-        return ((arr.mean(axis=0) + np.median(arr, axis=0)) / 2).tolist()
-    return keypoints

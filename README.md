@@ -12,10 +12,6 @@ keypoints, plus the video pipeline that turns sign language videos into training
 [![CI](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/actions/workflows/ci.yml/badge.svg)](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-green?style=flat-square)](LICENSE)
 
-> **Please cite.** If WholeBodyPose helps your work, cite the [paper](#citation)
-> (doi:[10.1117/12.3096312](https://doi.org/10.1117/12.3096312)), the backend you used and, for the pose
-> datasets, the source dataset of every subset.
-
 <img src="docs/assets/pipeline.svg" width="100%" alt="WholeBodyPose pipeline: input frames, pose backend (RTMPose, ViTPose+, MediaPipe), unified COCO-WholeBody output with 133 keypoints, optional temporal clean-up, training-ready pose sequences">
 
 ## Installation
@@ -24,19 +20,11 @@ keypoints, plus the video pipeline that turns sign language videos into training
 pip install "wholebodypose @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"
 ```
 
-The core install (NumPy, OpenCV, ONNX Runtime) runs RTMPose and ViTPose; no PyTorch needed.
+The core install (NumPy, OpenCV, ONNX Runtime) runs RTMPose and ViTPose. Extras: `[mediapipe]` for the
+MediaPipe backend, `[gpu]` for CUDA. Weights download on first use.
+More: [installation](docs/guide/installation.md), [documentation](docs/README.md).
 
-| Extra | For |
-|:--|:--|
-| `[mediapipe]` | the MediaPipe backend |
-| `[gpu]` | ONNX Runtime CUDA for RTMPose and ViTPose |
-| `[all]` | MediaPipe, NLMS filtering and bundled ffmpeg |
-
-Weights download on first use. GPU, from source, Docker: [docs/guide/installation.md](docs/guide/installation.md).
-
-## Usage
-
-**Image**
+## Image
 
 ```python
 import cv2
@@ -44,30 +32,22 @@ from wholebodypose import PoseEstimator
 
 est = PoseEstimator("rtmpose")  # or "vitpose", "mediapipe"
 keypoints, scores = est.predict_image("data/images/image.jpg")  # (N, 133, 2) pixels, (N, 133)
-cv2.imwrite("image_pose.png", est.draw(cv2.imread("data/images/image.jpg"), keypoints, scores))
+cv2.imwrite("pose.png", est.draw(cv2.imread("data/images/image.jpg"), keypoints, scores))
 ```
 
-**Video**
+## Video
 
 ```python
-from wholebodypose import PoseEstimator, save_poses
+from wholebodypose import PoseEstimator
 
 est = PoseEstimator("rtmpose")
-res = est.process_video("data/videos/videoTest.mp4", "outputs/", video_processing_fps=15)
+res = est.process_video("data/videos/videoTest.mp4", "outputs/")
 print(res["total_keypoints"].shape, res["filepath_result"])  # (T, 133, 2), outputs/videoTest_rtmpose.mp4
-save_poses("outputs/videoTest.npz", res["total_keypoints"], res["total_scores"], fps=res["processing_fps"])
 ```
 
 ```bash
-wholebodypose video data/videos/videoTest.mp4 -b rtmpose --fps 15   # -> outputs/videoTest_rtmpose.{mp4,npz}
+wholebodypose video data/videos/videoTest.mp4 -b rtmpose   # -> outputs/videoTest_rtmpose.{mp4,npz}
 ```
-
-## Links
-
-- Documentation: [docs/](docs/README.md) (backends, keypoint layout, video pipeline, filtering, weights)
-- Datasets: [pose-action-recognition](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition) on the Hugging Face Hub ([schema and loading](docs/datasets/README.md))
-- Demo: [WholeBodyPoseDemo](https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo), no install needed
-- Project page: [cristianlazoquispe.github.io/WholebodyPoseEstimation](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/)
 
 ## Citation
 
@@ -86,9 +66,8 @@ If you use WholeBodyPose, the pose datasets or the demo in your work, please cit
 }
 ```
 
-Please also cite the backend you use ([docs/guide/backends.md](docs/guide/backends.md#citing-the-backends)) and,
-for the pose datasets, the source dataset of every subset you use (WLASL, MS-ASL, ASL Citizen, LSA64, PUCP-DGI;
-BibTeX in the [dataset card](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition)).
+Please also cite the backend you use ([backends](docs/guide/backends.md#citing-the-backends)) and, for the
+pose datasets, the source dataset of every subset.
 
 ## License
 

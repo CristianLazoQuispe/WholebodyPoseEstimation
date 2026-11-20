@@ -1,6 +1,6 @@
 # Quick start
 
-Assumes `pip install "wholebodypose[rtmpose,mediapipe]"` (see [installation.md](installation.md)).
+Assumes `pip install "wholebodypose[mediapipe]"` (see [installation.md](installation.md)).
 Sample inputs are in the repository: `data/images/image.jpg`, `data/videos/videoTest.mp4`.
 
 ## Command line
@@ -89,5 +89,5 @@ filtering is in [video-pipeline.md](video-pipeline.md).
 
 ## Next
 
-- [`examples/`](../../examples/README.md): image, video, filtering and webcam scripts.
+- [`examples/`](../../examples/README.md): image, video and dataset scripts.
 - [keypoints.md](keypoints.md): what each of the 133 indices is.

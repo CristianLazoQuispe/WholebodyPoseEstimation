@@ -5,6 +5,28 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Removed (breaking)
+- `VITPoseModel(engine=...)`: ViTPose runs on ONNX Runtime only; the PyTorch / onepose path is removed.
+- `RTMPoseModel(engine=..., backend=...)`: RTMPose runs on the vendored ONNX Runtime code only; the rtmlib
+  path and its OpenCV / OpenVINO backends are removed.
+- `RTMPoseModel.engine`, `RTMPoseModel.backend`, `VITPoseModel.engine` attributes; `VITPoseModel.onnx` is now
+  `VITPoseModel.model`.
+- Weight keys `vitpose_{small,base,large,huge}` now name the ONNX files; the `.pth` keys and the
+  `vitpose_*_onnx` keys are removed. `wholebodypose.models.vitpose.model.onnx_weight_key` is removed.
+- `MediapipeModel(mode_coco=...)`: `predict` always returns COCO-WholeBody arrays; use `process()` for the raw
+  `MPFrame`.
+- `wholebodypose.filters.filtering_mean.process_keypoints`; use `MeanMedianFilter`.
+- `wholebodypose.models.base.cuda_available`, `resolve_device`; `wholebodypose.models.onnx_session.ort_available`.
+- Extras `[vitpose-torch]`, `[torch]`, `[rtmpose]`, `[vitpose]`, `[vitpose-onnx]`; `pandas` from `[datasets]`.
+- Scripts `export_vitpose_onnx.py`, `validate_onnx_stack.py`, `vitpose_onnx_study.py`.
+- Examples `image_inference.py`, `video_to_npz.py`, `filter_sequence.py`, `webcam_realtime.py`, replaced by
+  `examples/image.py`, `video.py`, `dataset.py`; `docker/stream.py`.
+- Docker build args `WITH_TORCH`, `TORCH_INDEX`.
+
+### Changed
+- Version 2.0.0.dev0.
+- `wholebodypose backends` lists installed extras instead of optional reference packages.
+
 ## [1.1.0] - 2026-11-20
 
 ### License

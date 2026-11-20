@@ -15,7 +15,7 @@ Do these once the package is ready to be public; nothing here has been done yet.
 
 1. **Weights mirror.** `CristianLazoQuispe/wholebodypose-weights` is public. Check a clean download from a machine
    without a Hugging Face login:
-   `WHOLEBODYPOSE_HOME=$(mktemp -d) wholebodypose download vitpose_small_onnx yolox_tiny rtmw_l_256`.
+   `WHOLEBODYPOSE_HOME=$(mktemp -d) wholebodypose download vitpose_small yolox_tiny rtmw_l_256`.
 2. **License.** `LICENSE`, `NOTICE`, the `license` field of `pyproject.toml` (`Apache-2.0 AND MIT`),
    the README badge and `CITATION.cff` agree.
 3. **Name.** `wholebodypose` was not taken on PyPI or TestPyPI when this page was written (the JSON API
@@ -59,8 +59,7 @@ Do these once the package is ready to be public; nothing here has been done yet.
 
 ## What PyPI rejects
 
-- Direct-URL dependencies (`name @ git+https://...`) in any extra. onepose (ViTPose `engine="torch"`) is
-  not on PyPI, so it is a documented manual install ([installation.md](guide/installation.md#reference-engines-optional))
-  and CI fails if such a dependency reappears in the wheel metadata.
+- Direct-URL dependencies (`name @ git+https://...`) in any extra; CI fails if one appears in the wheel
+  metadata.
 - A README that does not render (`twine check --strict` catches it).
 - Re-uploading a file name that already exists.

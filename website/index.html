@@ -638,8 +638,8 @@
           <tr><th scope="col">Backend</th><th scope="col">Model</th><th scope="col" class="c">People</th><th scope="col">Runs on</th><th scope="col">Install extra</th></tr>
         </thead>
         <tbody>
-          <tr><th scope="row"><code>rtmpose</code></th><td>YOLOX-m + RTMW-l 384×288 (OpenMMLab)</td><td class="c">multi</td><td>ONNX Runtime CPU / CUDA</td><td><code>[rtmpose]</code> (+&nbsp;<code>[gpu]</code>)</td></tr>
-          <tr><th scope="row"><code>vitpose</code></th><td>ViTPose+ huge / large / base / small, full-frame top-down</td><td class="c">single</td><td>PyTorch CPU / CUDA</td><td><code>[vitpose]</code></td></tr>
+          <tr><th scope="row"><code>rtmpose</code></th><td>YOLOX-m + RTMW-l 384×288 (OpenMMLab)</td><td class="c">multi</td><td>ONNX Runtime CPU / CUDA</td><td>core (+&nbsp;<code>[gpu]</code>)</td></tr>
+          <tr><th scope="row"><code>vitpose</code></th><td>ViTPose+ huge / large / base / small, full-frame top-down</td><td class="c">single</td><td>ONNX Runtime CPU / CUDA</td><td>core (+&nbsp;<code>[gpu]</code>)</td></tr>
           <tr><th scope="row"><code>mediapipe</code></th><td>BlazePose heavy + Hands + Face Mesh</td><td class="c">single</td><td>CPU</td><td><code>[mediapipe]</code></td></tr>
         </tbody>
       </table>
@@ -770,7 +770,7 @@ data96 = f[key][<span class="st">"data"</span>][()][:, :, SIGNERT_96]   <span cl
           <li><code>wholebodypose-build-islr --preset icmv2025</code> reproduces the published keypoints: on 10 test videos per dataset, median absolute difference below 1e-5 (normalized) and 99.96–100&nbsp;% detection agreement.</li>
           <li>The sample lists rebuilt from the original metadata match the published split files: counts, video names, labels and label maps.</li>
           <li>The older 96-keypoint files are reproduced bit for bit from the 135-keypoint files with <code>SIGNERT_96</code>.</li>
-          <li>Known caveat: the release fed RGB frames to rtmlib, which expects BGR; the preset replays this, the library default is the correct BGR input.</li>
+          <li>Known caveat: the release fed RGB frames to RTMPose, which expects BGR; the preset replays this, the library default is the correct BGR input.</li>
         </ul>
         <p class="more"><a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/datasets/README.md#reproducing-the-published-keypoints">Reproduction table</a></p>
       </article>
@@ -820,7 +820,7 @@ data96 = f[key][<span class="st">"data"</span>][()][:, :, SIGNERT_96]   <span cl
     <div class="code has-lbl">
       <span class="lbl">Install</span>
       <button class="copy-btn" type="button" data-copy="code-install" hidden><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Copy</span></button>
-      <pre class="wrap"><code id="code-install">pip install "wholebodypose[all] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"</code></pre>
+      <pre class="wrap"><code id="code-install">pip install "wholebodypose[mediapipe] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"</code></pre>
     </div>
     <div class="code has-lbl">
       <span class="lbl">Python</span>
@@ -839,7 +839,7 @@ wholebodypose image data/images/image.jpg -b mediapipe   <span class="cm"># -> o
 wholebodypose video data/videos/videoTest.mp4 -b rtmpose --fps 15
 wholebodypose download                                   <span class="cm"># pre-fetch every weight</span></code></pre>
     </div>
-    <p class="small">The core install (NumPy, OpenCV, ONNX Runtime) runs RTMPose and ViTPose. Extras: <code>[mediapipe]</code>, <code>[filters]</code> (NLMS), <code>[video]</code>, <code>[datasets]</code>, <code>[gpu]</code>, <code>[torch]</code>. Model weights are downloaded on first use from the <a href="https://huggingface.co/CristianLazoQuispe/wholebodypose-weights">Hugging Face mirror</a> (sha256-verified), with the upstream URLs as fallback. More in the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation#readme">README</a>.</p>
+    <p class="small">The core install (NumPy, OpenCV, ONNX Runtime) runs RTMPose and ViTPose. Extras: <code>[mediapipe]</code>, <code>[video]</code>, <code>[filters]</code> (NLMS), <code>[datasets]</code>, <code>[gpu]</code> (uninstall <code>onnxruntime</code> first). Model weights are downloaded on first use from the <a href="https://huggingface.co/CristianLazoQuispe/wholebodypose-weights">Hugging Face mirror</a> (sha256-verified), with the upstream URLs as fallback. More in the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation#readme">README</a>.</p>
   </div>
 </section>
 

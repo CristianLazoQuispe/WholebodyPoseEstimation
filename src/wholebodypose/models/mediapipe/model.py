@@ -68,8 +68,6 @@ class MediapipeModel(BasePoseModel):
         models: Parts to run, any of ``'hands'``, ``'face'``, ``'pose'``.
         image_mode: ``True`` treats every frame independently; ``False`` enables tracking (video).
         face_config, hands_config, pose_config: Overrides of the ``DEFAULT_*_CONFIG`` dicts.
-        mode_coco: Return COCO-133 ``(keypoints, scores)``. ``False`` returns the raw
-            :class:`MPFrame` (kept for backwards compatibility).
         use_thresholding, kpt_thr: See :class:`BasePoseModel`. MediaPipe scores are 0/1.
         engine: ``'auto'``, ``'solutions'`` or ``'tasks'``.
         verbose: Print loading information.
@@ -86,7 +84,6 @@ class MediapipeModel(BasePoseModel):
         face_config: dict | None = None,
         hands_config: dict | None = None,
         pose_config: dict | None = None,
-        mode_coco: bool = True,
         use_thresholding: bool = False,
         kpt_thr: float = 0.5,
         engine: str = "auto",
@@ -103,7 +100,6 @@ class MediapipeModel(BasePoseModel):
             raise ValueError("'models' must contain 1-3 items among 'hands', 'face' and 'pose'.")
         self.models = [m for m in VALID_PARTS if m in models]
         self.image_mode = image_mode
-        self.mode_coco = mode_coco
         self.verbose = verbose
         self.face_config = _merge(DEFAULT_FACE_CONFIG, face_config)
         self.hands_config = _merge(DEFAULT_HANDS_CONFIG, hands_config)
@@ -306,13 +302,6 @@ class MediapipeModel(BasePoseModel):
         keypoints, scores = to_coco133(self.process(image_rgb), w, h)
         keep = scores.any(axis=1)  # drop empty people (nothing detected)
         return keypoints[keep], scores[keep]
-
-    def predict(self, image_rgb: np.ndarray):
-        if not self.mode_coco:
-            return self.process(image_rgb)
-        return super().predict(image_rgb)
-
-    __call__ = predict
 
     def _graphs(self) -> list:
         return [getattr(self, n) for n in ("pose_model", "hands_model", "face_model") if hasattr(self, n)]

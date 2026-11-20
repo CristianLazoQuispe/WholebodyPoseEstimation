@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wholebodypose"
-version = "1.1.0"
+version = "2.0.0.dev0"
 description = "Unified whole-body (COCO-WholeBody, 133 keypoints) pose estimation with RTMPose, ViTPose and MediaPipe — ICMV 2025."
 readme = "README.md"
 requires-python = ">=3.10,<3.14"
@@ -30,32 +30,22 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Scientific/Engineering :: Image Recognition",
 ]
-# Core = NumPy + OpenCV + ONNX Runtime: enough for RTMPose (YOLOX + RTMW) and ViTPose (ONNX engine).
+# Core = NumPy + OpenCV + ONNX Runtime: enough for RTMPose and ViTPose.
 dependencies = [
     "numpy>=1.23",
     "opencv-python-headless>=4.8",
     "onnxruntime>=1.17",
 ]
 
-# No direct-URL (git) dependencies here: PyPI rejects them. onepose (ViTPose engine="torch") is a
-# documented manual install, see docs/guide/installation.md.
 [project.optional-dependencies]
-# CUDA build of ONNX Runtime. It ships the same `onnxruntime` module as the core CPU wheel: after
-# installing, remove the CPU wheel (docs/guide/installation.md#gpu).
-gpu = ["onnxruntime-gpu>=1.17"]
-# PyTorch for the ViTPose reference engine (engine="torch"); also needs onepose from GitHub.
-vitpose-torch = ["torch>=2.0"]
-torch = ["torch>=2.0"]
 mediapipe = ["mediapipe>=0.10.14"]
-filters = ["padasip>=1.2,<2"]
 video = ["imageio-ffmpeg>=0.5"]
-# Backward-compatible names (<= 1.0): RTMPose and ViTPose-ONNX now only need the core install.
-rtmpose = ["onnxruntime>=1.17"]
-vitpose-onnx = ["onnxruntime>=1.17"]
-vitpose = ["onnxruntime>=1.17"]
+filters = ["padasip>=1.2,<2"]
+datasets = ["h5py>=3.8"]
+# CUDA build of ONNX Runtime; uninstall the CPU `onnxruntime` first (docs/guide/installation.md#gpu).
+gpu = ["onnxruntime-gpu>=1.17"]
 demo = ["gradio>=6", "gradio_client>=1", "wholebodypose[mediapipe,video]"]
 hf = ["huggingface_hub>=0.25"]
-datasets = ["h5py>=3.8", "pandas>=1.5"]
 all = ["wholebodypose[mediapipe,filters,video]"]
 dev = ["pytest>=8", "pytest-cov>=5", "ruff==0.17.6", "pre-commit>=3", "build>=1.2", "wholebodypose[hf,datasets]"]
 

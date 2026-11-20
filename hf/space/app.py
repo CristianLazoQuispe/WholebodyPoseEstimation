@@ -56,7 +56,7 @@ BACKENDS: dict[str, tuple[str, str, dict, bool]] = {
     "vitpose": (
         f"ViTPose+ {VITPOSE_SIZE}",
         "vitpose",
-        {"model_name": f"ViTPose+_{VITPOSE_SIZE}_coco_wholebody", "engine": "onnx"},
+        {"model_name": f"ViTPose+_{VITPOSE_SIZE}_coco_wholebody"},
         False,
     ),
 }

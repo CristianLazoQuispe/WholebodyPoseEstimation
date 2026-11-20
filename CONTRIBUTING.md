@@ -9,7 +9,6 @@ Thanks for helping. Bug reports, fixes, new backends and documentation are all w
 git clone https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git
 cd WholebodyPoseEstimation
 python -m venv .venv && source .venv/bin/activate
-pip install torch --index-url https://download.pytorch.org/whl/cpu   # optional: CPU PyTorch for ViTPose
 pip install -e ".[all,dev]"
 pre-commit install
 ```
