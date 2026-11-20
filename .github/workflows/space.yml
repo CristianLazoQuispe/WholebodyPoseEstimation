@@ -1,0 +1,94 @@
+# Deploy hf/space/ to the Hugging Face Space and smoke-test the live app.
+# Needs the repository secret HF_TOKEN (write access to the Space).
+name: Deploy demo Space
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "hf/space/**"
+      - ".github/workflows/space.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: hf-space
+  cancel-in-progress: false
+
+env:
+  SPACE_ID: CristianLazoQuispe/WholeBodyPoseDemo
+  SPACE_URL: https://cristianlazoquispe-wholebodyposedemo.hf.space
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    outputs:
+      commit: ${{ steps.upload.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "huggingface_hub>=0.30"
+      - name: Upload hf/space to the Space
+        id: upload
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python - <<'EOF'
+          import os
+          from huggingface_hub import HfApi
+
+          info = HfApi(token=os.environ["HF_TOKEN"]).upload_folder(
+              folder_path="hf/space",
+              repo_id=os.environ["SPACE_ID"],
+              repo_type="space",
+              commit_message=f"Deploy {os.environ['GITHUB_SHA'][:7]} from GitHub",
+              ignore_patterns=["**/__pycache__/**", "*.pyc", ".gradio/**", "flagged/**"],
+              # Drop files of older app versions (config.py, inference.py, data/...);
+              # uploaded files and .gitattributes are never deleted.
+              delete_patterns=["*"],
+          )
+          print(info.commit_url)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"commit={info.oid}\n")
+          EOF
+
+  smoke:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install "huggingface_hub>=0.30" gradio_client numpy
+      - name: Wait until the new build is RUNNING
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          COMMIT: ${{ needs.deploy.outputs.commit }}
+        run: |
+          python - <<'EOF'
+          import os, sys, time
+          from huggingface_hub import HfApi
+
+          api, space, commit = HfApi(token=os.environ["HF_TOKEN"]), os.environ["SPACE_ID"], os.environ["COMMIT"]
+          start = time.time()
+          rebuilt = False  # saw the Space leave RUNNING after the upload (used when no sha is reported)
+          while time.time() < start + 20 * 60:
+              rt = api.get_space_runtime(space)
+              sha = (rt.raw or {}).get("sha")
+              rebuilt |= rt.stage != "RUNNING"
+              print(f"stage={rt.stage} hardware={rt.hardware} sha={sha}", flush=True)
+              fresh = sha == commit if sha else rebuilt or time.time() > start + 180
+              if rt.stage == "RUNNING" and fresh:
+                  sys.exit(0)
+              if rt.stage in ("BUILD_ERROR", "RUNTIME_ERROR", "CONFIG_ERROR", "NO_APP_FILE"):
+                  sys.exit(f"Space failed: {rt.stage} {(rt.raw or {}).get('errorMessage', '')}")
+              time.sleep(20)
+          sys.exit("Timed out waiting for the Space to be RUNNING")
+          EOF
+      - name: Smoke test the live Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python hf/space/smoke_test.py "$SPACE_URL" --backends mediapipe rtmpose --hf-token "$HF_TOKEN"
