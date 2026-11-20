@@ -5,6 +5,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- ViTPose on ONNX Runtime: `VITPoseModel(engine="auto" | "onnx" | "torch")` and the `[vitpose-onnx]` extra
+  (only `onnxruntime`, no PyTorch or onepose). Pre- and post-processing are NumPy/OpenCV ports of onepose's;
+  multi-person crops run as one batch. `auto` picks ONNX when the `.onnx` file can be found, else PyTorch.
+- `scripts/export_vitpose_onnx.py` (opset 17, dynamic batch) and the weight keys
+  `vitpose_{small,base,large,huge}_onnx` with pinned SHA-256 (mirror only, no upstream URL).
+- `scripts/vitpose_onnx_study.py` and `docs/guide/onnx.md`: torch-vs-ONNX agreement, CPU latency and an
+  int8/fp16 quantization study for ViTPose-base and RTMW-x.
+
 ### Changed
 - Project page: the pipeline diagram is now the hero figure; the teaser video (and its generator code) is
   removed. New sections: datasets (one row per published subset with links to every split file and label

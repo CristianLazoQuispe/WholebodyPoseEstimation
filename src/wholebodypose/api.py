@@ -38,7 +38,7 @@ BACKENDS: dict[str, Backend] = {
             "vitpose",
             "wholebodypose.models.vitpose.model:VITPoseModel",
             "vitpose",
-            "ViTPose+ top-down, PyTorch; multi-person with detector='yolox_m'",
+            "ViTPose+ top-down, ONNX Runtime or PyTorch; multi-person with detector='yolox_m'",
             {"model_name": "ViTPose+_huge_coco_wholebody", "use_thresholding": True, "kpt_thr": 0.5},
             multiperson=True,
         ),

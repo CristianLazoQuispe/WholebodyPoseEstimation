@@ -22,7 +22,7 @@ model = create_model("mediapipe", kpt_thr=0.3)  # the bare backend, without draw
 | Backend | Paper settings (`BACKENDS[...].defaults`) | Extra |
 |:--|:--|:--|
 | `rtmpose` | `mode="performance"`, `use_thresholding=True`, `filter_noise=True` | `rtmpose` (+ `gpu`) |
-| `vitpose` | `model_name="ViTPose+_huge_coco_wholebody"`, `use_thresholding=True`, `kpt_thr=0.5` | `vitpose` |
+| `vitpose` | `model_name="ViTPose+_huge_coco_wholebody"`, `use_thresholding=True`, `kpt_thr=0.5` | `vitpose-onnx` or `vitpose` |
 | `mediapipe` | `mode_coco=True`, `use_thresholding=True`, `kpt_thr=0.5` | `mediapipe` |
 
 `create_model` also passes `device` (default `"auto"`) to RTMPose and ViTPose, and `verbose` to all.
@@ -99,18 +99,33 @@ RTMW is fed BGR internally, as the OpenMMLab models expect; you still pass RGB.
 ## ViTPose (`vitpose`)
 
 `wholebodypose.models.vitpose.model.VITPoseModel`: ViTPose+ whole-body
-([ViTPose++](https://arxiv.org/abs/2212.04246)) through [onepose](https://github.com/developer0hye/onepose),
-in half-precision checkpoints. Top-down on the **full frame** (there is no person detector), so it
-returns **one person** and works best when that person fills most of the frame, as in sign language
-videos. Runs on PyTorch (CPU or CUDA).
+([ViTPose++](https://arxiv.org/abs/2212.04246)) from the half-precision checkpoints of
+[onepose](https://github.com/developer0hye/onepose). Top-down on the **full frame** by default (paper
+setting), so it returns **one person** and works best when that person fills most of the frame, as in
+sign language videos. With `detector="yolox_m"` (or `PoseEstimator(..., multiperson=True)`) it runs on
+YOLOX person crops instead (needs `[rtmpose]` for the detector).
+
+Two engines produce the same keypoints up to float32 noise ([measurements](onnx.md)):
+
+| `engine` | Runs | Install |
+|:--|:--|:--|
+| `"onnx"` | ONNX Runtime on an exported graph, NumPy/OpenCV pre- and post-processing; no PyTorch | `[vitpose-onnx]` |
+| `"torch"` | PyTorch through onepose (paper) | `[vitpose]` |
+| `"auto"` (default) | `onnx` if `onnxruntime` is installed and the `.onnx` file is cached or downloadable, else `torch` | |
+
+The `.onnx` files are produced by WholeBodyPose and served only by the weight mirror
+(see [weights.md](weights.md#files)); `model.engine` tells which engine was picked.
 
 | Argument | Default (class) | Notes |
 |:--|:--|:--|
-| `device` | `"auto"` | `cuda` if `torch.cuda.is_available()` (or ONNX Runtime has CUDA), else `cpu` |
+| `device` | `"auto"` | `onnx`: `cuda` if ONNX Runtime has `CUDAExecutionProvider`; `torch`: `cuda` if `torch.cuda.is_available()`; else `cpu` |
 | `model_name` | `"ViTPose+_huge_coco_wholebody"` | also `ViTPose+_large_…`, `ViTPose+_base_…`, `ViTPose+_small_…` (`…` = `coco_wholebody`) |
 | `use_thresholding` | `False` (paper: `True`) | |
 | `kpt_thr` | `0.5` | heatmap confidence, 0-1 |
 | `verbose` | `True` | |
+| `detector` | `None` | `None` (full frame), `"yolox_m"` or `"yolox_tiny"` |
+| `max_people`, `det_score_thr`, `box_padding` | `None`, `0.5`, `0.25` | detector mode only |
+| `engine` | `"auto"` | see above |
 
 ## MediaPipe (`mediapipe`)
 
@@ -164,8 +179,11 @@ three warm-up frames. Only the ratios matter; your numbers will differ.
 | `rtmpose`, `mode="lightweight"` | ~150 |
 | `rtmpose`, `mode="balanced"` | ~260 |
 | `rtmpose`, `mode="performance"` (paper) | ~290 |
-| `vitpose`, `ViTPose+_base_coco_wholebody` | ~140 |
-| `vitpose`, `ViTPose+_huge_coco_wholebody` (paper) | ~830 |
+| `vitpose`, `ViTPose+_base_coco_wholebody`, PyTorch engine | ~140 |
+| `vitpose`, `ViTPose+_huge_coco_wholebody` (paper), PyTorch engine | ~830 |
+
+The ViTPose rows were measured with the PyTorch engine. The ONNX Runtime engine gives the same
+keypoints and was 1.8-2.6× faster than PyTorch on CPU in [onnx.md](onnx.md#cpu-latency).
 
 - RTMPose and ViTPose are much faster on a GPU (`[gpu]` extra / CUDA PyTorch); MediaPipe stays on CPU.
 - RTMPose time grows with the number of people (one pose pass per detected person).

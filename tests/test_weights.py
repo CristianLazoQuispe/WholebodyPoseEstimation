@@ -14,7 +14,9 @@ def home(tmp_path, monkeypatch):
 
 def test_registry_is_consistent():
     for key, w in weights.WEIGHTS.items():
-        assert w.key == key and "/" in w.filename and w.upstream.startswith("https://")
+        assert w.key == key and "/" in w.filename
+        assert w.upstream is None or w.upstream.startswith("https://")
+    assert all(weights.WEIGHTS[f"vitpose_{s}_onnx"].upstream is None for s in ("small", "base", "large", "huge"))
     assert weights.mirror_url(weights.WEIGHTS["mp_hand"]).endswith("/resolve/main/mediapipe/hand_landmarker.task")
 
 

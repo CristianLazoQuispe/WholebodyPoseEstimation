@@ -30,6 +30,7 @@ docs/
 │   │                       speed, backend citations
 │   ├── keypoints.md        COCO-WholeBody 133 layout and the 135-point variant
 │   ├── video-pipeline.md   Video2Pose options and outputs, save/load formats, filtering
+│   ├── onnx.md             ViTPose on ONNX Runtime: agreement with PyTorch, CPU latency, quantization
 │   └── weights.md          Hugging Face mirror, cache, offline use
 ├── datasets/
 │   ├── README.md           ISLR pose datasets: HDF5 schema, loading, rebuilding from videos
@@ -48,6 +49,7 @@ docs/
 | know which index is the left wrist / the right hand / the face | [guide/keypoints.md](guide/keypoints.md) |
 | turn sign language videos into training sequences | [guide/video-pipeline.md](guide/video-pipeline.md) |
 | smooth keypoints (NLMS) or drop bad frames | [guide/video-pipeline.md#filtering](guide/video-pipeline.md#filtering) |
+| run ViTPose without PyTorch, or decide on int8/fp16 | [guide/onnx.md](guide/onnx.md) |
 | run on a machine without internet, or mirror the weights | [guide/weights.md](guide/weights.md) |
 | use the pose datasets of the paper | [datasets/README.md](datasets/README.md), the [dataset card](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition) |
 | rebuild the pose datasets from the raw videos | [datasets/README.md#rebuilding-from-videos](datasets/README.md#rebuilding-from-videos) |
