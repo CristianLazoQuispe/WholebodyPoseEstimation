@@ -2,17 +2,17 @@
 
 Usage (from the repository root)::
 
-    python scripts/make_website_assets.py                # teaser video + poster, OG card, favicons
+    python scripts/make_website_assets.py                # OG card, favicons
     python scripts/make_website_assets.py --paper        # also paper thumbnail and Figure 1 crops
 
-Needs Pillow and the ``ffmpeg`` binary; ``--paper`` also needs poppler (``pdftoppm``, ``pdfimages``).
+Needs Pillow; ``--paper`` also needs poppler (``pdftoppm``, ``pdfimages``). The OG card is built from
+the Figure 1 crops, so run ``--paper`` first on a fresh checkout without them.
 Nothing here runs at deploy time: the generated files are committed.
 """
 
 from __future__ import annotations
 
 import argparse
-import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -21,9 +21,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "website" / "static"
-TEASER_GIF = ROOT / "docs" / "assets" / "output_telefono_pucp_slow.gif"
 PAPER = SITE / "paper" / "WholeBodyPose_ICMV2025.pdf"
-POSTER_TIME = 5.0  # seconds into the GIF used for the poster frame and the OG card
 
 ACCENT = (15, 111, 116)
 INK = (17, 20, 23)
@@ -66,24 +64,6 @@ def run(*cmd: str) -> None:
     subprocess.run(cmd, check=True)
 
 
-def teaser() -> None:
-    """GIF (5.6 MB) -> H.264 MP4 + VP9 WebM (~0.45 MB each) and a JPEG poster."""
-    videos = SITE / "videos"
-    videos.mkdir(parents=True, exist_ok=True)
-    gif = str(TEASER_GIF)
-    run("ffmpeg", "-v", "error", "-y", "-i", gif, "-movflags", "+faststart", "-pix_fmt", "yuv420p",
-        "-c:v", "libx264", "-preset", "slow", "-crf", "26",
-        "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2", "-an", str(videos / "teaser.mp4"))  # fmt: skip
-    run("ffmpeg", "-v", "error", "-y", "-i", gif, "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "36",
-        "-row-mt", "1", "-pix_fmt", "yuv420p", "-an", str(videos / "teaser.webm"))  # fmt: skip
-    with tempfile.TemporaryDirectory() as tmp:
-        png = Path(tmp) / "poster.png"
-        run("ffmpeg", "-v", "error", "-y", "-ss", str(POSTER_TIME), "-i", gif, "-frames:v", "1", str(png))
-        Image.open(png).convert("RGB").save(
-            SITE / "images" / "teaser_poster.jpg", quality=85, optimize=True, progressive=True
-        )
-
-
 def _wrap(draw: ImageDraw.ImageDraw, text: str, font, width: int) -> list[str]:
     lines, line = [], ""
     for word in text.split():
@@ -97,20 +77,25 @@ def _wrap(draw: ImageDraw.ImageDraw, text: str, font, width: int) -> list[str]:
 
 
 def og_card() -> None:
-    """1200x630 social card: title block on the left, teaser frame on the right."""
+    """1200x630 social card: title block on the left, the two Figure 1 keypoint layouts on the right."""
     W, H = 1200, 630
     img = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(img)
 
-    frame = Image.open(SITE / "images" / "teaser_poster.jpg").convert("RGB")
-    fw = 530
-    fh = round(frame.height * fw / frame.width)
-    frame = frame.resize((fw, fh), Image.LANCZOS)
-    fx, fy = W - fw - 48, (H - fh) // 2
-    mask = Image.new("L", (fw, fh), 0)
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, fw - 1, fh - 1), radius=18, fill=255)
-    d.rounded_rectangle((fx - 2, fy - 2, fx + fw + 1, fy + fh + 1), radius=20, fill=(207, 211, 216))
-    img.paste(frame, (fx, fy), mask)
+    fh, gap, right = 400, 16, 56
+    frames = []
+    for name in ("kpts_coco133.jpg", "kpts_openpose135.jpg"):
+        im = Image.open(SITE / "images" / name).convert("RGB")
+        frames.append(im.resize((round(im.width * fh / im.height), fh), Image.LANCZOS))
+    fx = W - right - sum(f.width for f in frames) - gap
+    fy = (H - fh) // 2
+    x0 = fx
+    for f in frames:
+        mask = Image.new("L", f.size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle((0, 0, f.width - 1, f.height - 1), radius=14, fill=255)
+        d.rounded_rectangle((x0 - 2, fy - 2, x0 + f.width + 1, fy + fh + 1), radius=16, fill=(207, 211, 216))
+        img.paste(f, (x0, fy), mask)
+        x0 += f.width + gap
 
     x, maxw = 60, fx - 60 - 40
     d.rectangle((0, 0, W, 10), fill=ACCENT)
@@ -198,16 +183,11 @@ def paper_assets() -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--paper", action="store_true", help="also regenerate the paper thumbnail and Figure 1 crops")
-    ap.add_argument("--skip-video", action="store_true", help="keep the existing teaser video and poster")
     args = ap.parse_args()
-    if not args.skip_video:
-        if shutil.which("ffmpeg") is None:
-            raise SystemExit("ffmpeg not found (needed for the teaser video); use --skip-video")
-        teaser()
-    og_card()
-    favicons()
     if args.paper:
         paper_assets()
+    og_card()
+    favicons()
     print(f"assets written to {SITE}")
 
 

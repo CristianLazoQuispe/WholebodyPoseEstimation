@@ -10,8 +10,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WholeBodyPose | ICMV 2025</title>
-  <meta name="description" content="WholeBodyPose puts RTMPose, ViTPose+ and MediaPipe behind one interface that returns the 133 COCO-WholeBody keypoints, with video processing, NLMS temporal filtering and visualization to turn sign language videos into training-ready pose sequences. ICMV 2025.">
-  <meta name="keywords" content="sign language recognition, whole-body pose estimation, COCO-WholeBody, RTMPose, ViTPose, MediaPipe, NLMS filtering">
+  <meta name="description" content="WholeBodyPose puts RTMPose, ViTPose+ and MediaPipe behind one interface that returns the 133 COCO-WholeBody keypoints, with video processing, NLMS temporal filtering and visualization to turn sign language videos into training-ready pose sequences. Pose datasets for 13 ISLR subsets. ICMV 2025.">
+  <meta name="keywords" content="sign language recognition, whole-body pose estimation, COCO-WholeBody, RTMPose, ViTPose, MediaPipe, NLMS filtering, WLASL, MS-ASL, ASL Citizen, LSA64">
   <meta name="author" content="Cristian Lazo-Quispe, Renato Castro-Cruz, Gissella Bejarano, Mauricio Salazar-Espinosa">
   <meta name="theme-color" content="#ffffff">
   <link rel="canonical" href="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/">
@@ -27,7 +27,7 @@
   <meta property="og:image" content="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="WholeBodyPose title card next to a sign language video with MediaPipe, ViTPose and WholeBodyPose skeletons.">
+  <meta property="og:image:alt" content="WholeBodyPose title card next to the COCO-133 and OpenPose-135 keypoint layouts from the paper.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="WholeBodyPose (ICMV 2025)">
   <meta name="twitter:description" content="One API, three pose backends, 133 COCO-WholeBody keypoints: training-ready pose sequences for sign language recognition.">
@@ -41,22 +41,24 @@
   <script defer src="static/js/main.js"></script>
 </head>
 <body>
-<a class="skip" href="#abstract">Skip to content</a>
+<a class="skip" href="#overview">Skip to content</a>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <symbol id="i-paper" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></g></symbol>
   <symbol id="i-github" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5C5.73.5.5 5.74.5 12.02c0 5.1 3.29 9.41 7.86 10.94.58.1.79-.25.79-.56v-1.97c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.77.11 3.06.74.81 1.19 1.84 1.19 3.1 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.53 11.53 0 0 0 23.5 12.02C23.5 5.74 18.27.5 12 .5Z"/></symbol>
   <symbol id="i-quote" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-4 5 4 5M16 7l4 5-4 5"/></g></symbol>
-  <symbol id="i-play" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5.5v13a1 1 0 0 0 1.53.85l10.2-6.5a1 1 0 0 0 0-1.7L9.53 4.65A1 1 0 0 0 8 5.5z"/></symbol>
-  <symbol id="i-pause" viewBox="0 0 24 24"><path fill="currentColor" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></symbol>
   <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></g></symbol>
   <symbol id="i-ext" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></g></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></g></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M10 9v6l5-3z" fill="currentColor"/></g></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></g></symbol>
 </svg>
 
 <main id="top">
 <!-- ======================= HEADER ======================= -->
 <header class="hero">
   <div class="container">
+    <p class="venue">ICMV 2025 · Proceedings of SPIE</p>
     <h1 class="title">WholeBodyPose</h1>
     <p class="subtitle">A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data</p>
     <p class="authors">
@@ -70,80 +72,21 @@
       <span><sup>2</sup>Pontificia Universidad Católica del Perú</span>
       <span><sup>3</sup>Marist University, New York, USA</span>
     </p>
-    <p class="venue">18th International Conference on Machine Vision (ICMV 2025) · Proceedings of SPIE</p>
 
     <nav class="links" aria-label="Paper resources">
       <a class="btn" href="static/paper/WholeBodyPose_ICMV2025.pdf"><svg aria-hidden="true"><use href="#i-paper"/></svg>Paper</a>
       <a class="btn" href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation"><svg aria-hidden="true"><use href="#i-github"/></svg>Code</a>
-      <a class="btn" href="https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo"><span class="emoji" aria-hidden="true">🤗</span>Demo</a>
-      <a class="btn" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition"><span class="emoji" aria-hidden="true">🤗</span>Datasets</a>
-      <a class="btn" href="https://huggingface.co/CristianLazoQuispe/wholebodypose-weights"><span class="emoji" aria-hidden="true">🤗</span>Weights</a>
+      <a class="btn" href="https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo"><svg aria-hidden="true"><use href="#i-play"/></svg>Demo</a>
+      <a class="btn" href="#datasets"><svg aria-hidden="true"><use href="#i-db"/></svg>Datasets</a>
+      <span class="btn btn-soon" aria-disabled="true" title="The model-weights mirror on Hugging Face is not public yet"><svg aria-hidden="true"><use href="#i-box"/></svg>Weights <small>soon</small></span>
       <a class="btn" href="#bibtex"><svg aria-hidden="true"><use href="#i-quote"/></svg>BibTeX</a>
     </nav>
   </div>
 </header>
 
-<!-- ======================= TEASER ======================= -->
-<section class="teaser" aria-label="Teaser video">
-  <div class="container">
-    <figure>
-      <div class="teaser-media">
-        <video id="teaserVideo" autoplay muted loop playsinline preload="metadata" poster="static/images/teaser_poster.jpg" width="598" height="448"
-               aria-label="Four-panel video of a signer: the input clip, and the same clip with the MediaPipe, ViTPose and WholeBodyPose skeletons drawn over it.">
-          <source src="static/videos/teaser.webm" type="video/webm">
-          <source src="static/videos/teaser.mp4" type="video/mp4">
-          <img src="static/images/teaser_poster.jpg" alt="One frame of the four-panel comparison: input, MediaPipe, ViTPose and WholeBodyPose skeletons on a signer.">
-        </video>
-        <button class="teaser-ctl" type="button" id="teaserToggle" aria-pressed="false" hidden><svg aria-hidden="true"><use href="#i-pause"/></svg><span>Pause</span></button>
-      </div>
-      <figcaption>A Peruvian Sign Language clip (top left) processed with MediaPipe, ViTPose and WholeBodyPose (<i>ours</i>), all drawn in the same 133-keypoint COCO-WholeBody layout. Slowed down.</figcaption>
-    </figure>
-  </div>
-</section>
-
-<!-- ======================= TL;DR + ABSTRACT ======================= -->
-<section class="section" id="abstract">
-  <div class="container narrow">
-    <p class="tldr"><b class="tag">TL;DR</b> Every pose estimator speaks its own dialect. WholeBodyPose puts <b>RTMPose (RTMW)</b>, <b>ViTPose+</b> and <b>MediaPipe</b> behind one interface that always returns the <b>133 COCO-WholeBody keypoints</b> (body, feet, face, both hands), plus the video pipeline, temporal filtering (NLMS) and visualization needed to turn raw sign language videos into training-ready pose sequences.</p>
-    <h2>Abstract</h2>
-    <div class="prose justify">
-      <p>Sign language recognition systems require high-quality, temporally consistent pose estimation data for effective training. However, existing approaches suffer from inconsistent output formats across different pose estimation models, inadequate temporal filtering, and a lack of standardized preprocessing pipelines. We present WholeBodyPose, an end-to-end framework that unifies multiple state-of-the-art pose estimation models (MediaPipe, RTMPose, ViTPose) under a standardized COCO-133 format. Our framework addresses the critical gaps identified in recent work, providing researchers with a consistent interface to generate high-quality training data.</p>
-      <p>We provide a modular architecture that supports the easy integration of new pose estimation models, including preprocessing pipelines from raw video input to training-ready keypoint sequences, quality control mechanisms, and visualization tools. Additionally, our library is optimized for real-time use cases, enabling seamless integration into live inference pipelines and interactive sign language systems. This capability makes it suitable not only for research and training, but also for deployment in production-level applications. Our open-source library democratizes access to high-quality pose-based sign language recognition research and establishes a new standard for preprocessing pipelines in this domain.</p>
-    </div>
-    <p class="small keywords"><b>Keywords:</b> Sign Language Recognition, Pose Estimation, Framework, Keypoint Filtering, Real Time Processing</p>
-  </div>
-</section>
-
-<!-- ======================= CONTRIBUTIONS ======================= -->
-<section class="section" id="contributions">
-  <div class="container">
-    <h2>Key contributions</h2>
-    <ul class="cards">
-      <li class="card">
-        <h3><span class="n" aria-hidden="true">1</span>One API, three backends</h3>
-        <p>MediaPipe, RTMPose and ViTPose behind the same call: <code>predict(frame)</code> returns keypoints and confidence scores, so switching backend needs no code changes.</p>
-      </li>
-      <li class="card">
-        <h3><span class="n" aria-hidden="true">2</span>COCO-133 standardization</h3>
-        <p>Heterogeneous outputs aligned to the 133-keypoint COCO-WholeBody indexing (17 body, 6 feet, 68 face, 42 hands), optionally extended with virtual chest and mid-hip points (135).</p>
-      </li>
-      <li class="card">
-        <h3><span class="n" aria-hidden="true">3</span>Video to training-ready sequences</h3>
-        <p>A complete preprocessing pipeline from raw video to keypoint sequences, with image enhancement for poor lighting, quality control, real-time NLMS smoothing and visualization.</p>
-      </li>
-      <li class="card">
-        <h3><span class="n" aria-hidden="true">4</span>Validated on ISLR benchmarks</h3>
-        <p>Pose versions of six ISLR benchmarks (five public datasets), and consistent accuracy gains for Pose-TGCN, GCN-BERT, SILT and SPOTER trained from scratch on WholeBodyPose keypoints.</p>
-      </li>
-    </ul>
-  </div>
-</section>
-
-<!-- ======================= PIPELINE ======================= -->
-<section class="section" id="pipeline">
-  <div class="container">
-    <h2>Pipeline</h2>
-    <p class="lead">From a raw video to a pose sequence a recognizer can train on, with the same output whichever backend runs.</p>
+<!-- ======================= HERO FIGURE: PIPELINE ======================= -->
+<section class="hero-fig" id="pipeline" aria-label="Pipeline overview">
+  <div class="container wide">
     <figure class="fig">
       <svg class="pipe-svg pipe-wide" viewBox="-6 0 972 262" role="img" aria-labelledby="pipeTitle pipeDesc">
         <title id="pipeTitle">WholeBodyPose pipeline</title>
@@ -252,7 +195,7 @@
         <text class="t-sub" x="180" y="196" text-anchor="middle">huge … small</text>
         <rect class="chip" x="240" y="154" width="104" height="54" rx="7"/>
         <text class="t-main" x="292" y="177" text-anchor="middle">MediaPipe</text>
-        <text class="t-sub" x="292" y="196" text-anchor="middle">pose+hands+face</text>
+        <text class="t-sub" x="292" y="196" text-anchor="middle" style="font-size:11.5px">pose+hands+face</text>
         <path class="arrow" d="M180 224V244" marker-end="url(#ah2)"/>
 
         <rect class="box-accent" x="4" y="250" width="352" height="112" rx="10"/>
@@ -279,10 +222,67 @@
         <text class="t-main" x="20" y="552">Pose sequences <tspan class="t-mono">(T, 133, 2)</tspan></text>
         <text class="t-sub" x="20" y="572">.npz / .json → SPOTER, SILT, GCN-BERT, Pose-TGCN</text>
       </svg>
-      <figcaption>Every backend takes an RGB image and returns <code>float32</code> pixel coordinates in COCO-WholeBody order; undetected keypoints are <code>(0, 0)</code> with score 0. The video pipeline runs at a chosen processing FPS, writes a browser-playable overlay and saves the sequence with its scores and FPS.</figcaption>
+      <figcaption><b>WholeBodyPose pipeline.</b> Every backend takes an RGB image and returns <code>float32</code> pixel coordinates in COCO-WholeBody order; undetected keypoints are <code>(0, 0)</code> with score 0. The video pipeline runs at a chosen processing FPS, writes a browser-playable overlay and saves the sequence with its scores and FPS.</figcaption>
     </figure>
+  </div>
+</section>
 
-    <h3 id="layouts" class="center">Keypoint layouts</h3>
+<!-- ======================= TL;DR + ABSTRACT ======================= -->
+<section class="section" id="overview">
+  <div class="container narrow">
+    <p class="tldr"><b class="tag">TL;DR</b> Every pose estimator speaks its own dialect. WholeBodyPose puts <b>RTMPose (RTMW)</b>, <b>ViTPose+</b> and <b>MediaPipe</b> behind one interface that always returns the <b>133 COCO-WholeBody keypoints</b> (body, feet, face, both hands), plus the video pipeline, temporal filtering (NLMS) and visualization needed to turn raw sign language videos into training-ready pose sequences. We release the pose sequences of 13 ISLR subsets built with it.</p>
+    <h2>Abstract</h2>
+    <div class="prose justify">
+      <p>Sign language recognition systems require high-quality, temporally consistent pose estimation data for effective training. However, existing approaches suffer from inconsistent output formats across different pose estimation models, inadequate temporal filtering, and a lack of standardized preprocessing pipelines. We present WholeBodyPose, an end-to-end framework that unifies multiple state-of-the-art pose estimation models (MediaPipe, RTMPose, ViTPose) under a standardized COCO-133 format. Our framework addresses the critical gaps identified in recent work, providing researchers with a consistent interface to generate high-quality training data.</p>
+      <p>We provide a modular architecture that supports the easy integration of new pose estimation models, including preprocessing pipelines from raw video input to training-ready keypoint sequences, quality control mechanisms, and visualization tools. Additionally, our library is optimized for real-time use cases, enabling seamless integration into live inference pipelines and interactive sign language systems. This capability makes it suitable not only for research and training, but also for deployment in production-level applications. Our open-source library democratizes access to high-quality pose-based sign language recognition research and establishes a new standard for preprocessing pipelines in this domain.</p>
+    </div>
+    <p class="small keywords"><b>Keywords:</b> Sign Language Recognition, Pose Estimation, Framework, Keypoint Filtering, Real Time Processing</p>
+  </div>
+</section>
+
+<!-- ======================= CONTRIBUTIONS ======================= -->
+<section class="section" id="contributions">
+  <div class="container">
+    <h2>Key contributions</h2>
+    <ul class="cards">
+      <li class="card">
+        <h3><span class="n" aria-hidden="true">1</span>One API, three backends</h3>
+        <p>MediaPipe, RTMPose and ViTPose behind the same call: <code>predict(frame)</code> returns keypoints and confidence scores, so switching backend needs no code changes.</p>
+      </li>
+      <li class="card">
+        <h3><span class="n" aria-hidden="true">2</span>COCO-133 standardization</h3>
+        <p>Heterogeneous outputs aligned to the 133-keypoint COCO-WholeBody indexing (17 body, 6 feet, 68 face, 42 hands), optionally extended with virtual chest and mid-hip points (135).</p>
+      </li>
+      <li class="card">
+        <h3><span class="n" aria-hidden="true">3</span>Video to training-ready sequences</h3>
+        <p>A complete preprocessing pipeline from raw video to keypoint sequences, with image enhancement for poor lighting, quality control, real-time NLMS smoothing and visualization.</p>
+      </li>
+      <li class="card">
+        <h3><span class="n" aria-hidden="true">4</span>Validated on ISLR benchmarks</h3>
+        <p>Pose versions of five public ISLR datasets, and consistent accuracy gains for Pose-TGCN, GCN-BERT, SILT and SPOTER trained from scratch on WholeBodyPose keypoints.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ======================= BACKENDS + LAYOUTS ======================= -->
+<section class="section" id="backends">
+  <div class="container">
+    <h2>Backends and keypoint layouts</h2>
+    <p class="lead">Default settings reproduce the paper; any backend argument can be overridden, e.g. <code>PoseEstimator("rtmpose", mode="lightweight")</code>.</p>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr><th scope="col">Backend</th><th scope="col">Model</th><th scope="col" class="c">People</th><th scope="col">Runs on</th><th scope="col">Install extra</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row"><code>rtmpose</code></th><td>YOLOX-m + RTMW-x 384×288 (OpenMMLab)</td><td class="c">multi</td><td>ONNX Runtime CPU / CUDA</td><td><code>[rtmpose]</code> (+&nbsp;<code>[gpu]</code>)</td></tr>
+          <tr><th scope="row"><code>vitpose</code></th><td>ViTPose+ huge / large / base / small, full-frame top-down</td><td class="c">single</td><td>PyTorch CPU / CUDA</td><td><code>[vitpose]</code></td></tr>
+          <tr><th scope="row"><code>mediapipe</code></th><td>BlazePose heavy + Hands + Face Mesh</td><td class="c">single</td><td>CPU</td><td><code>[mediapipe]</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
     <div class="kp-row">
       <figure>
         <img src="static/images/kpts_coco133.jpg" width="290" height="386" loading="lazy" alt="A person with the 133 COCO-WholeBody keypoints drawn: body, feet, face and both hands, colour-coded by part.">
@@ -297,51 +297,155 @@
   </div>
 </section>
 
-<!-- ======================= BACKENDS ======================= -->
-<section class="section" id="backends">
+<!-- ======================= DATASETS ======================= -->
+<section class="section" id="datasets">
   <div class="container">
-    <h2>Backends</h2>
-    <p class="lead">Default settings reproduce the paper; any backend argument can be overridden, e.g. <code>PoseEstimator("rtmpose", mode="lightweight")</code>.</p>
-    <div class="tbl-wrap wide">
-      <table class="tbl">
+    <h2>Datasets</h2>
+    <p class="lead">Pose sequences of 13 isolated sign language recognition subsets from five public datasets, extracted with WholeBodyPose (RTMPose, 135 keypoints) and hosted on the Hugging Face Hub: <a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition"><code>CristianLazoQuispe/pose-action-recognition</code></a>.</p>
+    <figure class="tbl-fig">
+      <div class="tbl-wrap ds-wrap">
+      <table class="tbl ds">
         <thead>
-          <tr><th scope="col">Backend</th><th scope="col">Model</th><th scope="col" class="c">People</th><th scope="col">Runs on</th><th scope="col">Install extra</th></tr>
+          <tr><th scope="col">Subset</th><th scope="col">Language</th><th scope="col" class="r">Classes</th><th scope="col" class="r">Train</th><th scope="col" class="r">Val</th><th scope="col" class="r">Test</th><th scope="col" class="r">Size</th><th scope="col">Files (HDF5 per split, label map)</th></tr>
         </thead>
         <tbody>
-          <tr><th scope="row"><code>rtmpose</code></th><td>YOLOX-m + RTMW-x 384×288 (OpenMMLab)</td><td class="c">multi</td><td>ONNX Runtime CPU / CUDA</td><td><code>[rtmpose]</code> (+ <code>[gpu]</code>)</td></tr>
-          <tr><th scope="row"><code>vitpose</code></th><td>ViTPose+ huge/large/base/small, full-frame top-down</td><td class="c">single</td><td>PyTorch CPU / CUDA</td><td><code>[vitpose]</code></td></tr>
-          <tr><th scope="row"><code>mediapipe</code></th><td>BlazePose heavy + Hands + Face Mesh</td><td class="c">single</td><td>CPU</td><td><code>[mediapipe]</code></td></tr>
+          <tr class="grp-row"><th colspan="8" scope="rowgroup"><b>WLASL</b> <span>American Sign Language · source: <a href="https://github.com/dxli94/WLASL">WLASL v0.3</a> (Li et al., WACV 2020)</span></th></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/WLASL/WLASL100" title="Open the WLASL100 folder on Hugging Face">WLASL100</a></th><td data-l="Language">ASL</td><td class="r" data-l="Classes">100</td><td class="r" data-l="Train">1,442</td><td class="r" data-l="Val">338</td><td class="r" data-l="Test">258</td><td class="r" data-l="Size">0.28 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL100/WLASL100_135-Train.hdf5" title="WLASL100_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL100/WLASL100_135-Val.hdf5" title="WLASL100_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL100/WLASL100_135-Test.hdf5" title="WLASL100_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL100/wlasl_100_maplabels.json" title="wlasl_100_maplabels.json">Labels</a></td></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/WLASL/WLASL300" title="Open the WLASL300 folder on Hugging Face">WLASL300</a></th><td data-l="Language">ASL</td><td class="r" data-l="Classes">300</td><td class="r" data-l="Train">3,549</td><td class="r" data-l="Val">900</td><td class="r" data-l="Test">668</td><td class="r" data-l="Size">0.69 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL300/WLASL300_135-Train.hdf5" title="WLASL300_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL300/WLASL300_135-Val.hdf5" title="WLASL300_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL300/WLASL300_135-Test.hdf5" title="WLASL300_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL300/wlasl_300_maplabels.json" title="wlasl_300_maplabels.json">Labels</a></td></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/WLASL/WLASL2000" title="Open the WLASL2000 folder on Hugging Face">WLASL2000</a></th><td data-l="Language">ASL</td><td class="r" data-l="Classes">2,000</td><td class="r" data-l="Train">14,289</td><td class="r" data-l="Val">3,916</td><td class="r" data-l="Test">2,878</td><td class="r" data-l="Size">2.81 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL2000/WLASL2000_135-Train.hdf5" title="WLASL2000_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL2000/WLASL2000_135-Val.hdf5" title="WLASL2000_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL2000/WLASL2000_135-Test.hdf5" title="WLASL2000_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/WLASL/WLASL2000/wlasl_2000_maplabels.json" title="wlasl_2000_maplabels.json">Labels</a></td></tr>
+        </tbody>
+        <tbody>
+          <tr class="grp-row"><th colspan="8" scope="rowgroup"><b>MS-ASL</b> <span>American Sign Language · source: <a href="https://www.microsoft.com/en-us/research/project/ms-asl/">MS-ASL</a> (Vaezi Joze &amp; Koller, BMVC 2019)</span></th></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/MSASL/MSASL100" title="Open the MSASL100 folder on Hugging Face">MSASL100</a></th><td data-l="Language">ASL</td><td class="r" data-l="Classes">100</td><td class="r" data-l="Train">3,774</td><td class="r" data-l="Val">1,190</td><td class="r" data-l="Test">757</td><td class="r" data-l="Size">1.09 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL100/MSASL100_135-Train.hdf5" title="MSASL100_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL100/MSASL100_135-Val.hdf5" title="MSASL100_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL100/MSASL100_135-Test.hdf5" title="MSASL100_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL100/msasl_100_maplabels.json" title="msasl_100_maplabels.json">Labels</a></td></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/MSASL/MSASL200" title="Open the MSASL200 folder on Hugging Face">MSASL200</a></th><td data-l="Language">ASL</td><td class="r" data-l="Classes">200</td><td class="r" data-l="Train">6,296</td><td class="r" data-l="Val">2,041</td><td class="r" data-l="Test">1,359</td><td class="r" data-l="Size">1.87 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL200/MSASL200_135-Train.hdf5" title="MSASL200_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL200/MSASL200_135-Val.hdf5" title="MSASL200_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL200/MSASL200_135-Test.hdf5" title="MSASL200_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL200/msasl_200_maplabels.json" title="msasl_200_maplabels.json">Labels</a></td></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/MSASL/MSASL500" title="Open the MSASL500 folder on Hugging Face">MSASL500</a></th><td data-l="Language">ASL</td><td class="r" data-l="Classes">500</td><td class="r" data-l="Train">11,359</td><td class="r" data-l="Val">3,702</td><td class="r" data-l="Test">2,720</td><td class="r" data-l="Size">3.38 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL500/MSASL500_135-Train.hdf5" title="MSASL500_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL500/MSASL500_135-Val.hdf5" title="MSASL500_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL500/MSASL500_135-Test.hdf5" title="MSASL500_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL500/msasl_500_maplabels.json" title="msasl_500_maplabels.json">Labels</a></td></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/MSASL/MSASL1000" title="Open the MSASL1000 folder on Hugging Face">MSASL1000</a></th><td data-l="Language">ASL</td><td class="r" data-l="Classes">1,000</td><td class="r" data-l="Train">16,002</td><td class="r" data-l="Val">5,287</td><td class="r" data-l="Test">4,172</td><td class="r" data-l="Size">4.84 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL1000/MSASL1000_135-Train.hdf5" title="MSASL1000_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL1000/MSASL1000_135-Val.hdf5" title="MSASL1000_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL1000/MSASL1000_135-Test.hdf5" title="MSASL1000_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/MSASL/MSASL1000/msasl_1000_maplabels.json" title="msasl_1000_maplabels.json">Labels</a></td></tr>
+        </tbody>
+        <tbody>
+          <tr class="grp-row"><th colspan="8" scope="rowgroup"><b>ASL Citizen</b> <span>American Sign Language · source: <a href="https://www.microsoft.com/en-us/research/project/asl-citizen/">ASL Citizen</a> (Desai et al., 2023)</span></th></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/ASLCITIZEN/ASLCitizen100" title="Open the ASLCitizen100 folder on Hugging Face">ASLCitizen100</a></th><td data-l="Language">ASL</td><td class="r" data-l="Classes">100</td><td class="r" data-l="Train">1,707</td><td class="r" data-l="Val">393</td><td class="r" data-l="Test">1,444</td><td class="r" data-l="Size">0.62 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen100/ASLCitizen100_135-Train.hdf5" title="ASLCitizen100_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen100/ASLCitizen100_135-Val.hdf5" title="ASLCitizen100_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen100/ASLCitizen100_135-Test.hdf5" title="ASLCitizen100_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen100/asl_citizen_100_maplabels.json" title="asl_citizen_100_maplabels.json">Labels</a></td></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/ASLCITIZEN/ASLCitizen300" title="Open the ASLCitizen300 folder on Hugging Face">ASLCitizen300</a></th><td data-l="Language">ASL</td><td class="r" data-l="Classes">300</td><td class="r" data-l="Train">4,699</td><td class="r" data-l="Val">1,128</td><td class="r" data-l="Test">4,058</td><td class="r" data-l="Size">1.73 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen300/ASLCitizen300_135-Train.hdf5" title="ASLCitizen300_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen300/ASLCitizen300_135-Val.hdf5" title="ASLCitizen300_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen300/ASLCitizen300_135-Test.hdf5" title="ASLCitizen300_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen300/asl_citizen_300_maplabels.json" title="asl_citizen_300_maplabels.json">Labels</a></td></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/ASLCITIZEN/ASLCitizen1000" title="Open the ASLCitizen1000 folder on Hugging Face">ASLCitizen1000</a></th><td data-l="Language">ASL</td><td class="r" data-l="Classes">1,000</td><td class="r" data-l="Train">15,256</td><td class="r" data-l="Val">3,714</td><td class="r" data-l="Test">12,615</td><td class="r" data-l="Size">5.58 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen1000/ASLCitizen1000_135-Train.hdf5" title="ASLCitizen1000_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen1000/ASLCitizen1000_135-Val.hdf5" title="ASLCitizen1000_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen1000/ASLCitizen1000_135-Test.hdf5" title="ASLCitizen1000_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen1000/asl_citizen_1000_maplabels.json" title="asl_citizen_1000_maplabels.json">Labels</a></td></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/ASLCITIZEN/ASLCitizen2731" title="Open the ASLCitizen2731 folder on Hugging Face">ASLCitizen2731</a></th><td data-l="Language">ASL</td><td class="r" data-l="Classes">2,731</td><td class="r" data-l="Train">40,154</td><td class="r" data-l="Val">10,304</td><td class="r" data-l="Test">32,941</td><td class="r" data-l="Size">15.13 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen2731/ASLCitizen2731_135-Train.hdf5" title="ASLCitizen2731_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen2731/ASLCitizen2731_135-Val.hdf5" title="ASLCitizen2731_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen2731/ASLCitizen2731_135-Test.hdf5" title="ASLCitizen2731_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/ASLCITIZEN/ASLCitizen2731/asl_citizen_2731_maplabels.json" title="asl_citizen_2731_maplabels.json">Labels</a></td></tr>
+        </tbody>
+        <tbody>
+          <tr class="grp-row"><th colspan="8" scope="rowgroup"><b>LSA64</b> <span>Argentinian Sign Language · source: <a href="https://facundoq.github.io/datasets/lsa64/">LSA64</a> (Ronchetti et al., CACIC 2016)</span></th></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/LSA64" title="Open the LSA64 folder on Hugging Face">LSA64</a></th><td data-l="Language">LSA</td><td class="r" data-l="Classes">64</td><td class="r" data-l="Train">2,560</td><td class="r" data-l="Val">320</td><td class="r" data-l="Test">320</td><td class="r" data-l="Size">0.58 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/LSA64/LSA64_135-Train.hdf5" title="LSA64_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/LSA64/LSA64_135-Val.hdf5" title="LSA64_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/LSA64/LSA64_135-Test.hdf5" title="LSA64_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/LSA64/lsa64_64_maplabels.json" title="lsa64_64_maplabels.json">Labels</a></td></tr>
+        </tbody>
+        <tbody>
+          <tr class="grp-row"><th colspan="8" scope="rowgroup"><b>PUCP-DGI</b> <span>Peruvian Sign Language · source: PUCP-DGI (Pontificia Universidad Católica del Perú)</span></th></tr>
+          <tr><th scope="row"><a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/tree/main/ISLR/DGI_PUCP30" title="Open the DGI_PUCP30 folder on Hugging Face">DGI_PUCP30</a></th><td data-l="Language">LSP</td><td class="r" data-l="Classes">30</td><td class="r" data-l="Train">500</td><td class="r" data-l="Val">108</td><td class="r" data-l="Test">107</td><td class="r" data-l="Size">0.03 GB</td><td class="files"><a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/DGI_PUCP30/DGI_PUCP30_135-Train.hdf5" title="DGI_PUCP30_135-Train.hdf5">Train</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/DGI_PUCP30/DGI_PUCP30_135-Val.hdf5" title="DGI_PUCP30_135-Val.hdf5">Val</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/DGI_PUCP30/DGI_PUCP30_135-Test.hdf5" title="DGI_PUCP30_135-Test.hdf5">Test</a> <a class="f" href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/ISLR/DGI_PUCP30/dgi_pucp_30_maplabels.json" title="dgi_pucp_30_maplabels.json">Labels</a></td></tr>
         </tbody>
       </table>
+      </div>
+      <figcaption>Clip counts per split, read from the HDF5 files (one group per clip). Subset names open the folder on Hugging Face; the file links open each split file and its <code>*_maplabels.json</code>. ASL: American, LSA: Argentinian, LSP: Peruvian Sign Language. WLASL2000-test covers 1,999 of the 2,000 glosses, as in the official split. A 38-class PUCP-DGI subset (DGI_PUCP38) is coming soon.</figcaption>
+    </figure>
+
+    <div class="ds-notes">
+      <div>
+        <h3>File format</h3>
+        <p>One file per split, <code>&lt;Subset&gt;_135-{Train,Val,Test}.hdf5</code>, with one group per clip: <code>data</code> of shape <code>(T, 2, 135)</code> (x, y normalized by the frame size, every frame, undetected points at 0), <code>label</code>, <code>video_name</code>, <code>width</code>, <code>height</code>. Keypoints 0–132 are COCO-WholeBody; 133 is the mid-chest and 134 the mid-hip point. No videos are redistributed.</p>
+      </div>
+      <div>
+        <h3>License</h3>
+        <p>For <b>non-commercial academic research only</b> (<a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition/blob/main/LICENSE.md">license</a>). The files are derived from videos whose own terms forbid commercial use, and the terms of each source dataset apply to its subset. Please cite WholeBodyPose and the source dataset of every subset you use.</p>
+        <h3>Rebuild from the videos</h3>
+        <p><code>wholebodypose-build-islr</code> rebuilds any subset from the original videos; schema, loading code and per-dataset notes are in <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/tree/main/docs/datasets">docs/datasets</a>.</p>
+      </div>
+    </div>
+
+    <div class="ds-snippet">
+      <h3>96-keypoint SignERT subset</h3>
+      <p>The 96-point layout used by SignERT (11 upper-body points, both hands, mid-chest, 42 face points) is an exact column subset of these files:</p>
+      <div class="code">
+        <button class="copy-btn" type="button" data-copy="code-96" hidden><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Copy</span></button>
+        <pre><code id="code-96"><span class="kw">from</span> wholebodypose.utils.keypoint_subsets <span class="kw">import</span> SIGNERT_96
+data96 = f[key][<span class="st">"data"</span>][()][:, :, SIGNERT_96]   <span class="cm"># (T, 2, 135) -> (T, 2, 96)</span></code></pre>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ======================= RESULTS ======================= -->
+<!-- ======================= DATA PROCESSING ======================= -->
+<section class="section" id="processing">
+  <div class="container">
+    <h2>Data processing</h2>
+    <p class="lead">What was checked before and after extraction. Full provenance, including the open questions, is documented in <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/tree/main/docs/datasets">docs/datasets</a>.</p>
+    <div class="steps">
+      <article class="step">
+        <h3><span class="n" aria-hidden="true">1</span>Annotation checks (WLASL)</h3>
+        <ul>
+          <li>12 video ids listed in the <code>nslt_*.json</code> subset files have no gloss in <code>WLASL_v0.3.json</code>; their 19 entries were dropped, leaving exactly the 21,083 instances of v0.3.</li>
+          <li>The official class list misspells <code>lose</code> as <code>losear</code>; fixed, so the class list and v0.3 share the same 2,000 glosses.</li>
+          <li>For every subset and split, every labelled id has a video and every video has a label (checked in both directions).</li>
+          <li>Split ids cross-checked against the independent Uni-Sign label files: identical for every split of WLASL100, 300 and 2000.</li>
+        </ul>
+        <p class="more"><a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/datasets/wlasl.md">WLASL provenance</a></p>
+      </article>
+      <article class="step">
+        <h3><span class="n" aria-hidden="true">2</span>Subsets and splits</h3>
+        <ul>
+          <li><b>WLASL-N</b>: the first N glosses of WLASL v0.3, official splits.</li>
+          <li><b>MS-ASL-N</b>: the official MS-ASL subsets and splits.</li>
+          <li><b>ASL Citizen-N</b>: the N most frequent glosses of the whole dataset, ties broken alphabetically; every clip keeps its official split.</li>
+          <li><b>LSA64</b>: signer-independent (8 signers train, 9th val, 10th test).</li>
+          <li><b>PUCP-DGI30</b>: stratified random split (70 / 15 / 15).</li>
+        </ul>
+      </article>
+      <article class="step">
+        <h3><span class="n" aria-hidden="true">3</span>Extraction</h3>
+        <ul>
+          <li>RTMPose-WholeBody (YOLOX-m + RTMW-x 384×288) on every frame at the original resolution, no temporal subsampling.</li>
+          <li>Keypoints with score below 2.5 are set to (0, 0), and an incomplete hand or foot chain is zeroed rather than guessed.</li>
+          <li>Coordinates are normalized by the frame size; the original width and height are stored with each clip.</li>
+          <li>Clip length <code>T</code> equals the number of decoded video frames (checked for every WLASL clip).</li>
+        </ul>
+      </article>
+      <article class="step">
+        <h3><span class="n" aria-hidden="true">4</span>Reproducibility</h3>
+        <ul>
+          <li><code>wholebodypose-build-islr --preset icmv2025</code> reproduces the published keypoints: on 10 test videos per dataset, median absolute difference below 1e-5 (normalized) and 99.96–100&nbsp;% detection agreement.</li>
+          <li>The sample lists rebuilt from the original metadata match the published split files: counts, video names, labels and label maps.</li>
+          <li>The older 96-keypoint files are reproduced bit for bit from the 135-keypoint files with <code>SIGNERT_96</code>.</li>
+          <li>Known caveat: the release fed RGB frames to rtmlib, which expects BGR; the preset replays this, the library default is the correct BGR input.</li>
+        </ul>
+        <p class="more"><a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/datasets/README.md#reproducing-the-published-keypoints">Reproduction table</a></p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= RESULTS: ISLR MODELS ======================= -->
 <section class="section" id="results">
   <div class="container">
-    <h2>Results</h2>
-    <p class="lead">Replacing the original pose inputs of four ISLR models with WholeBodyPose (RTMPose, 135 keypoints) improves accuracy on WLASL100 for every model, all trained from scratch on pose only.</p>
+    <h2>ISLR models</h2>
+    <p class="lead">Four ISLR models trained from scratch on WholeBodyPose keypoints (RTMPose, 135 points) instead of their original pose inputs: Top-1 accuracy on WLASL100 improves for every model.</p>
     <figure class="tbl-fig">
       <div class="tbl-wrap">
-      <table class="tbl">
+      <table class="tbl res">
         <thead>
-          <tr class="grp"><th scope="col" rowspan="2">Method</th><th scope="colgroup" colspan="2" class="c">Per-instance</th><th scope="colgroup" colspan="2" class="c">Per-class</th><th scope="col" rowspan="2" class="r">Δ Top-1</th></tr>
+          <tr class="grp"><th scope="col" rowspan="2">Method</th><th scope="colgroup" colspan="2" class="c">Per-instance</th><th scope="colgroup" colspan="2" class="c">Per-class</th><th scope="col" rowspan="2" class="r dlt">Δ Top-1</th><th scope="col" rowspan="2" class="code-link">Original code</th></tr>
           <tr><th scope="col" class="r">Top-1</th><th scope="col" class="r">Top-5</th><th scope="col" class="r">Top-1</th><th scope="col" class="r">Top-5</th></tr>
         </thead>
         <tbody>
-          <tr><th scope="row">Pose-TGCN</th><td class="r">55.43</td><td class="r">78.68</td><td class="r">–</td><td class="r">–</td><td></td></tr>
-          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">58.14</td><td class="r best">82.58</td><td class="r">59.22</td><td class="r">83.58</td><td class="r gain">+2.71</td></tr>
-          <tr><th scope="row">GCN-BERT</th><td class="r">60.15</td><td class="r">83.98</td><td class="r">–</td><td class="r">–</td><td></td></tr>
-          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">66.67</td><td class="r best">91.47</td><td class="r">68.15</td><td class="r">92.08</td><td class="r gain">+6.52</td></tr>
-          <tr><th scope="row">SILT</th><td class="r">62.79</td><td class="r">–</td><td class="r">–</td><td class="r">–</td><td></td></tr>
-          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">66.67</td><td class="r">84.88</td><td class="r">68.15</td><td class="r">85.72</td><td class="r gain">+3.88</td></tr>
-          <tr><th scope="row">SPOTER</th><td class="r">63.18</td><td class="r">–</td><td class="r">–</td><td class="r">–</td><td></td></tr>
-          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">67.05</td><td class="r">86.43</td><td class="r">67.47</td><td class="r">87.42</td><td class="r gain">+3.87</td></tr>
+          <tr class="base"><th scope="row">Pose-TGCN</th><td class="r">55.43</td><td class="r">78.68</td><td class="r">–</td><td class="r">–</td><td class="dlt"></td><td rowspan="2" class="code-link"><a href="https://github.com/dxli94/WLASL/tree/master/code/TGCN">dxli94/WLASL</a></td></tr>
+          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">58.14</td><td class="r best">82.58</td><td class="r">59.22</td><td class="r">83.58</td><td class="r gain dlt">+2.71</td></tr>
+          <tr class="base"><th scope="row">GCN-BERT</th><td class="r">60.15</td><td class="r">83.98</td><td class="r">–</td><td class="r">–</td><td class="dlt"></td><td rowspan="2" class="code-link"><a href="https://arxiv.org/abs/2012.00781">paper</a> <span class="small">(no code release found)</span></td></tr>
+          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">66.67</td><td class="r best">91.47</td><td class="r">68.15</td><td class="r">92.08</td><td class="r gain dlt">+6.52</td></tr>
+          <tr class="base"><th scope="row">SILT</th><td class="r">62.79</td><td class="r">–</td><td class="r">–</td><td class="r">–</td><td class="dlt"></td><td rowspan="2" class="code-link"><a href="https://github.com/cristinalunaj/InterpretableTransformer_SignLanguage">cristinalunaj/Interpretable&shy;Transformer_SignLanguage</a></td></tr>
+          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">66.67</td><td class="r">84.88</td><td class="r">68.15</td><td class="r">85.72</td><td class="r gain dlt">+3.88</td></tr>
+          <tr class="base"><th scope="row">SPOTER</th><td class="r">63.18</td><td class="r">–</td><td class="r">–</td><td class="r">–</td><td class="dlt"></td><td rowspan="2" class="code-link"><a href="https://github.com/maty-bohacek/spoter">maty-bohacek/spoter</a></td></tr>
+          <tr class="ours"><th scope="row">+ WholeBodyPose</th><td class="r best">67.05</td><td class="r">86.43</td><td class="r">67.47</td><td class="r">87.42</td><td class="r gain dlt">+3.87</td></tr>
         </tbody>
       </table>
-    </div>
-      <figcaption>Paper, Table 3: accuracy (%) on WLASL100. Models trained from scratch using only pose inputs, with simple geometric augmentations (rotation, zoom, perspective) on the keypoints. Baseline numbers are those reported by each method; “–” not reported.</figcaption>
+      </div>
+      <ul class="code-list small">
+        <li>Pose-TGCN: <a href="https://github.com/dxli94/WLASL/tree/master/code/TGCN">dxli94/WLASL</a></li>
+        <li>GCN-BERT: <a href="https://arxiv.org/abs/2012.00781">paper</a> (no code release found)</li>
+        <li>SILT: <a href="https://github.com/cristinalunaj/InterpretableTransformer_SignLanguage">cristinalunaj/InterpretableTransformer_SignLanguage</a></li>
+        <li>SPOTER: <a href="https://github.com/maty-bohacek/spoter">maty-bohacek/spoter</a></li>
+      </ul>
+      <figcaption>Paper, Table 3: accuracy (%) on WLASL100. Models trained from scratch using only pose inputs, with simple geometric augmentations (rotation, zoom, perspective) on the keypoints. Baseline numbers are those reported by each method; “–” not reported. The trained ISLR checkpoints are not released; the links point to each model's original code.</figcaption>
     </figure>
   </div>
 </section>
@@ -353,7 +457,7 @@
     <div class="code has-lbl">
       <span class="lbl">Install</span>
       <button class="copy-btn" type="button" data-copy="code-install" hidden><svg aria-hidden="true"><use href="#i-copy"/></svg><span>Copy</span></button>
-      <pre><code id="code-install">pip install "wholebodypose[all] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"</code></pre>
+      <pre class="wrap"><code id="code-install">pip install "wholebodypose[all] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"</code></pre>
     </div>
     <div class="code has-lbl">
       <span class="lbl">Python</span>
@@ -372,33 +476,7 @@ wholebodypose image data/images/image.jpg -b mediapipe   <span class="cm"># -> o
 wholebodypose video data/videos/videoTest.mp4 -b rtmpose --fps 15
 wholebodypose download                                   <span class="cm"># pre-fetch every weight</span></code></pre>
     </div>
-    <p class="small">Extras: <code>[rtmpose]</code>, <code>[vitpose]</code>, <code>[mediapipe]</code>, <code>[filters]</code> (NLMS), <code>[video]</code>, <code>[gpu]</code>. The core package only needs NumPy and OpenCV; model weights are downloaded on first use from our <a href="https://huggingface.co/CristianLazoQuispe/wholebodypose-weights">Hugging Face mirror</a>, with a fallback to the original upstream URLs. More in the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation#readme">README</a>.</p>
-  </div>
-</section>
-
-<!-- ======================= DATASETS ======================= -->
-<section class="section" id="datasets">
-  <div class="container">
-    <h2>Pose datasets</h2>
-    <p class="lead">Pose sequences extracted with WholeBodyPose for six isolated sign language recognition benchmarks, on the Hugging Face Hub: <a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition"><code>CristianLazoQuispe/pose-action-recognition</code></a>.</p>
-    <figure class="tbl-fig">
-      <div class="tbl-wrap">
-      <table class="tbl">
-        <thead>
-          <tr><th scope="col">Dataset</th><th scope="col" class="r">Classes</th><th scope="col" class="r">Samples</th><th scope="col">Language</th><th scope="col">Split</th></tr>
-        </thead>
-        <tbody>
-          <tr><th scope="row">WLASL100</th><td class="r">100</td><td class="r">2,038</td><td>American SL</td><td>official</td></tr>
-          <tr><th scope="row">WLASL300</th><td class="r">300</td><td class="r">5,117</td><td>American SL</td><td>official</td></tr>
-          <tr><th scope="row">MSASL100</th><td class="r">100</td><td class="r">5,721</td><td>American SL</td><td>official</td></tr>
-          <tr><th scope="row">ASL-Citizen</th><td class="r">2,731</td><td class="r">83,399</td><td>American SL</td><td>official</td></tr>
-          <tr><th scope="row">LSA64</th><td class="r">64</td><td class="r">3,200</td><td>Argentinian SL</td><td>signer-independent</td></tr>
-          <tr><th scope="row">PUCP-DGI30</th><td class="r">30</td><td class="r">715</td><td>Peruvian SL</td><td>stratified random</td></tr>
-        </tbody>
-      </table>
-    </div>
-      <figcaption>The pose files are derived data; the original videos keep the licenses of their authors.</figcaption>
-    </figure>
+    <p class="small">Extras: <code>[rtmpose]</code>, <code>[vitpose]</code>, <code>[mediapipe]</code>, <code>[filters]</code> (NLMS), <code>[video]</code>, <code>[datasets]</code>, <code>[gpu]</code>. The core package only needs NumPy and OpenCV. Model weights are downloaded on first use from the original upstream URLs (a Hugging Face mirror is coming soon). More in the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation#readme">README</a>.</p>
   </div>
 </section>
 
@@ -411,7 +489,7 @@ wholebodypose download                                   <span class="cm"># pre-
       <div class="demo-ph">
         <p>The demo runs on a free Hugging Face Space and may take a minute to wake up.</p>
         <div class="demo-actions">
-          <a class="btn" href="https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo"><span class="emoji" aria-hidden="true">🤗</span>Open the Space<svg aria-hidden="true"><use href="#i-ext"/></svg></a>
+          <a class="btn" href="https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo">Open the Space<svg aria-hidden="true"><use href="#i-ext"/></svg></a>
           <button class="btn btn-light" type="button" id="demoLoad" hidden>Load it on this page</button>
         </div>
       </div>
@@ -428,7 +506,7 @@ wholebodypose download                                   <span class="cm"># pre-
       <div class="paper-meta">
         <p class="ptitle">WholeBodyPose: A Unified End-to-End Framework for Sign Language Recognition and Pose-Based Training Data</p>
         <p>Cristian Lazo-Quispe, Renato Castro-Cruz, Gissella Bejarano, Mauricio Salazar-Espinosa</p>
-        <p class="small">Eighteenth International Conference on Machine Vision (ICMV 2025), Proceedings of SPIE.</p>
+        <p class="small">Eighteenth International Conference on Machine Vision (ICMV 2025), Proc. SPIE 14114, pp. 69–79.</p>
         <p><a href="static/paper/WholeBodyPose_ICMV2025.pdf">PDF (0.3 MB)</a></p>
       </div>
     </div>
@@ -445,15 +523,16 @@ wholebodypose download                                   <span class="cm"># pre-
   organization = {SPIE}
 }</code></pre>
     </div>
-    <p class="small">Please also cite the backend you use (RTMW, ViTPose++, MediaPipe) and COCO-WholeBody; the entries are in the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/guide/backends.md#citing-the-backends">documentation</a>.</p>
+    <p class="small">Please also cite the backend you use (RTMW, ViTPose++, MediaPipe), COCO-WholeBody, and the source dataset of every pose subset you use; the backend entries are in the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/docs/guide/backends.md#citing-the-backends">documentation</a> and the dataset entries in the <a href="https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition">dataset card</a>.</p>
   </div>
 </section>
 </main>
 
 <footer class="footer">
-  <div class="container">
-    <p>WholeBodyPose builds on <a href="https://github.com/Tau-J/rtmlib">rtmlib</a> / <a href="https://github.com/open-mmlab/mmpose">MMPose</a>, <a href="https://github.com/developer0hye/onepose">onepose</a> / <a href="https://github.com/ViTAE-Transformer/ViTPose">ViTPose</a>, <a href="https://github.com/google-ai-edge/mediapipe">MediaPipe</a> and <a href="https://github.com/matousc89/padasip">padasip</a>.</p>
-    <p>Code under the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/LICENSE">MIT License</a>; model weights keep their original licenses (<a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/THIRD_PARTY.md">third-party notices</a>). Page layout in the style of <a href="https://nerfies.github.io/">Nerfies</a>.</p>
+  <div class="container narrow">
+    <h2 class="footer-h">Acknowledgements</h2>
+    <p>WholeBodyPose builds on <a href="https://github.com/Tau-J/rtmlib">rtmlib</a> / <a href="https://github.com/open-mmlab/mmpose">MMPose</a>, <a href="https://github.com/developer0hye/onepose">onepose</a> / <a href="https://github.com/ViTAE-Transformer/ViTPose">ViTPose</a>, <a href="https://github.com/google-ai-edge/mediapipe">MediaPipe</a> and <a href="https://github.com/matousc89/padasip">padasip</a>. The pose datasets are derived from <a href="https://github.com/dxli94/WLASL">WLASL</a>, <a href="https://www.microsoft.com/en-us/research/project/ms-asl/">MS-ASL</a>, <a href="https://www.microsoft.com/en-us/research/project/asl-citizen/">ASL Citizen</a>, <a href="https://facundoq.github.io/datasets/lsa64/">LSA64</a> and PUCP-DGI; we thank their authors.</p>
+    <p>Code under the <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/LICENSE">MIT License</a>; model weights keep their original licenses (<a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/THIRD_PARTY.md">third-party notices</a>); pose datasets for non-commercial research only. Page layout in the style of <a href="https://nerfies.github.io/">Nerfies</a>.</p>
   </div>
 </footer>
 </body>

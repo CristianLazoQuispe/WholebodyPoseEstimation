@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Project page: the pipeline diagram is now the hero figure; the teaser video (and its generator code) is
+  removed. New sections: datasets (one row per published subset with links to every split file and label
+  map), data processing (annotation checks, subset rules, reproducibility), and ISLR models (paper Table 3
+  with links to each model's original code). The weights button is marked "soon" while the mirror is private.
+
 ## [1.0.0] - 2026-11-19
 
 First stable release, consolidating the library, project page and demo of the ICMV 2025 paper in one repository.

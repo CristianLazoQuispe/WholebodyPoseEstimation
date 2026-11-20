@@ -27,34 +27,31 @@ checks that every local `src`/`href`/`poster` in `index.html` exists. One-time r
 
 | Path | What it is |
 |---|---|
-| `index.html` | the page: header and links, teaser video, TL;DR and abstract (from the paper), key contributions, pipeline (inline SVG, with a vertical variant below 680 px), keypoint layouts (paper Figure 1 a/b), backends, results (paper Table 3), quick start, pose datasets, demo (link + click-to-load iframe of the Hugging Face Space), paper and BibTeX, footer |
+| `index.html` | the page: header and links, pipeline figure (inline SVG, with a vertical variant below 680 px), TL;DR and abstract (from the paper), key contributions, backends and keypoint layouts (paper Figure 1 a/b), datasets (one row per published subset with links to every split file and label map on the Hub), data processing, ISLR models (paper Table 3 with links to each model's original code), quick start, demo (link + click-to-load iframe of the Hugging Face Space), paper and BibTeX, acknowledgements |
 | `static/css/style.css` | the page style |
-| `static/js/main.js` | teaser play/pause (paused under `prefers-reduced-motion`), copy buttons, click-to-load demo iframe |
-| `static/videos/teaser.{webm,mp4}` | the teaser (`docs/assets/output_telefono_pucp_slow.gif`, 5.6 MB) re-encoded to VP9 / H.264 (~0.45 MB each) |
-| `static/images/teaser_poster.jpg` | poster frame of the teaser (also the `<img>` fallback) |
-| `static/images/og.png` | 1200×630 social card (`og:image`, `twitter:image`) |
+| `static/js/main.js` | copy buttons, click-to-load demo iframe |
+| `static/images/og.png` | 1200×630 social card (`og:image`, `twitter:image`), built from the Figure 1 crops |
 | `static/images/favicon.svg`, `favicon-32.png`, `apple-touch-icon.png` | icons |
 | `static/images/kpts_*.jpg`, `paper_thumb.jpg` | Figure 1 (a) and (b) extracted from the paper PDF, and its first page |
 | `static/paper/WholeBodyPose_ICMV2025.pdf` | the paper |
 | `.nojekyll` | serve the folder as-is (no Jekyll processing) |
 
-The text in `index.html` mirrors the repository README (TL;DR, backends, datasets, BibTeX) and the paper
-(abstract, contributions, Table 3). When one of them changes, update the page too; the BibTeX must stay
-identical to the README's.
+The text in `index.html` mirrors the repository README (TL;DR, backends, BibTeX), the paper (abstract,
+contributions, Table 3), the dataset card `hf/dataset_cards/pose-action-recognition.md` (subset counts, sizes,
+license) and `docs/datasets/` (data processing). When one of them changes, update the page too; the BibTeX
+must stay identical to the README's. When a new subset is published on the Hub (e.g. DGI_PUCP38), add its row
+to the datasets table and drop the "coming soon" note from the table caption.
 
 ## Regenerating the media
 
 All generated files are committed; regenerate them with
 
 ```bash
-python scripts/make_website_assets.py            # teaser webm/mp4 + poster, og.png, favicons
-python scripts/make_website_assets.py --paper    # + paper thumbnail and Figure 1 crops
-python scripts/make_website_assets.py --skip-video   # only og.png and favicons
+python scripts/make_website_assets.py            # og.png and favicons
+python scripts/make_website_assets.py --paper    # + paper thumbnail and Figure 1 crops (og.png uses them)
 ```
 
-It needs Pillow and `ffmpeg` (`--paper` also needs poppler: `pdftoppm`, `pdfimages`). To use another
-teaser clip, replace `docs/assets/output_telefono_pucp_slow.gif` (or change `TEASER_GIF` / `POSTER_TIME` in the
-script) and rerun it; the OG card is built from the poster frame.
+It needs Pillow (`--paper` also needs poppler: `pdftoppm`, `pdfimages`).
 
 ## Old project page
 
