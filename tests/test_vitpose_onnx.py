@@ -141,13 +141,14 @@ def test_torch_and_onnx_agree(size, sample_image_path):
     name = f"ViTPose+_{size}_coco_wholebody"
     try:
         o = vp.VITPoseModel(device="cpu", model_name=name, engine="onnx", verbose=False)
-    except RuntimeError as e:  # the ONNX files are mirror-only
+    except (RuntimeError, FileNotFoundError, OSError) as e:  # the ONNX files are mirror-only
         pytest.skip(f"ONNX weight unavailable: {e}")
     t = vp.VITPoseModel(device="cpu", model_name=name, engine="torch", verbose=False)
     kt, st = t.predict(img)
     ko, so = o.predict(img)
     d = np.linalg.norm(kt - ko, axis=-1)
-    assert np.median(d) < 0.5 and np.abs(st - so).max() < 1e-3
+    # measured: max 0 px, score diff <= 5.1e-6 (docs/guide/onnx.md)
+    assert d.max() < 0.01 and np.abs(st - so).max() < 1e-4
 
 
 @pytest.mark.slow

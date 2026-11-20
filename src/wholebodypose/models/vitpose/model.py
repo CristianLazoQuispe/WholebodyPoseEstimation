@@ -101,6 +101,9 @@ class VITPoseModel(BasePoseModel):
         self.onnx = None
 
         onnx_error: Exception | None = None
+        if engine == "auto" and _torch_cuda_only(device):
+            # onnxruntime (CPU build) would silently run on CPU while torch can use the GPU.
+            engine = "torch"
         if engine in ("auto", "onnx"):
             try:
                 self._load_onnx(device, verbose)
@@ -198,3 +201,21 @@ def _load_yolox(name: str, device: str, score_thr: float, verbose: bool):
     )
     det.score_thr = score_thr
     return det
+
+
+def _torch_cuda_only(device: str) -> bool:
+    """True when ``device`` asks for a GPU that torch can use but the installed onnxruntime cannot."""
+    if device not in ("auto", "cuda"):
+        return False
+    try:
+        import onnxruntime as ort
+
+        if "CUDAExecutionProvider" in ort.get_available_providers():
+            return False
+    except ImportError:
+        pass
+    if not _has_module("torch"):
+        return False
+    import torch
+
+    return bool(torch.cuda.is_available())
