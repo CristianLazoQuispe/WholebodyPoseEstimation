@@ -40,9 +40,11 @@ the 133 COCO-WholeBody keypoints plus a neck and a pelvis point. No video or ima
 | WLASL2000 | `ISLR/WLASL/WLASL2000/` | 14,289 | 3,916 | 2,878 | 21,083 | 2,000 | 9 / 59 / 247 | 2.81 GB |
 | MSASL100 | `ISLR/MSASL/MSASL100/` | 3,774 | 1,190 | 757 | 5,721 | 100 | 10 / 85 / 270 | 1.09 GB |
 | MSASL200 | `ISLR/MSASL/MSASL200/` | 6,296 | 2,041 | 1,359 | 9,696 | 200 | 10 / 87 / 290 | 1.87 GB |
+| MSASL500 | `ISLR/MSASL/MSASL500/` | 11,359 | 3,702 | 2,720 | 17,781 | 500 | 9 / 86 / 290 | 3.38 GB |
 | MSASL1000 | `ISLR/MSASL/MSASL1000/` | 16,002 | 5,287 | 4,172 | 25,461 | 1,000 | 9 / 85 / 290 | 4.84 GB |
 | ASLCitizen100 | `ISLR/ASLCITIZEN/ASLCitizen100/` | 1,707 | 393 | 1,444 | 3,544 | 100 | 3 / 75 / 505 | 0.62 GB |
 | ASLCitizen300 | `ISLR/ASLCITIZEN/ASLCitizen300/` | 4,699 | 1,128 | 4,058 | 9,885 | 300 | 3 / 74 / 540 | 1.73 GB |
+| ASLCitizen1000 | `ISLR/ASLCITIZEN/ASLCitizen1000/` | 15,256 | 3,714 | 12,615 | 31,585 | 1,000 | 3 / 74 / 641 | 5.58 GB |
 | ASLCitizen2731 | `ISLR/ASLCITIZEN/ASLCitizen2731/` | 40,154 | 10,304 | 32,941 | 83,399 | 2,731 | 3 / 75 / 680 | 15.13 GB |
 | LSA64 | `ISLR/LSA64/` | 2,560 | 320 | 320 | 3,200 | 64 | 14 / 78 / 201 | 0.58 GB |
 | DGI_PUCP30 | `ISLR/DGI_PUCP30/` | 500 | 108 | 107 | 715 | 30 | 1 / 13 / 69 | 0.03 GB |
@@ -66,9 +68,9 @@ pose-action-recognition/
     │   ├── WLASL300/                        # same pattern
     │   └── WLASL2000/
     ├── MSASL/
-    │   ├── MSASL100/   MSASL200/   MSASL1000/
+    │   ├── MSASL100/   MSASL200/   MSASL500/   MSASL1000/
     ├── ASLCITIZEN/
-    │   ├── ASLCitizen100/   ASLCitizen300/   ASLCitizen2731/
+    │   ├── ASLCitizen100/   ASLCitizen300/   ASLCitizen1000/   ASLCitizen2731/
     ├── LSA64/
     │   ├── LSA64_135-{Train,Val,Test}.hdf5
     │   └── lsa64_64_maplabels.json
@@ -110,27 +112,9 @@ same RTMPose output. The following reproduces them bit for bit (same groups, `vi
 float64 values; the `*_96` files simply had no `width`/`height`):
 
 ```python
-SIGNERT_96 = [
-    *range(0, 11),
-    *range(91, 133),
-    133,
-    *range(72, 91),
-    65,
-    66,
-    68,
-    70,
-    67,
-    69,
-    59,
-    61,
-    62,
-    63,
-    60,
-    64,
-    *range(45, 50),
-    *range(40, 45),
-    71,
-]
+SIGNERT_96 = [*range(0, 11), *range(91, 133), 133, *range(72, 91),
+              65, 66, 68, 70, 67, 69, 59, 61, 62, 63, 60, 64,
+              *range(45, 50), *range(40, 45), 71]
 data96 = f[k]["data"][()][:, :, SIGNERT_96]  # (T, 2, 135) -> (T, 2, 96)
 ```
 
@@ -149,7 +133,15 @@ ASL Citizen mostly from 640×480 (some 960×540 or 480×640); MS-ASL from per-cl
 ## Splits
 
 The `Train` / `Val` / `Test` files of WLASL, MS-ASL and ASL Citizen follow the official splits of each
-benchmark. LSA64 uses a signer-independent split and PUCP-DGI30 a stratified random split (as described in
+benchmark. How the class subsets are chosen:
+
+* **WLASL100/300/2000**: the first N glosses of the official WLASL class list (`nslt_N.json`).
+* **MSASL100/200/500/1000**: the official MS-ASL subsets (`msaslN_metadata.csv`).
+* **ASLCitizen100/300/1000**: the N most frequent glosses over the whole ASL Citizen dataset, ties broken
+  alphabetically; every clip of those glosses keeps its official split. Class ids follow that order, so
+  they are the first N ids of `ASLCitizen2731`.
+* **ASLCitizen1000** and **MSASL500** were built by copying the exact HDF5 groups of `ASLCitizen2731` and
+  `MSASL1000` (verified sample by sample against the original pose files). LSA64 uses a signer-independent split and PUCP-DGI30 a stratified random split (as described in
 the WholeBodyPose README).
 
 ## Loading
