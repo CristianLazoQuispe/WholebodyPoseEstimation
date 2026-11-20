@@ -101,6 +101,18 @@ def to135(keypoints, scores):
     return k, s
 ```
 
+## 96-point subset
+
+SignERT / ConnectingPoints models were trained on a 96-point subset of the 135-point layout: 11
+upper-body points, both hands, mid-chest, and 42 face points (mouth, eyes, eyebrows). It is a pure
+column selection, so the published 135-point datasets reproduce the old `*_96` files bit for bit:
+
+```python
+from wholebodypose.utils.keypoint_subsets import SIGNERT_96, select_keypoints
+
+data96 = select_keypoints(data135)  # (T, 2, 135) -> (T, 2, 96), same order as the *_96 files
+```
+
 ## MediaPipe
 
 MediaPipe's own landmarks (33 pose, 21 per hand, 468/478 face mesh) are mapped to the layout above

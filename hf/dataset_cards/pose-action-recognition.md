@@ -104,6 +104,39 @@ A keypoint that was not detected is stored as `(0, 0)`. No confidence scores are
 We checked this on the files: in every frame where both shoulders (hips) are detected, point 133 (134)
 equals their midpoint exactly.
 
+**96-point subset (SignERT / ConnectingPoints / PocketSign).** Older experiments used `*_96-*.hdf5` files.
+They are not published separately because they are an exact column subset of these files, produced from the
+same RTMPose output. The following reproduces them bit for bit (same groups, `video_name`, `label` and
+float64 values; the `*_96` files simply had no `width`/`height`):
+
+```python
+SIGNERT_96 = [
+    *range(0, 11),
+    *range(91, 133),
+    133,
+    *range(72, 91),
+    65,
+    66,
+    68,
+    70,
+    67,
+    69,
+    59,
+    61,
+    62,
+    63,
+    60,
+    64,
+    *range(45, 50),
+    *range(40, 45),
+    71,
+]
+data96 = f[k]["data"][()][:, :, SIGNERT_96]  # (T, 2, 135) -> (T, 2, 96)
+```
+
+That is 11 upper-body points, both hands (42), the mid-chest point, and 42 face points (mouth, eyes,
+eyebrows). The same index is available as `wholebodypose.utils.keypoint_subsets.SIGNERT_96`.
+
 **Label maps.** Each `*_maplabels.json` has two dictionaries. Note that their names are swapped with
 respect to their content: `"id_to_label"` maps gloss → integer id (`{"accident": 0, ...}`) and
 `"label_to_id"` maps the id as a string → gloss (`{"0": "accident", ...}`). Use the gloss stored in each
