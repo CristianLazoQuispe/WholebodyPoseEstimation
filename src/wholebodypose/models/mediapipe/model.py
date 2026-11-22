@@ -7,6 +7,13 @@ Two engines are supported:
   ``FaceLandmarker``), available in every current MediaPipe release.
 
 ``engine="auto"`` picks ``solutions`` when it is installed and ``tasks`` otherwise.
+
+Running mode: this backend defaults to per-frame detection (``image_mode=True``), as in the paper.
+MediaPipe's legacy Solutions API defaults to tracking instead (``static_image_mode=False``).
+``image_mode=False`` (CLI ``--tracking``) enables tracking (with ``tasks``, the face
+ step still runs per frame on a head crop).
+Pose model: ``pose_config={"model_complexity": 2}`` (default) is ``heavy``, ``1`` is ``full``
+(CLI ``--mediapipe-pose``).
 """
 
 from __future__ import annotations
