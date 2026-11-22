@@ -71,7 +71,7 @@ You normally do not need to touch this repository. The library resolves every mo
 local cache, then this mirror, then the original upstream URL, and checks the SHA-256 each time.
 
 ```bash
-pip install "wholebodypose[all] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"
+pip install "wholebodypose[all]"
 wholebodypose download            # pre-fetch all files into ~/.cache/wholebodypose
 ```
 
