@@ -5,6 +5,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-11-21
+
+First release on PyPI (`pip install wholebodypose`). No code changes.
+
+### Changed
+- README rewritten for the PyPI page: absolute links and images, install extras, backend table, image,
+  video and CLI examples, keypoint layouts (COCO-133, OpenPose-style 135), intended-use note.
+- Installation instructions point to PyPI instead of the GitHub URL.
+
 ## [2.0.0] - 2026-11-20
 
 ### Removed (breaking)

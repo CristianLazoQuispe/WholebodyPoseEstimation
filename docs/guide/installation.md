@@ -4,8 +4,8 @@ Python 3.10 to 3.13. The core package depends on NumPy, OpenCV (headless) and ON
 that RTMPose and ViTPose need.
 
 ```bash
-pip install "wholebodypose @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"
-pip install "wholebodypose[mediapipe] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"
+pip install wholebodypose
+pip install "wholebodypose[mediapipe]"
 ```
 
 ## Extras
@@ -32,7 +32,7 @@ execution providers and the installed extras.
 uninstall the CPU wheel first:
 
 ```bash
-pip install "wholebodypose[gpu] @ git+https://github.com/CristianLazoQuispe/WholebodyPoseEstimation.git"
+pip install "wholebodypose[gpu]"
 pip uninstall -y onnxruntime onnxruntime-gpu && pip install "onnxruntime-gpu>=1.17"
 python -c "import onnxruntime as o; print(o.get_available_providers())"   # must list CUDAExecutionProvider
 ```
