@@ -5,6 +5,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-22
+
 ### Added
 - macOS: `device="coreml"`, and `device="auto"` picks CoreML when ONNX Runtime has it (after CUDA). RTMW and
   YOLOX run on CoreML (YOLOX as an ML Program, since its NMS fails in the NeuralNetwork format); ViTPose
