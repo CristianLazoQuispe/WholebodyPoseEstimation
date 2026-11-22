@@ -33,11 +33,13 @@ uninstall the CPU wheel first:
 
 ```bash
 pip install "wholebodypose[gpu]"
-pip uninstall -y onnxruntime onnxruntime-gpu && pip install "onnxruntime-gpu>=1.17"
-python -c "import onnxruntime as o; print(o.get_available_providers())"   # must list CUDAExecutionProvider
+pip uninstall -y onnxruntime onnxruntime-gpu && pip install "onnxruntime-gpu[cuda,cudnn]>=1.21"
+wholebodypose backends   # must list CUDAExecutionProvider
 ```
 
-`onnxruntime-gpu` must match your CUDA / cuDNN version
+The `[cuda,cudnn]` extras install the CUDA and cuDNN libraries as pip packages, so only the NVIDIA driver
+is needed; WholeBodyPose loads them when CUDA is requested. With a system-wide CUDA / cuDNN install,
+`onnxruntime-gpu` must match its version
 ([requirements](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements)).
 MediaPipe runs on CPU.
 

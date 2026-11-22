@@ -6,7 +6,26 @@ RTMPose and ViTPose backends behave the same on CPU-only and CUDA builds of ``on
 
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
+
+_CUDA_LIBS_LOADED = False
+
+
+def _load_cuda_libs(ort) -> None:
+    """Load the CUDA / cuDNN libraries shipped as pip packages (``onnxruntime-gpu[cuda,cudnn]``).
+
+    ``onnxruntime.preload_dlls()`` (ONNX Runtime >= 1.21) finds them in site-packages; without it the CUDA
+    provider cannot load cuDNN and ONNX Runtime falls back to CPU. System-wide CUDA installs keep working.
+    """
+    global _CUDA_LIBS_LOADED
+    if _CUDA_LIBS_LOADED:
+        return
+    _CUDA_LIBS_LOADED = True
+    preload = getattr(ort, "preload_dlls", None)
+    if preload is not None:
+        with contextlib.suppress(Exception):
+            preload()
 
 
 def ort_has_cuda() -> bool:
@@ -45,10 +64,13 @@ def create_session(model_path: str | Path, device: str = "auto", intra_op_num_th
     except ImportError as e:  # pragma: no cover - onnxruntime is a core dependency
         raise ImportError("ONNX models need onnxruntime: pip install onnxruntime (or onnxruntime-gpu)") from e
 
+    providers = ort_providers(device)
+    if providers[0] == "CUDAExecutionProvider":
+        _load_cuda_libs(ort)
     opts = ort.SessionOptions()
     opts.intra_op_num_threads = int(intra_op_num_threads)
     opts.log_severity_level = log_level
-    return ort.InferenceSession(str(model_path), sess_options=opts, providers=ort_providers(device))
+    return ort.InferenceSession(str(model_path), sess_options=opts, providers=providers)
 
 
 def session_device(session) -> str:

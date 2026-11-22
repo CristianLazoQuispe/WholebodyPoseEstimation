@@ -42,8 +42,9 @@ mediapipe = ["mediapipe>=0.10.14"]
 video = ["imageio-ffmpeg>=0.5"]
 filters = ["padasip>=1.2,<2"]
 datasets = ["h5py>=3.8"]
-# CUDA build of ONNX Runtime; uninstall the CPU `onnxruntime` first (docs/guide/installation.md#gpu).
-gpu = ["onnxruntime-gpu>=1.17"]
+# CUDA build of ONNX Runtime with the CUDA / cuDNN pip packages; uninstall the CPU `onnxruntime`
+# first (docs/guide/installation.md#gpu).
+gpu = ["onnxruntime-gpu[cuda,cudnn]>=1.21"]
 demo = ["gradio>=6", "gradio_client>=1", "wholebodypose[mediapipe,video]"]
 hf = ["huggingface_hub>=0.25"]
 all = ["wholebodypose[mediapipe,filters,video]"]
