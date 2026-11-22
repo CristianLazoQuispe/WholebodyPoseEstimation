@@ -9,6 +9,16 @@ All notable changes to this project are documented here. The format follows
 - `wholebodypose video --tracking`: runs the MediaPipe backend in VIDEO mode (`image_mode=False`).
   Off by default; the default per-frame mode is the one used in the paper.
 - `wholebodypose video --mediapipe-pose {heavy,full}`: selects the MediaPipe pose model (default `heavy`).
+- `benchmarks/`: speed script, raw CPU / GPU results and the speed chart, shown in the README, the project
+  page and `docs/guide/backends.md`.
+
+### Changed
+- The `[gpu]` extra installs `onnxruntime-gpu[cuda,cudnn]>=1.21` (CUDA and cuDNN as pip packages).
+- The speed table in `docs/guide/backends.md` covers every configuration on CPU and GPU.
+
+### Fixed
+- CUDA requested with the pip CUDA / cuDNN packages silently ran on CPU: the libraries are now loaded
+  with `onnxruntime.preload_dlls()` before the first CUDA session.
 
 ## [2.0.2] - 2026-11-21
 
