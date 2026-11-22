@@ -36,6 +36,13 @@ Python 3.10–3.13. Weights download on first use. Details: [installation](https
 | `vitpose` | core | ViTPose+-H | `model_name="ViTPose+_base_coco_wholebody"` for speed |
 | `mediapipe` | `[mediapipe]` | BlazePose heavy + Hands + Face landmarker | CPU; mapped to the same 133 points |
 
+## Speed
+
+<img src="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/speed.png" width="100%" alt="Frames per second on CPU and GPU for every backend configuration, whole-body pipeline with person detection">
+
+One person, full pipeline with person detection. MediaPipe runs on CPU; `--tracking` (CLI) or
+`image_mode=False` enables its tracking mode. Script and raw results: [benchmarks](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/tree/main/benchmarks).
+
 ## Image
 
 ```python
