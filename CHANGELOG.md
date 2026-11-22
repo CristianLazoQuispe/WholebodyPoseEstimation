@@ -5,9 +5,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-11-21
+
+First release on PyPI. No code changes.
+
+### Changed
+- README header (title, authors, badges) centered; CI badge in the same style as the others.
+
 ## [2.0.1] - 2026-11-21
 
-First release on PyPI (`pip install wholebodypose`). No code changes.
+Prepared for PyPI (published to TestPyPI only). No code changes.
 
 ### Changed
 - README rewritten for the PyPI page: absolute links and images, install extras, backend table, image,
