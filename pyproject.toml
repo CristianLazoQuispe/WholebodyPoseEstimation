@@ -42,6 +42,8 @@ mediapipe = ["mediapipe>=0.10.14"]
 video = ["imageio-ffmpeg>=0.5"]
 filters = ["padasip>=1.2,<2"]
 datasets = ["h5py>=3.8"]
+# OpenCV with GUI (cv2.imshow) for examples/webcam.py; the core keeps the lighter headless build.
+webcam = ["opencv-python>=4.8"]
 # CUDA build of ONNX Runtime with the CUDA / cuDNN pip packages; uninstall the CPU `onnxruntime`
 # first (docs/guide/installation.md#gpu).
 gpu = ["onnxruntime-gpu[cuda,cudnn]>=1.21"]

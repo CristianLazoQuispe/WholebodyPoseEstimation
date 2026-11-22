@@ -670,9 +670,9 @@
 <section class="section" id="speed">
   <div class="container">
     <h2>Speed</h2>
-    <p class="lead">Frames per second for one person, full pipeline with person detection, 133 keypoints. On a GPU, RTMPose and ViTPose+ run in real time; on CPU, MediaPipe is the fastest whole-body option.</p>
+    <p class="lead">Frames per second for one person, full pipeline with person detection, 133 keypoints. On a GPU, RTMPose and ViTPose+ run in real time; on a Mac, CoreML makes RTMPose about 3× faster than its CPU; on CPU, MediaPipe is the fastest whole-body option.</p>
     <figure class="fig">
-      <img src="static/images/speed.png" width="1848" height="704" loading="lazy" style="width:100%;height:auto" alt="Bar chart of frames per second on CPU and GPU. MediaPipe, CPU only: heavy 8.4, heavy with tracking 11, full 13, full with tracking 19. RTMPose light, balanced, performance: CPU 6.6, 3.6, 3.3; GPU 69, 39, 38. ViTPose+ S, B, L, H with YOLOX-m: CPU 3.7, 3.2, 2.2, 1.5; GPU 48, 48, 42, 38.">
+      <img src="static/images/speed.png" width="1848" height="704" loading="lazy" style="width:100%;height:auto" alt="Bar chart of frames per second on CPU, GPU and CoreML (Apple M4). MediaPipe, CPU only: heavy 8.4, heavy with tracking 11, full 13, full with tracking 19. RTMPose light, balanced, performance: CPU 6.6, 3.6, 3.3; GPU 69, 39, 38; CoreML 57, 22, 18. ViTPose+ S, B, L, H with YOLOX-m: CPU 3.7, 3.2, 2.2, 1.5; GPU 48, 48, 42, 38; CoreML 21, 15, 6.6, 4.2.">
     </figure>
     <p class="small center fig-note">Reproduce with <a href="https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/tree/main/benchmarks"><code>benchmarks/</code></a>. MediaPipe tracking: <code>--tracking</code> (CLI) or <code>image_mode=False</code>.</p>
   </div>

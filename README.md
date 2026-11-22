@@ -38,9 +38,9 @@ Python 3.10–3.13. Weights download on first use. Details: [installation](https
 
 ## Speed
 
-<img src="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/speed.png" width="100%" alt="Frames per second on CPU and GPU for every backend configuration, whole-body pipeline with person detection">
+<img src="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/speed.png" width="100%" alt="Frames per second on CPU, GPU and CoreML (Apple M4) for every backend configuration, whole-body pipeline with person detection">
 
-One person, full pipeline with person detection. MediaPipe runs on CPU; `--tracking` (CLI) or
+One person, full pipeline with person detection. On macOS, RTMPose runs on CoreML (`device="auto"`). MediaPipe runs on CPU; `--tracking` (CLI) or
 `image_mode=False` enables its tracking mode. Script and raw results: [benchmarks](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/tree/main/benchmarks).
 
 ## Image

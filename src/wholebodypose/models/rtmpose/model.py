@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 
 from wholebodypose.models.base import BasePoseModel
-from wholebodypose.models.onnx_session import ort_has_cuda
+from wholebodypose.models.onnx_session import resolve_device
 from wholebodypose.models.rtmpose._onnx.wholebody import MODE as _MODE_TABLE
 from wholebodypose.weights import get_weight
 
@@ -37,7 +37,8 @@ class RTMPoseModel(BasePoseModel):
     """Multi-person whole-body pose with YOLOX + RTMW (COCO-WholeBody, 133 keypoints).
 
     Args:
-        device: ``'auto'``, ``'cuda'`` or ``'cpu'``. Falls back to CPU when onnxruntime has no CUDA.
+        device: ``'auto'``, ``'cuda'``, ``'coreml'`` or ``'cpu'``. ``'auto'`` picks CUDA, then CoreML (macOS),
+            then CPU; a missing provider falls back to CPU.
         mode: ``'performance'`` (paper setting), ``'balanced'`` or ``'lightweight'``.
         to_openpose: Return the OpenPose-style ordering instead of COCO-WholeBody.
         use_thresholding: Binarize scores with ``kpt_thr`` (see :class:`BasePoseModel`).
@@ -70,8 +71,7 @@ class RTMPoseModel(BasePoseModel):
         kpt_thr = DEFAULT_KPT_THR[mode] if kpt_thr is None else kpt_thr
         super().__init__(use_thresholding=use_thresholding, kpt_thr=kpt_thr)
 
-        if device in ("auto", "cuda"):
-            device = "cuda" if ort_has_cuda() else "cpu"
+        device = resolve_device(device)
         self.device, self.mode = device, mode
         self.to_openpose = to_openpose
         self.filter_noise = filter_noise

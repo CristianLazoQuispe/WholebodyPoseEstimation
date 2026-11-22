@@ -28,3 +28,32 @@ def test_cuda_libs_failure_is_ignored(monkeypatch):
 
 def test_cpu_device_uses_cpu_provider():
     assert onnx_session.ort_providers("cpu") == ["CPUExecutionProvider"]
+
+
+def _providers(monkeypatch, *names):
+    monkeypatch.setattr(onnx_session, "_available_providers", lambda: [*names, "CPUExecutionProvider"])
+
+
+def test_auto_prefers_cuda_then_coreml(monkeypatch):
+    _providers(monkeypatch, "CUDAExecutionProvider", "CoreMLExecutionProvider")
+    assert onnx_session.resolve_device("auto") == "cuda"
+    _providers(monkeypatch, "CoreMLExecutionProvider")
+    assert onnx_session.resolve_device("auto") == "coreml"
+    _providers(monkeypatch)
+    assert onnx_session.resolve_device("auto") == "cpu"
+
+
+def test_missing_provider_falls_back_to_cpu(monkeypatch):
+    _providers(monkeypatch)
+    assert onnx_session.resolve_device("cuda") == "cpu"
+    assert onnx_session.resolve_device("coreml") == "cpu"
+    assert onnx_session.ort_providers("coreml") == ["CPUExecutionProvider"]
+
+
+def test_coreml_providers_carry_model_format(monkeypatch):
+    _providers(monkeypatch, "CoreMLExecutionProvider")
+    assert onnx_session.ort_providers("coreml", "MLProgram") == [
+        ("CoreMLExecutionProvider", {"ModelFormat": "MLProgram"}),
+        "CPUExecutionProvider",
+    ]
+    assert onnx_session.resolve_device("cpu") == "cpu"

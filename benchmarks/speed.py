@@ -2,10 +2,11 @@
 
     python benchmarks/speed.py --device cpu  --threads 8 -o benchmarks/results/cpu.json
     python benchmarks/speed.py --device cuda             -o benchmarks/results/gpu.json
+    python benchmarks/speed.py --device coreml           -o benchmarks/results/coreml.json   # macOS
 
 The frame is resized to 640 px wide (the video pipeline default). Each configuration runs 5 warm-up
 frames, then 50 timed frames; the JSON stores the median, 10th and 90th percentile in ms.
-MediaPipe runs on CPU only and is skipped with ``--device cuda``.
+MediaPipe runs on CPU only and is skipped with ``--device cuda`` and ``--device coreml``.
 """
 
 from __future__ import annotations
@@ -47,7 +48,7 @@ CONFIGS = [
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--device", choices=["cpu", "cuda"], default="cpu")
+    ap.add_argument("--device", choices=["cpu", "cuda", "coreml"], default="cpu")
     ap.add_argument("--threads", type=int, default=8, help="ONNX Runtime CPU threads (MediaPipe uses its own)")
     ap.add_argument("--image", default="data/images/image_4.jpeg")
     ap.add_argument("--warmup", type=int, default=5)
@@ -60,7 +61,7 @@ def main() -> None:
     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
     rows = []
     for label, backend, kw in CONFIGS:
-        if backend == "mediapipe" and args.device == "cuda":
+        if backend == "mediapipe" and args.device != "cpu":
             continue
         extra = {"intra_op_num_threads": args.threads} if args.device == "cpu" and backend != "mediapipe" else {}
         est = PoseEstimator(backend, device=args.device, verbose=False, **kw, **extra)

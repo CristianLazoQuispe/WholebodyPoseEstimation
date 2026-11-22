@@ -1,4 +1,4 @@
-"""Speed chart (FPS, CPU vs GPU) from the JSON files written by ``speed.py``.
+"""Speed chart (FPS, CPU vs GPU, plus CoreML when ``coreml.json`` exists) from the JSON files of ``speed.py``.
 
     python benchmarks/plot_speed.py benchmarks/results -o website/static/images/speed.png
 
@@ -29,7 +29,7 @@ BARS = [  # (label in the JSON, tick label, small label under the tick)
     *[(f"ViTPose+ {s} + YOLOX-m", f"ViTPose+\n{s[0].upper()}", "") for s in ("small", "base", "large", "huge")],
 ]
 BODY_ONLY = "MediaPipe body only, full + tracking"
-DARK, LIGHT, INK, MUTED, GRID = "#0f6f74", "#a9d3d3", "#1f2328", "#6b7279", "#eceef0"
+DARK, LIGHT, ACCENT, INK, MUTED, GRID = "#0f6f74", "#a9d3d3", "#4fa3e0", "#1f2328", "#6b7279", "#eceef0"
 
 
 def load(path: Path) -> dict:
@@ -38,13 +38,16 @@ def load(path: Path) -> dict:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("results", type=Path, help="directory with cpu.json and gpu.json")
+    ap.add_argument("results", type=Path, help="directory with cpu.json, gpu.json and optionally coreml.json")
     ap.add_argument("-o", "--output", type=Path, required=True)
     ap.add_argument("--cpu-name", default="AMD EPYC 7662")
     ap.add_argument("--gpu-name", default="NVIDIA A100")
+    ap.add_argument("--coreml-name", default="Apple M4")
     args = ap.parse_args()
 
     cpu, gpu = load(args.results / "cpu.json"), load(args.results / "gpu.json")
+    coreml_path = args.results / "coreml.json"
+    coreml = load(coreml_path) if coreml_path.exists() else {}
     meta = json.loads((args.results / "cpu.json").read_text())["meta"]
     plt.rcParams.update(
         {
@@ -65,28 +68,32 @@ def main() -> None:
     x[3:] += 0.15
     x[4:] += 0.4
     x[7:] += 0.5
-    w = 0.38
-    c = np.array([cpu[k] for k in keys])
-    g = np.array([gpu.get(k, np.nan) for k in keys])
-    cpu_only = np.isnan(g)
-    xc = np.where(cpu_only, x, x - w / 2)
-
+    series = [("CPU", cpu, LIGHT), ("GPU", gpu, DARK)]
+    if coreml:
+        series.append(("CoreML", coreml, ACCENT))
+    w = 0.76 / len(series)
     fig, ax = plt.subplots(figsize=(8.4, 3.2))
-    ax.bar(xc, c, w, color=LIGHT, zorder=2, label="CPU")
-    ax.bar(x + w / 2, np.nan_to_num(g), w, color=DARK, zorder=2, label="GPU")
-    for xi, xci, ci, gi in zip(x, xc, c, g, strict=True):
-        ax.text(
-            xci,
-            ci * 1.08,
-            f"{ci:.0f}" if ci >= 10 else f"{ci:.1f}",
-            ha="center",
-            va="bottom",
-            fontsize=6.5,
-            color=MUTED,
-        )
-        if not np.isnan(gi):
+    cpu_only = np.array([all(k not in d for _, d, _ in series[1:]) for k in keys])
+    for i, (name, data, color) in enumerate(series):
+        xs, ys = [], []
+        for xi, k, alone in zip(x, keys, cpu_only, strict=True):
+            if k not in data:
+                continue
+            present = [j for j, (_, d, _) in enumerate(series) if k in d]
+            xs.append(xi if alone else xi + (present.index(i) - (len(present) - 1) / 2) * w)
+            ys.append(data[k])
+        ax.bar(xs, ys, w, color=color, zorder=2, label=name)
+        for xv, yv in zip(xs, ys, strict=True):
+            bold = i > 0
             ax.text(
-                xi + w / 2, gi * 1.08, f"{gi:.0f}", ha="center", va="bottom", fontsize=7.5, color=INK, fontweight="bold"
+                xv,
+                yv * 1.08,
+                f"{yv:.0f}" if yv >= 10 else f"{yv:.1f}",
+                ha="center",
+                va="bottom",
+                fontsize=7 if bold else 6.5,
+                color=INK if bold else MUTED,
+                fontweight="bold" if bold else "normal",
             )
     ax.text(x[cpu_only].mean(), 25, "CPU only", ha="center", fontsize=6.5, color=MUTED)
     under = mt.blended_transform_factory(ax.transData, ax.transAxes)
@@ -103,13 +110,15 @@ def main() -> None:
     ax.set_xticks(x, [b[1] for b in BARS], fontsize=7.5)
     ax.tick_params(axis="both", length=0)
     ax.grid(axis="y", color=GRID, lw=0.7, zorder=0)
-    ax.legend(loc="upper right", frameon=False, ncol=2, fontsize=7.5, bbox_to_anchor=(1, 1.08))
+    ax.legend(loc="upper right", frameon=False, ncol=len(series), fontsize=7.5, bbox_to_anchor=(1, 1.08))
     wpx, hpx = meta["frame"]
     note = (
         "All bars: whole-body pose, 133 keypoints (body, feet, face, hands), with person detection. "
         f"MediaPipe body only (33 keypoints, full, tracking): {cpu[BODY_ONLY]:.0f} FPS.\n"
         f"1 person, {wpx}×{hpx} px. CPU: {meta['threads']} threads, {args.cpu_name}. GPU: {args.gpu_name}."
     )
+    if coreml:
+        note += f" CoreML: {args.coreml_name} (ViTPose+ itself on its CPU)."
     fig.text(0.01, 0.01, note, fontsize=6.5, color=MUTED)
     fig.subplots_adjust(left=0.08, right=0.99, top=0.92, bottom=0.26)
     args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -157,7 +157,7 @@ class RTMPose:
         model_input_size: ``(width, height)`` of the network input (rtmlib convention).
         mean, std: Per-channel normalization in 0-255 units (``None`` disables it).
         to_openpose: Return OpenPose-style ordering (134 points) instead of COCO-WholeBody.
-        device: ``'auto'``, ``'cuda'`` or ``'cpu'``.
+        device: ``'auto'``, ``'cuda'``, ``'coreml'`` or ``'cpu'``.
         intra_op_num_threads: onnxruntime CPU threads (``0`` = its default).
     """
 

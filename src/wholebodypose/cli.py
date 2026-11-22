@@ -11,7 +11,7 @@ CITE_LINE = "Please cite: Lazo-Quispe et al., WholeBodyPose, ICMV 2025, Proc. SP
 
 def _add_common(p: argparse.ArgumentParser) -> None:
     p.add_argument("--backend", "-b", default="rtmpose", help="rtmpose | vitpose | mediapipe")
-    p.add_argument("--device", default="auto", help="auto | cuda | cpu")
+    p.add_argument("--device", default="auto", help="auto | cuda | coreml | cpu")
     p.add_argument("--style", choices=["coco133", "openpose135"], default="coco133", help="skeleton drawing style")
     p.add_argument("--quiet", "-q", action="store_true")
 
