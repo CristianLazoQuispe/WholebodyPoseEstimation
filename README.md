@@ -1,10 +1,10 @@
+<div align="center">
+
 # WholeBodyPose
 
-One interface for RTMPose, ViTPose+ and MediaPipe that always returns the 133 COCO-WholeBody
-keypoints, plus the video pipeline that turns sign language videos into training-ready pose sequences
-(ICMV 2025, Proceedings of SPIE).
+One interface for RTMPose, ViTPose+ and MediaPipe that always returns the 133 COCO-WholeBody keypoints, plus the video pipeline that turns sign language videos into training-ready pose sequences (ICMV 2025, Proceedings of SPIE).
 
-Cristian Lazo-Quispe, Renato Castro-Cruz, Mauricio Salazar-Espinosa, Gissella Bejarano
+**Cristian Lazo-Quispe, Renato Castro-Cruz, Mauricio Salazar-Espinosa, Gissella Bejarano**
 
 [![Paper](https://img.shields.io/badge/Paper-PDF-b31b1b?style=flat-square)](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/paper/WholeBodyPose_ICMV2025.pdf)
 [![DOI](https://img.shields.io/badge/DOI-10.1117%2F12.3096312-blue?style=flat-square)](https://doi.org/10.1117/12.3096312)
@@ -12,8 +12,10 @@ Cristian Lazo-Quispe, Renato Castro-Cruz, Mauricio Salazar-Espinosa, Gissella Be
 [![Demo](https://img.shields.io/badge/%F0%9F%A4%97%20Demo-Space-yellow?style=flat-square)](https://huggingface.co/spaces/CristianLazoQuispe/WholeBodyPoseDemo)
 [![Datasets](https://img.shields.io/badge/%F0%9F%A4%97%20Datasets-pose--action--recognition-orange?style=flat-square)](https://huggingface.co/datasets/CristianLazoQuispe/pose-action-recognition)
 [![PyPI](https://img.shields.io/pypi/v/wholebodypose?style=flat-square)](https://pypi.org/project/wholebodypose/)
-[![CI](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/actions/workflows/ci.yml/badge.svg)](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/CristianLazoQuispe/WholebodyPoseEstimation/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-green?style=flat-square)](https://github.com/CristianLazoQuispe/WholebodyPoseEstimation/blob/main/LICENSE)
+
+</div>
 
 <img src="https://raw.githubusercontent.com/CristianLazoQuispe/WholebodyPoseEstimation/main/docs/assets/pipeline.svg" width="100%" alt="WholeBodyPose pipeline: input frames, pose backend (RTMPose, ViTPose+, MediaPipe), unified COCO-WholeBody output with 133 keypoints, optional temporal clean-up, training-ready pose sequences">
 
