@@ -68,7 +68,7 @@ wholebodypose video video.mp4 -b vitpose --style openpose135   # -> outputs/vide
 
 | COCO-WholeBody 133 (default) | OpenPose-style 135 |
 |:--:|:--:|
-| <img src="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/kpts_coco133.jpg" width="300" alt="COCO-WholeBody 133-keypoint skeleton"> | <img src="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/kpts_openpose135.jpg" width="300" alt="OpenPose-style 135-keypoint skeleton"> |
+| <img src="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/kpts_coco133.jpg?v=2" width="300" alt="COCO-WholeBody 133-keypoint skeleton"> | <img src="https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/kpts_openpose135.jpg?v=2" width="300" alt="OpenPose-style 135-keypoint skeleton"> |
 | `PoseEstimator(..., mode_coco=True)`, `--style coco133` | `PoseEstimator(..., mode_coco=False)`, `--style openpose135` |
 
 Every backend returns the same 133 points (body 0–16, feet 17–22, face 23–90, left hand 91–111,
