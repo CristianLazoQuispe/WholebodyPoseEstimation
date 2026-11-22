@@ -150,7 +150,7 @@ engines are close but not identical; to reproduce the paper exactly, use `mediap
 | Argument | Default | Notes |
 |:--|:--|:--|
 | `models` | `("hands", "face", "pose")` | parts to run, 1-3 of them |
-| `image_mode` | `True` | `True`: every frame is independent; `False`: tracking across frames (video / webcam) |
+| `image_mode` | `True` | `True`: every frame is independent (paper); `False`: tracking across frames (video / webcam, CLI `--tracking`): faster and smoother, but it can miss hands that the per-frame mode finds |
 | `pose_config` | `DEFAULT_POSE_CONFIG` | `min_detection_confidence=0.3`, `min_tracking_confidence=0.3`, `model_complexity=2` (heavy; `<2` selects the `full` model with Tasks), `smooth_landmarks=True`, … |
 | `hands_config` | `DEFAULT_HANDS_CONFIG` | `min_detection_confidence=0.3`, `min_tracking_confidence=0.3`, `max_num_hands=2`, `model_complexity=1` |
 | `face_config` | `DEFAULT_FACE_CONFIG` | `min_detection_confidence=0.5`, `min_tracking_confidence=0.5`, `max_num_faces=1`, `refine_landmarks=False` |
@@ -163,20 +163,37 @@ that key. Call `model.close()` (or let it be garbage-collected) to release the M
 
 ## Speed
 
-Steady-state time per 640×427 frame on CPU (8 cores of an AMD EPYC 7662, ONNX Runtime 1.32, MediaPipe
-Tasks engine), `PoseEstimator(..., device="cpu")` after three warm-up frames. Only the ratios matter.
+![Frames per second on CPU and GPU](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/speed.png)
 
-| Backend | ms / frame |
-|:--|--:|
-| `mediapipe` (pose heavy + hands + face) | ~120 |
-| `rtmpose`, `mode="lightweight"` | ~160 |
-| `rtmpose`, `mode="balanced"` | ~290 |
-| `rtmpose`, `mode="performance"` (paper) | ~310 |
-| `vitpose`, `ViTPose+_small_coco_wholebody` | ~40 |
-| `vitpose`, `ViTPose+_base_coco_wholebody` | ~75 |
+Median frames per second for one 640×853 frame with one person, after 5 warm-up frames (50 timed frames).
+CPU: 8 threads of an AMD EPYC 7662 (ONNX Runtime 1.32, MediaPipe Tasks engine). GPU: NVIDIA A100
+(`onnxruntime-gpu` 1.23). All rows return the 133 keypoints. Script, raw JSON and chart:
+[`benchmarks/`](../../benchmarks).
 
-- RTMPose and ViTPose are much faster on a GPU (`[gpu]` extra); MediaPipe stays on CPU.
-- RTMPose time grows with the number of people (one pose pass per detected person).
+| Configuration | CPU FPS | GPU FPS |
+|:--|--:|--:|
+| `mediapipe`, pose heavy (default) | 8.4 | — |
+| `mediapipe`, pose heavy, tracking | 10.8 | — |
+| `mediapipe`, pose full | 12.6 | — |
+| `mediapipe`, pose full, tracking | 19.3 | — |
+| `rtmpose`, `mode="lightweight"` | 6.6 | 69 |
+| `rtmpose`, `mode="balanced"` | 3.6 | 39 |
+| `rtmpose`, `mode="performance"` (default) | 3.3 | 38 |
+| `vitpose`, `ViTPose+_small_coco_wholebody`, `detector="yolox_m"` | 3.7 | 48 |
+| `vitpose`, `ViTPose+_base_coco_wholebody`, `detector="yolox_m"` | 3.2 | 48 |
+| `vitpose`, `ViTPose+_large_coco_wholebody`, `detector="yolox_m"` | 2.2 | 42 |
+| `vitpose`, `ViTPose+_huge_coco_wholebody`, `detector="yolox_m"` | 1.5 | 38 |
+| `vitpose`, `ViTPose+_small_coco_wholebody`, no detector | 26.0 | 290 |
+| `vitpose`, `ViTPose+_base_coco_wholebody`, no detector | 13.1 | 245 |
+| `vitpose`, `ViTPose+_large_coco_wholebody`, no detector | 4.6 | 139 |
+| `vitpose`, `ViTPose+_huge_coco_wholebody`, no detector | 2.4 | 100 |
+
+- MediaPipe runs on CPU. Tracking (`image_mode=False`, CLI `--tracking`) is faster and smoother, but
+  it can miss hands that the per-frame mode finds. Body only (`models=["pose"]`, full, tracking):
+  52 FPS.
+- `vitpose` default: ViTPose+-H with no detector (the whole frame is one person); on a GPU the YOLOX-m detector
+  takes most of the time.
+- RTMPose and ViTPose+ with a detector run one pose pass per detected person.
 - In `Video2Pose`, `resize_width=640` (default) and `video_processing_fps` are the main speed knobs.
 
 ## Adding a backend
