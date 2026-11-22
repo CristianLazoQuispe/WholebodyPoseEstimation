@@ -56,4 +56,7 @@ def test_video_tracking_flag(monkeypatch, synthetic_video, tmp_path):
     args = ["video", str(synthetic_video), "-o", str(tmp_path), "-q", "--max-frames", "2", "--no-render"]
     assert cli.main(args + ["-b", "mediapipe", "--tracking"]) == 0
     assert seen["image_mode"] is False
+    assert cli.main(args + ["-b", "mediapipe", "--mediapipe-pose", "full"]) == 0
+    assert seen["pose_config"] == {"model_complexity": 1}
     assert cli.main(args + ["-b", "rtmpose", "--tracking"]) == 2
+    assert cli.main(args + ["-b", "rtmpose", "--mediapipe-pose", "full"]) == 2
