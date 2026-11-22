@@ -30,6 +30,7 @@ wholebodypose download                                    # pre-fetch every weig
 | `--multiperson` | off | keep every person (default: the largest one per frame) |
 | `--background` | none | draw on a solid color (`black`, `white`, `red`, `green`, `blue`) |
 | `--no-render` | off | only write the keypoint file |
+| `--tracking` | off | `mediapipe` only: track landmarks across frames (VIDEO mode) instead of detecting on every frame |
 
 `wholebodypose image` stores the result as one frame holding `N` people: keypoints `(1, N, 133, 2)`.
 `wholebodypose video` stores `(T, 133, 2)` (single person) or a ragged multi-person sequence; see

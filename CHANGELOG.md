@@ -5,6 +5,10 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- `wholebodypose video --tracking`: runs the MediaPipe backend in VIDEO mode (`image_mode=False`).
+  Off by default; the default per-frame mode is the one used in the paper.
+
 ## [2.0.2] - 2026-11-21
 
 First release on PyPI. No code changes.

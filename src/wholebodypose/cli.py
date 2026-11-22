@@ -42,6 +42,12 @@ def cmd_image(args) -> int:
 def cmd_video(args) -> int:
     from wholebodypose import PoseEstimator, save_poses
 
+    extra = {}
+    if args.tracking:
+        if args.backend != "mediapipe":
+            print("--tracking is only available with -b mediapipe", file=sys.stderr)
+            return 2
+        extra["image_mode"] = False
     est = PoseEstimator(
         args.backend,
         device=args.device,
@@ -49,6 +55,7 @@ def cmd_video(args) -> int:
         verbose=not args.quiet,
         multiperson=args.multiperson,
         max_people=args.max_people,
+        **extra,
     )
     res = est.process_video(
         str(args.input),
@@ -127,6 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--resize-width", type=int, default=640, help="0 keeps original size")
     p.add_argument("--background", default=None, help="draw on a solid color (black, white, ...)")
     p.add_argument("--no-render", action="store_true", help="only save keypoints")
+    p.add_argument("--tracking", action="store_true", help="mediapipe: track across frames (VIDEO mode)")
     _add_common(p)
     p.set_defaults(func=cmd_video)
 

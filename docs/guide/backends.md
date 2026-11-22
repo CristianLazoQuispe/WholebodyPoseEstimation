@@ -150,7 +150,7 @@ engines are close but not identical; to reproduce the paper exactly, use `mediap
 | Argument | Default | Notes |
 |:--|:--|:--|
 | `models` | `("hands", "face", "pose")` | parts to run, 1-3 of them |
-| `image_mode` | `True` | `True`: every frame is independent; `False`: tracking across frames (video / webcam) |
+| `image_mode` | `True` | `True`: every frame is independent (paper); `False`: tracking across frames (video / webcam, CLI `--tracking`): faster and smoother, but it can miss hands that the per-frame mode finds |
 | `pose_config` | `DEFAULT_POSE_CONFIG` | `min_detection_confidence=0.3`, `min_tracking_confidence=0.3`, `model_complexity=2` (heavy; `<2` selects the `full` model with Tasks), `smooth_landmarks=True`, … |
 | `hands_config` | `DEFAULT_HANDS_CONFIG` | `min_detection_confidence=0.3`, `min_tracking_confidence=0.3`, `max_num_hands=2`, `model_complexity=1` |
 | `face_config` | `DEFAULT_FACE_CONFIG` | `min_detection_confidence=0.5`, `min_tracking_confidence=0.5`, `max_num_faces=1`, `refine_landmarks=False` |
