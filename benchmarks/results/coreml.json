@@ -1,0 +1,155 @@
+{
+ "meta": {
+  "device": "coreml",
+  "threads": null,
+  "image": "data/images/image_4.jpeg",
+  "frame": [
+   640,
+   853
+  ],
+  "frames": 50,
+  "wholebodypose": "2.0.3",
+  "onnxruntime": "1.32.0",
+  "git": "3455004",
+  "python": "3.12.13",
+  "cpu": "arm"
+ },
+ "rows": [
+  {
+   "label": "RTMPose lightweight",
+   "backend": "rtmpose",
+   "options": {
+    "mode": "lightweight"
+   },
+   "ms_median": 17.638854507822543,
+   "fps": 56.69302388976089,
+   "ms_p10": 15.536033839453012,
+   "ms_p90": 23.597678844816983,
+   "people": 1
+  },
+  {
+   "label": "RTMPose balanced",
+   "backend": "rtmpose",
+   "options": {
+    "mode": "balanced"
+   },
+   "ms_median": 44.75252149859443,
+   "fps": 22.345109649998324,
+   "ms_p10": 43.70580823160708,
+   "ms_p90": 46.93347468273714,
+   "people": 1
+  },
+  {
+   "label": "RTMPose performance",
+   "backend": "rtmpose",
+   "options": {
+    "mode": "performance"
+   },
+   "ms_median": 55.37543701939285,
+   "fps": 18.05854822689333,
+   "ms_p10": 54.53642086358741,
+   "ms_p90": 57.06916217459366,
+   "people": 1
+  },
+  {
+   "label": "ViTPose+ small + YOLOX-m",
+   "backend": "vitpose",
+   "options": {
+    "model_name": "ViTPose+_small_coco_wholebody",
+    "detector": "yolox_m"
+   },
+   "ms_median": 48.34902106085792,
+   "fps": 20.68294203395099,
+   "ms_p10": 46.68432018952444,
+   "ms_p90": 50.30158314621076,
+   "people": 1
+  },
+  {
+   "label": "ViTPose+ base + YOLOX-m",
+   "backend": "vitpose",
+   "options": {
+    "model_name": "ViTPose+_base_coco_wholebody",
+    "detector": "yolox_m"
+   },
+   "ms_median": 66.42970850225538,
+   "fps": 15.053505766415467,
+   "ms_p10": 65.48415804281831,
+   "ms_p90": 66.63901244755834,
+   "people": 1
+  },
+  {
+   "label": "ViTPose+ large + YOLOX-m",
+   "backend": "vitpose",
+   "options": {
+    "model_name": "ViTPose+_large_coco_wholebody",
+    "detector": "yolox_m"
+   },
+   "ms_median": 151.36939549120143,
+   "fps": 6.6063552460849095,
+   "ms_p10": 149.25403755623847,
+   "ms_p90": 161.78188726771623,
+   "people": 1
+  },
+  {
+   "label": "ViTPose+ huge + YOLOX-m",
+   "backend": "vitpose",
+   "options": {
+    "model_name": "ViTPose+_huge_coco_wholebody",
+    "detector": "yolox_m"
+   },
+   "ms_median": 236.72525002621114,
+   "fps": 4.224306447619238,
+   "ms_p10": 233.99203374283388,
+   "ms_p90": 246.90254963934422,
+   "people": 1
+  },
+  {
+   "label": "ViTPose+ small, full frame",
+   "backend": "vitpose",
+   "options": {
+    "model_name": "ViTPose+_small_coco_wholebody"
+   },
+   "ms_median": 15.670811990275979,
+   "fps": 63.812902651152854,
+   "ms_p10": 15.488379064481705,
+   "ms_p90": 17.652904149144888,
+   "people": 1
+  },
+  {
+   "label": "ViTPose+ base, full frame",
+   "backend": "vitpose",
+   "options": {
+    "model_name": "ViTPose+_base_coco_wholebody"
+   },
+   "ms_median": 34.64385401457548,
+   "fps": 28.865148767203458,
+   "ms_p10": 34.51379998587072,
+   "ms_p90": 34.915583045221865,
+   "people": 1
+  },
+  {
+   "label": "ViTPose+ large, full frame",
+   "backend": "vitpose",
+   "options": {
+    "model_name": "ViTPose+_large_coco_wholebody"
+   },
+   "ms_median": 113.75366646097973,
+   "fps": 8.790925436614602,
+   "ms_p10": 113.29488721676171,
+   "ms_p90": 119.9329869588837,
+   "people": 1
+  },
+  {
+   "label": "ViTPose+ huge, full frame",
+   "backend": "vitpose",
+   "options": {
+    "model_name": "ViTPose+_huge_coco_wholebody"
+   },
+   "ms_median": 197.98591698054224,
+   "fps": 5.050864300102106,
+   "ms_p10": 197.5369535270147,
+   "ms_p90": 206.55772916506976,
+   "people": 1
+  }
+ ]
+}

@@ -1,8 +1,9 @@
 # ONNX Runtime models
 
 RTMPose and ViTPose run on ONNX Runtime with NumPy/OpenCV pre- and post-processing. Both use one session
-helper (`wholebodypose.models.onnx_session`) for the execution providers (CUDA when the installed
-`onnxruntime` has it, see [installation.md](installation.md#gpu)), `intra_op_num_threads` and the
+helper (`wholebodypose.models.onnx_session`) for the execution providers (CUDA or CoreML when the installed
+`onnxruntime` has it, see [installation.md](installation.md#gpu) and [macOS](installation.md#macos-coreml)),
+`intra_op_num_threads` and the
 reported device. Arguments: [backends.md](backends.md).
 
 ## RTMPose

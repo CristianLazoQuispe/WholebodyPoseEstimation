@@ -31,8 +31,8 @@ model = create_model("mediapipe", kpt_thr=0.3)  # the bare backend, without draw
 
 | Backend | Model | People | Runs on | Install extra |
 |:--|:--|:-:|:--|:--|
-| `rtmpose` | YOLOX-m + RTMW-l 384×288 (OpenMMLab) | multi | ONNX Runtime CPU / CUDA | core (+ `[gpu]`) |
-| `vitpose` | ViTPose+ huge/large/base/small, top-down | single · multi with YOLOX crops | ONNX Runtime CPU / CUDA | core (+ `[gpu]`) |
+| `rtmpose` | YOLOX-m + RTMW-l 384×288 (OpenMMLab) | multi | ONNX Runtime CPU / CUDA / CoreML | core (+ `[gpu]`) |
+| `vitpose` | ViTPose+ huge/large/base/small, top-down | single · multi with YOLOX crops | ONNX Runtime CPU / CUDA (YOLOX also CoreML) | core (+ `[gpu]`) |
 | `mediapipe` | BlazePose heavy + Hands + Face landmarker | single · multi (`max_people`) | CPU | `[mediapipe]` |
 
 ## Multi-person
@@ -89,7 +89,7 @@ Model names follow the [MMPose RTMW table](https://github.com/open-mmlab/mmpose/
 
 | Argument | Default (class) | Notes |
 |:--|:--|:--|
-| `device` | `"auto"` | `cuda` only if ONNX Runtime has `CUDAExecutionProvider` (install `onnxruntime-gpu`), else `cpu` |
+| `device` | `"auto"` | `cuda` if ONNX Runtime has `CUDAExecutionProvider` (install `onnxruntime-gpu`), else `coreml` on macOS, else `cpu`; `"cuda"`, `"coreml"`, `"cpu"` force one |
 | `intra_op_num_threads` | `0` | ONNX Runtime CPU threads per session (`0` = its default) |
 | `mode` | `"performance"` | see the table above |
 | `to_openpose` | `False` | OpenPose-style ordering instead of COCO-WholeBody |
@@ -113,7 +113,7 @@ crops instead (the same YOLOX as RTMPose).
 
 | Argument | Default (class) | Notes |
 |:--|:--|:--|
-| `device` | `"auto"` | `cuda` if ONNX Runtime has `CUDAExecutionProvider`, else `cpu` |
+| `device` | `"auto"` | `cuda` if ONNX Runtime has `CUDAExecutionProvider`, else `cpu`; on `coreml` only the YOLOX detector uses CoreML |
 | `model_name` | `"ViTPose+_huge_coco_wholebody"` | also `ViTPose+_large_…`, `ViTPose+_base_…`, `ViTPose+_small_…` (`…` = `coco_wholebody`) |
 | `use_thresholding` | `False` (paper: `True`) | |
 | `kpt_thr` | `0.5` | heatmap confidence, 0-1 |
@@ -163,31 +163,34 @@ that key. Call `model.close()` (or let it be garbage-collected) to release the M
 
 ## Speed
 
-![Frames per second on CPU and GPU](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/speed.png)
+![Frames per second on CPU, GPU and CoreML](https://cristianlazoquispe.github.io/WholebodyPoseEstimation/static/images/speed.png)
 
 Median frames per second for one 640×853 frame with one person, after 5 warm-up frames (50 timed frames).
 CPU: 8 threads of an AMD EPYC 7662 (ONNX Runtime 1.32, MediaPipe Tasks engine). GPU: NVIDIA A100
-(`onnxruntime-gpu` 1.23). All rows return the 133 keypoints. Script, raw JSON and chart:
+(`onnxruntime-gpu` 1.23). Apple M4: the same script on its CPU (8 threads) and with `device="coreml"`
+(ONNX Runtime 1.32 CoreML provider). All rows return the 133 keypoints. Script, raw JSON and chart:
 [`benchmarks/`](../../benchmarks).
 
-| Configuration | CPU FPS | GPU FPS |
-|:--|--:|--:|
-| `mediapipe`, pose heavy (default) | 8.4 | — |
-| `mediapipe`, pose heavy, tracking | 10.8 | — |
-| `mediapipe`, pose full | 12.6 | — |
-| `mediapipe`, pose full, tracking | 19.3 | — |
-| `rtmpose`, `mode="lightweight"` | 6.6 | 69 |
-| `rtmpose`, `mode="balanced"` | 3.6 | 39 |
-| `rtmpose`, `mode="performance"` (default) | 3.3 | 38 |
-| `vitpose`, `ViTPose+_small_coco_wholebody`, `detector="yolox_m"` | 3.7 | 48 |
-| `vitpose`, `ViTPose+_base_coco_wholebody`, `detector="yolox_m"` | 3.2 | 48 |
-| `vitpose`, `ViTPose+_large_coco_wholebody`, `detector="yolox_m"` | 2.2 | 42 |
-| `vitpose`, `ViTPose+_huge_coco_wholebody`, `detector="yolox_m"` | 1.5 | 38 |
-| `vitpose`, `ViTPose+_small_coco_wholebody`, no detector | 26.0 | 290 |
-| `vitpose`, `ViTPose+_base_coco_wholebody`, no detector | 13.1 | 245 |
-| `vitpose`, `ViTPose+_large_coco_wholebody`, no detector | 4.6 | 139 |
-| `vitpose`, `ViTPose+_huge_coco_wholebody`, no detector | 2.4 | 100 |
+| Configuration | CPU FPS | GPU FPS | Apple M4 CPU FPS | Apple M4 CoreML FPS |
+|:--|--:|--:|--:|--:|
+| `mediapipe`, pose heavy (default) | 8.4 | — | 30 | — |
+| `mediapipe`, pose heavy, tracking | 10.8 | — | 45 | — |
+| `mediapipe`, pose full | 12.6 | — | 38 | — |
+| `mediapipe`, pose full, tracking | 19.3 | — | 68 | — |
+| `rtmpose`, `mode="lightweight"` | 6.6 | 69 | 19 | 57 |
+| `rtmpose`, `mode="balanced"` | 3.6 | 39 | 5.9 | 22 |
+| `rtmpose`, `mode="performance"` (default) | 3.3 | 38 | 5.1 | 18 |
+| `vitpose`, `ViTPose+_small_coco_wholebody`, `detector="yolox_m"` | 3.7 | 48 | 6.2 | 21 |
+| `vitpose`, `ViTPose+_base_coco_wholebody`, `detector="yolox_m"` | 3.2 | 48 | 5.8 | 15 |
+| `vitpose`, `ViTPose+_large_coco_wholebody`, `detector="yolox_m"` | 2.2 | 42 | 3.9 | 6.6 |
+| `vitpose`, `ViTPose+_huge_coco_wholebody`, `detector="yolox_m"` | 1.5 | 38 | 2.9 | 4.2 |
+| `vitpose`, `ViTPose+_small_coco_wholebody`, no detector | 26.0 | 290 | 55 | 64 |
+| `vitpose`, `ViTPose+_base_coco_wholebody`, no detector | 13.1 | 245 | 27 | 29 |
+| `vitpose`, `ViTPose+_large_coco_wholebody`, no detector | 4.6 | 139 | 8.6 | 8.8 |
+| `vitpose`, `ViTPose+_huge_coco_wholebody`, no detector | 2.4 | 100 | 4.7 | 5.1 |
 
+- CoreML runs RTMW and YOLOX; ViTPose+ itself stays on the M4 CPU, so ViTPose+ without a detector gains
+  nothing and with YOLOX-m only the detector is faster. MediaPipe runs on CPU, so it has no CoreML value.
 - MediaPipe runs on CPU. Tracking (`image_mode=False`, CLI `--tracking`) is faster and smoother, but
   it can miss hands that the per-frame mode finds. Body only (`models=["pose"]`, full, tracking):
   52 FPS.

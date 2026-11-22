@@ -113,7 +113,7 @@ class PoseEstimator:
 
     Args:
         backend: ``'rtmpose'``, ``'vitpose'`` or ``'mediapipe'``.
-        device: ``'auto'``, ``'cuda'`` or ``'cpu'``.
+        device: ``'auto'``, ``'cuda'``, ``'coreml'`` or ``'cpu'``.
         mode_coco: Visualization style. ``True``: COCO-WholeBody 133 keypoints;
             ``False``: adds neck and pelvis points (135, OpenPose-like).
         verbose: Print loading information.

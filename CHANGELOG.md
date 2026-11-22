@@ -5,6 +5,14 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- macOS: `device="coreml"`, and `device="auto"` picks CoreML when ONNX Runtime has it (after CUDA). RTMW and
+  YOLOX run on CoreML (YOLOX as an ML Program, since its NMS fails in the NeuralNetwork format); ViTPose
+  stays on CPU, where it is faster. RTMPose on an Apple M4: 2.3x (`lightweight`) to 2.9x (`balanced`) faster
+  than CPU. Keypoints match CPU within a few pixels; `device="cpu"` reproduces CPU outputs exactly.
+- `examples/webcam.py`: live webcam pose with an FPS overlay; the `[webcam]` extra adds the GUI build of
+  OpenCV (`opencv-python`) it needs, while the core keeps `opencv-python-headless`.
+
 ## [2.0.3] - 2026-11-22
 
 ### Added

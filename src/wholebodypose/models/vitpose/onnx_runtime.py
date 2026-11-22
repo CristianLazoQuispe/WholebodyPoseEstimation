@@ -18,7 +18,7 @@ from __future__ import annotations
 import cv2
 import numpy as np
 
-from wholebodypose.models.onnx_session import create_session, ort_providers, session_device
+from wholebodypose.models.onnx_session import create_session, ort_providers, resolve_device, session_device
 
 __all__ = ["ViTPoseOnnx", "decode_heatmaps", "ort_providers", "preprocess"]
 
@@ -91,12 +91,14 @@ class ViTPoseOnnx:
 
     Args:
         model_path: ViTPose+ ``.onnx`` file (``get_weight("vitpose_<size>")``).
-        device: ``'auto'``, ``'cuda'`` or ``'cpu'``.
+        device: ``'auto'``, ``'cuda'`` or ``'cpu'``. CoreML runs on CPU: the ViTPose graph is slower on
+            CoreML (NeuralNetwork) or fails to compile (MLProgram).
         intra_op_num_threads: ONNX Runtime CPU threads (``0`` = its default).
     """
 
     def __init__(self, model_path: str, device: str = "auto", intra_op_num_threads: int = 0) -> None:
-        self.session = create_session(model_path, device, intra_op_num_threads)
+        device = resolve_device(device)
+        self.session = create_session(model_path, "cpu" if device == "coreml" else device, intra_op_num_threads)
         self.input_name = self.session.get_inputs()[0].name
         self.device = session_device(self.session)
 

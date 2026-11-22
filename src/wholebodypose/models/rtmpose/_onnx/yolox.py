@@ -179,7 +179,7 @@ class YOLOX:
         model_input_size: ``(height, width)`` of the network input (rtmlib convention).
         nms_thr: NMS IoU threshold.
         score_thr: Detection score threshold (attribute, may be changed after construction).
-        device: ``'auto'``, ``'cuda'`` or ``'cpu'``.
+        device: ``'auto'``, ``'cuda'``, ``'coreml'`` or ``'cpu'``.
         intra_op_num_threads: onnxruntime CPU threads (``0`` = its default).
     """
 
@@ -196,7 +196,8 @@ class YOLOX:
         self.model_input_size = tuple(model_input_size)
         self.nms_thr = nms_thr
         self.score_thr = score_thr
-        self.session = create_session(self.onnx_model, device, intra_op_num_threads)
+        # On CoreML the NeuralNetwork format fails on the graph's NMS; MLProgram runs it.
+        self.session = create_session(self.onnx_model, device, intra_op_num_threads, coreml_format="MLProgram")
         self.device = session_device(self.session)
         self.input_name = self.session.get_inputs()[0].name
         self.output_names = [o.name for o in self.session.get_outputs()]

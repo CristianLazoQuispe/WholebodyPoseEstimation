@@ -17,6 +17,7 @@ pip install "wholebodypose[mediapipe]"
 | `video` | `imageio-ffmpeg` | re-encoding rendered videos to browser-playable H.264 |
 | `filters` | `padasip` | `FilteringNLMS` (temporal smoothing of the paper) |
 | `datasets` | `h5py` | `wholebodypose.datasets`, `wholebodypose-build-islr` |
+| `webcam` | `opencv-python` | OpenCV with windows (`cv2.imshow`) for [`examples/webcam.py`](../../examples/webcam.py) |
 | `gpu` | `onnxruntime-gpu` | RTMPose / ViTPose on CUDA (see [GPU](#gpu)) |
 | `demo` | `gradio` + `mediapipe,video` | the Gradio app in `hf/space/` |
 | `all` | `mediapipe,filters,video` | |
@@ -27,7 +28,8 @@ execution providers and the installed extras.
 
 ## GPU
 
-`device="auto"` (the default) uses CUDA when the installed ONNX Runtime has it and CPU otherwise.
+`device="auto"` (the default) uses CUDA when the installed ONNX Runtime has it, then CoreML
+([macOS](#macos-coreml)), then CPU.
 `onnxruntime-gpu` provides the same `onnxruntime` module as the CPU wheel of the core install, so
 uninstall the CPU wheel first:
 
@@ -42,6 +44,16 @@ is needed; WholeBodyPose loads them when CUDA is requested. With a system-wide C
 `onnxruntime-gpu` must match its version
 ([requirements](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html#requirements)).
 MediaPipe runs on CPU.
+
+## macOS (CoreML)
+
+The `onnxruntime` wheel for macOS ships the CoreML execution provider, so the core install already uses the
+Apple GPU / Neural Engine: `device="auto"` (or `"coreml"`) runs RTMW and YOLOX on CoreML, with CPU fallback
+for unsupported nodes. ViTPose itself stays on CPU (its graph is slower on CoreML), but its YOLOX detector
+uses CoreML. The first session takes 2-4 s to compile the CoreML model.
+
+CoreML computes in reduced precision: keypoints match the CPU ones within a few pixels (an RTMW SimCC bin),
+not bit for bit. Pass `device="cpu"` to reproduce CPU outputs exactly.
 
 ## From source (development)
 

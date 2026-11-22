@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 
 from wholebodypose.models.base import BasePoseModel
+from wholebodypose.models.onnx_session import resolve_device
 from wholebodypose.weights import get_weight
 
 # model_name -> WEIGHTS key of its ONNX export.
@@ -25,7 +26,8 @@ class VITPoseModel(BasePoseModel):
     on each person crop, giving multi-person output.
 
     Args:
-        device: ``'auto'``, ``'cuda'`` or ``'cpu'``.
+        device: ``'auto'``, ``'cuda'``, ``'coreml'`` or ``'cpu'``. On CoreML only the YOLOX detector uses it;
+            ViTPose itself runs on CPU.
         model_name: One of ``MODEL_NAMES`` (paper: ``ViTPose+_huge_coco_wholebody``).
         use_thresholding: Binarize scores with ``kpt_thr``.
         kpt_thr: Threshold on heatmap confidences (0-1).
@@ -58,6 +60,7 @@ class VITPoseModel(BasePoseModel):
         from wholebodypose.models.vitpose.onnx_runtime import ViTPoseOnnx
 
         self.model_name = model_name
+        device = resolve_device(device)
         path = get_weight(MODEL_NAMES[model_name], verbose=verbose)
         self.model = ViTPoseOnnx(str(path), device=device, intra_op_num_threads=intra_op_num_threads)
         self.device = self.model.device
@@ -66,7 +69,7 @@ class VITPoseModel(BasePoseModel):
         self.box_padding = box_padding
         self.detector = None
         if detector is not None:
-            self.detector = _load_yolox(detector, self.device, det_score_thr, verbose, intra_op_num_threads)
+            self.detector = _load_yolox(detector, device, det_score_thr, verbose, intra_op_num_threads)
 
     def _predict(self, image_rgb: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         if self.detector is None:
@@ -107,6 +110,6 @@ def _load_yolox(name: str, device: str, score_thr: float, verbose: bool, intra_o
         str(get_weight(key, verbose=verbose)),
         model_input_size=size,
         score_thr=score_thr,
-        device="cuda" if device == "cuda" else "cpu",
+        device=device,
         intra_op_num_threads=intra_op_num_threads,
     )

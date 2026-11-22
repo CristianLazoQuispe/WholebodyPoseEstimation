@@ -61,7 +61,7 @@ class Wholebody:
         det_input_size: YOLOX input ``(height, width)``.
         pose_input_size: RTMW input ``(width, height)``.
         to_openpose: OpenPose-style output ordering.
-        device: ``'auto'``, ``'cuda'`` or ``'cpu'``.
+        device: ``'auto'``, ``'cuda'``, ``'coreml'`` or ``'cpu'``.
         intra_op_num_threads: onnxruntime CPU threads for each session (``0`` = its default).
     """
 
